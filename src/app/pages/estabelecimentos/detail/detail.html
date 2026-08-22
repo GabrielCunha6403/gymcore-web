@@ -1,0 +1,122 @@
+<div class="establishment-detail-body">
+  <app-breadcrumb></app-breadcrumb>
+  @if (estabelecimento(); as estabelecimento) {
+    <div class="detail-header">
+      <div class="detail-header__media">
+        @if (estabelecimento.imagemUrl) {
+          <img [src]="estabelecimento.imagemUrl" [alt]="'Foto do estabelecimento ' + estabelecimento.nomeFantasia">
+        } @else {
+          <span class="detail-header__placeholder">{{ estabelecimentoInitials() }}</span>
+        }
+      </div>
+
+      <div class="title-area">
+        <h1>{{ estabelecimento.nomeFantasia }}</h1>
+
+        <div class="estabelecimento-item__details">
+          <span class="estabelecimento-item__detail">
+            <i class="pi pi-id-card" aria-hidden="true"></i>
+            <span>{{ estabelecimento.cnpj }}</span>
+          </span>
+
+          <span class="estabelecimento-item__detail">
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
+            <span>{{ formattedUnits() }}</span>
+          </span>
+
+          <span class="estabelecimento-item__detail">
+            <i class="pi pi-envelope" aria-hidden="true"></i>
+            <span>{{ estabelecimento.email }}</span>
+          </span>
+
+          <span class="estabelecimento-item__detail">
+            <i class="pi pi-phone" aria-hidden="true"></i>
+            <span>{{ estabelecimento.telefone }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="detail-header detail-header--missing">
+      <div class="detail-header__media">
+        <span class="detail-header__placeholder">{{ estabelecimentoInitials() }}</span>
+      </div>
+
+      <div class="title-area">
+        <h1>Estabelecimento não encontrado</h1>
+
+        <div class="estabelecimento-item__details">
+          <span class="estabelecimento-item__detail">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <span>Verifique o identificador informado para carregar as unidades.</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="establishment-toolbar">
+    <div class="establishment-toolbar__filters">
+      <div class="establishment-toolbar__input-wrapper">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          class="establishment-toolbar__input"
+          type="text"
+          placeholder="Pesquise por nome, tipo, status ou localização"
+          [value]="filterValue()"
+          (input)="updateFilter($any($event.target).value)"
+          aria-label="Pesquisar unidades por nome, tipo, status ou localização"
+        >
+
+        @if (filterValue()) {
+          <button
+            class="establishment-toolbar__clear"
+            type="button"
+            (click)="clearFilter()"
+            aria-label="Limpar filtro de unidades"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="establishment-toolbar__view">
+      <div class="view-toggle" role="group" aria-label="Alternar visualização de unidades">
+        <button
+          class="view-toggle__button"
+          type="button"
+          [class.is-active]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+        >
+          <i class="pi pi-bars" aria-hidden="true"></i>
+          <span>Lista</span>
+        </button>
+
+        <button
+          class="view-toggle__button"
+          type="button"
+          [class.is-active]="viewMode() === 'cards'"
+          (click)="setViewMode('cards')"
+        >
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          <span>Cards</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="establishment-content" [class.establishment-content--cards]="viewMode() === 'cards'">
+    @if (filteredUnidades().length) {
+      @for (unidade of filteredUnidades(); track unidade.id) {
+        <app-unidade-item [unidade]="unidade" [viewMode]="viewMode()"></app-unidade-item>
+      }
+    } @else {
+      @if (unidades().length) {
+        <span class="establishment-content__empty">Nenhuma unidade encontrada para o filtro informado.</span>
+      } @else {
+        <span class="establishment-content__empty">Nenhuma unidade cadastrada para este estabelecimento.</span>
+      }
+    }
+  </div>
+</div>

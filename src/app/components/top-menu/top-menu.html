@@ -1,0 +1,83 @@
+<div class="top-menu">
+  <div class="left-section">
+    <button
+      class="menu-button"
+      type="button"
+      [attr.aria-expanded]="isSideMenuOpen()"
+      aria-controls="side-menu"
+      aria-label="Abrir menu"
+      (click)="openSideMenu()"
+    >
+      <i class="pi pi-bars"></i>
+    </button>
+
+    <a class="logo-link" routerLink="/" aria-label="Ir para o início">
+      <img src="../../../assets/imgs/logo-horizontal-327.png" alt="logo">
+    </a>
+  </div>
+
+  <div class="center-section">
+    <div class="search-input-wrapper">
+      <input
+        class="search-input"
+        type="text"
+        [placeholder]="searchPlaceholder()"
+        [value]="searchValue()"
+        (input)="searchValue.set($any($event.target).value)"
+        aria-label="Buscar"
+      >
+
+      <button
+        class="clear-search-button"
+        type="button"
+        [disabled]="!searchValue()"
+        (click)="clearSearch()"
+        aria-label="Limpar busca"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="user-section">
+    <span class="user-name">{{ loggedUser.name }}</span>
+    <img class="user-avatar" [src]="loggedUser.photoUrl" [alt]="'Foto de perfil de ' + loggedUser.name">
+  </div>
+</div>
+
+<button
+  class="side-menu-backdrop"
+  type="button"
+  [class.is-visible]="isSideMenuOpen()"
+  [attr.aria-hidden]="!isSideMenuOpen()"
+  aria-label="Fechar menu lateral"
+  (click)="closeSideMenu()"
+></button>
+
+<aside id="side-menu" class="side-menu" [class.is-open]="isSideMenuOpen()" [attr.aria-hidden]="!isSideMenuOpen()">
+  <div class="side-menu-header">
+    <button class="close-side-menu-button" type="button" aria-label="Recuar menu" (click)="closeSideMenu()">
+      <i class="pi pi-bars"></i>
+    </button>
+
+    <img src="../../../assets/imgs/logo-horizontal-327.png" alt="logo">
+  </div>
+
+  <nav class="side-menu-content" aria-label="Navegação lateral">
+    @for (menuSection of menuOptions(); track menuSection.section) {
+      <div class="side-menu-section">
+        <span class="side-menu-section-title">{{ menuSection.section }}</span>
+
+        <div class="side-menu-section-items">
+          @for (menuItem of menuSection.items; track menuItem.label) {
+            <a class="side-menu-item" [routerLink]="menuItem.route" (click)="closeSideMenu()">
+              <i [class]="menuItem.icon"></i>
+              <span>{{ menuItem.label }}</span>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </nav>
+</aside>
+

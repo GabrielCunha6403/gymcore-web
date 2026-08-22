@@ -1,0 +1,25 @@
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <ol class="breadcrumb-list">
+    <li class="breadcrumb-item">
+      @if (breadcrumbs().length) {
+        <a class="breadcrumb-home-link" [routerLink]="'/home'" aria-label="Ir para o início">
+          <i class="pi pi-home" aria-hidden="true"></i>
+        </a>
+      } @else {
+        <span class="breadcrumb-home-current" aria-current="page" aria-label="Início">
+          <i class="pi pi-home" aria-hidden="true"></i>
+        </span>
+      }
+    </li>
+
+    @for (breadcrumb of breadcrumbs(); track breadcrumb.url; let isLast = $last) {
+      <li class="breadcrumb-item">
+        @if (isLast) {
+          <span class="breadcrumb-current" aria-current="page">{{ breadcrumb.label }}</span>
+        } @else {
+          <a class="breadcrumb-link" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
+        }
+      </li>
+    }
+  </ol>
+</nav>

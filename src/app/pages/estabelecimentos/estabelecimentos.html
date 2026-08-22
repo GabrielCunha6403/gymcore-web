@@ -1,0 +1,67 @@
+<div class="establishment-body">
+  <app-breadcrumb></app-breadcrumb>
+  <div class="title-area">
+    <h1>Estabelecimentos</h1>
+    <span>Gerencie as academias, studios, boxes e demais unidades cadastradas no GymCore. A partir dela, será possível cadastrar novos estabelecimentos, consultar e editar seus dados, ativar ou inativar cadastros e acessar informações relacionadas à operação de cada estabelecimento.</span>
+  </div>
+  <div class="establishment-toolbar">
+    <div class="establishment-toolbar__filters">
+      <div class="establishment-toolbar__input-wrapper">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          class="establishment-toolbar__input"
+          type="text"
+          placeholder="Pesquise por nome, razão social, CNPJ ou status"
+          [value]="filterValue()"
+          (input)="updateFilter($any($event.target).value)"
+          aria-label="Pesquisar estabelecimentos por nome, razão social, CNPJ ou status"
+        >
+
+        @if (filterValue()) {
+          <button
+            class="establishment-toolbar__clear"
+            type="button"
+            (click)="clearFilter()"
+            aria-label="Limpar filtro de estabelecimentos"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="establishment-toolbar__view">
+      <div class="view-toggle" role="group" aria-label="Alternar visualização de estabelecimentos">
+        <button
+          class="view-toggle__button"
+          type="button"
+          [class.is-active]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+        >
+          <i class="pi pi-bars" aria-hidden="true"></i>
+          <span>Lista</span>
+        </button>
+
+        <button
+          class="view-toggle__button"
+          type="button"
+          [class.is-active]="viewMode() === 'cards'"
+          (click)="setViewMode('cards')"
+        >
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          <span>Cards</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="establishment-content" [class.establishment-content--cards]="viewMode() === 'cards'">
+    @if (filteredEstabelecimentos().length) {
+      @for (establishment of filteredEstabelecimentos(); track establishment.id + '-' + $index) {
+        <app-estabelecimento-item [estabelecimento]="establishment" [viewMode]="viewMode()"></app-estabelecimento-item>
+      }
+    } @else {
+      <span class="establishment-content__empty">Nenhum estabelecimento encontrado para o filtro informado.</span>
+    }
+  </div>
+</div>
