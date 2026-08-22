@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
-import { EstabelecimentoViewMode, StatusEstabelecimento, TipoEstabelecimento, Unidade } from '../../../types/types';
+import { EstabelecimentoViewMode, StatusEstabelecimento, TipoEstabelecimento, Unidade } from '../../../estabelecimentos/types/types';
 
 @Component({
   selector: 'app-unidade-item',

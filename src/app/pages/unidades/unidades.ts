@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
-import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../mocks/mocks';
-import { Estabelecimento, EstabelecimentoViewMode, Unidade } from '../types/types';
+import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../estabelecimentos/mocks/mocks';
+import { Estabelecimento, EstabelecimentoViewMode, Unidade } from '../estabelecimentos/types/types';
 import { UnidadeItem } from './components/unidade-item/unidade-item';
 
 @Component({
@@ -12,10 +12,10 @@ import { UnidadeItem } from './components/unidade-item/unidade-item';
     Breadcrumb,
     UnidadeItem,
   ],
-  templateUrl: './detail.html',
-  styleUrl: './detail.scss',
+  templateUrl: './unidades.html',
+  styleUrl: './unidades.scss',
 })
-export class Detail {
+export class Unidades {
   private readonly route = inject(ActivatedRoute);
   private readonly estabelecimentoId = this.route.snapshot.paramMap.get('id') ?? '';
 

@@ -23,6 +23,6 @@ export const routes: Routes = [
     path: 'estabelecimentos/:id',
     data: { breadcrumb: 'Detalhes' },
     resolve: { breadcrumb: estabelecimentoBreadcrumbResolver },
-    loadComponent: () => import('./pages/estabelecimentos/detail/detail').then(m => m.Detail),
+    loadComponent: () => import('./pages/unidades/unidades').then(m => m.Unidades),
   }
 ];
