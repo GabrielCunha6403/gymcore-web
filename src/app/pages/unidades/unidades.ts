@@ -17,7 +17,7 @@ import { UnidadeItem } from './components/unidade-item/unidade-item';
 })
 export class Unidades {
   private readonly route = inject(ActivatedRoute);
-  private readonly estabelecimentoId = this.route.snapshot.paramMap.get('id') ?? '';
+  private readonly estabelecimentoId = this.getRouteParam('estabelecimentoId');
 
   readonly estabelecimento = computed<Estabelecimento | null>(() => (
     ESTABELECIMENTOS_MOCK.find((item) => item.id === this.estabelecimentoId) ?? null
@@ -89,5 +89,17 @@ export class Unidades {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
+  }
+
+  private getRouteParam(paramName: string): string {
+    for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
+      const value = routeSnapshot.paramMap.get(paramName);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
   }
 }

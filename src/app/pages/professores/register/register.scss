@@ -1,0 +1,22 @@
+.teacher-register-body {
+  width: 70%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.register-container {
+  background: var(--tertiary-color);
+  padding: 20px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .teacher-register-body {
+    width: min(92%, 100%);
+  }
+}

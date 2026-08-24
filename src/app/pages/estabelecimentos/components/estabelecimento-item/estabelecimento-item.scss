@@ -7,12 +7,12 @@
   border-radius: 18px;
   box-sizing: border-box;
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-2px);
     border-color: rgba(139, 0, 255, 0.4);
     background: rgba(255, 255, 255, 0.05);
-    cursor: pointer;
   }
 
   &.estabelecimento-item--card {
@@ -20,38 +20,38 @@
     align-items: flex-start;
     height: 100%;
 
-    .estabelecimento-item__media {
+    .estabelecimento-item-media {
       width: 100%;
       height: 180px;
     }
 
-    .estabelecimento-item__placeholder,
-    .estabelecimento-item__image {
+    .estabelecimento-item-placeholder,
+    .estabelecimento-item-image {
       width: 100%;
       height: 100%;
       border-radius: 16px;
     }
 
-    .estabelecimento-item__content,
-    .estabelecimento-item__header {
+    .estabelecimento-item-content,
+    .estabelecimento-item-header {
       width: 100%;
     }
 
-    .estabelecimento-item__header {
+    .estabelecimento-item-header {
       flex-direction: column;
       align-items: flex-start;
     }
   }
 }
 
-.estabelecimento-item__media {
+.estabelecimento-item-media {
   width: 88px;
   height: 88px;
   flex-shrink: 0;
 }
 
-.estabelecimento-item__image,
-.estabelecimento-item__placeholder {
+.estabelecimento-item-image,
+.estabelecimento-item-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
@@ -60,18 +60,18 @@
   border-radius: 50%;
 }
 
-.estabelecimento-item__image {
+.estabelecimento-item-image {
   object-fit: cover;
 }
 
-.estabelecimento-item__placeholder {
+.estabelecimento-item-placeholder {
   background: linear-gradient(135deg, rgba(139, 0, 255, 0.9), rgba(77, 12, 125, 0.9));
   color: white;
   font-size: 28px;
   font-weight: 700;
 }
 
-.estabelecimento-item__content {
+.estabelecimento-item-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -79,33 +79,33 @@
   flex: 1;
 }
 
-.estabelecimento-item__header {
+.estabelecimento-item-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
 }
 
-.estabelecimento-item__headline {
+.estabelecimento-item-headline {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.estabelecimento-item__title {
+.estabelecimento-item-title {
   margin: 0;
   color: white;
   font-size: 22px;
   font-weight: 700;
 }
 
-.estabelecimento-item__subtitle {
+.estabelecimento-item-subtitle {
   color: rgba(255, 255, 255, 0.62);
   line-height: 1.5;
 }
 
-.estabelecimento-item__status {
+.estabelecimento-item-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -116,31 +116,61 @@
   white-space: nowrap;
 }
 
-.estabelecimento-item__status--active {
+.estabelecimento-item-status--active {
   background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(34, 197, 94, 0.35);
   color: #9ef0b5;
 }
 
-.estabelecimento-item__status--inactive {
+.estabelecimento-item-status--inactive {
   background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.35);
   color: #ff9b9b;
 }
 
-.estabelecimento-item__status--blocked {
+.estabelecimento-item-status--blocked {
   background: rgba(245, 158, 11, 0.14);
-  border: 1px solid rgba(245, 158, 11, 0.35);
   color: #ffd089;
 }
 
-.estabelecimento-item__details {
+.estabelecimento-item-details {
   display: flex;
   flex-wrap: wrap;
   gap: 14px 18px;
 }
 
-.estabelecimento-item__detail {
+.estabelecimento-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entity-action {
+  border: 0;
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.entity-action--danger {
+  color: #ff9b9b;
+}
+
+.estabelecimento-item-detail {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -161,19 +191,19 @@
     flex-direction: column;
     align-items: flex-start;
 
-    .estabelecimento-item__media {
+    .estabelecimento-item-media {
       width: 100%;
       height: 180px;
     }
 
-    .estabelecimento-item__placeholder,
-    .estabelecimento-item__image {
+    .estabelecimento-item-placeholder,
+    .estabelecimento-item-image {
       width: 100%;
       height: 100%;
       border-radius: 16px;
     }
 
-    .estabelecimento-item__header {
+    .estabelecimento-item-header {
       flex-direction: column;
     }
   }

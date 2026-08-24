@@ -24,14 +24,14 @@ export class EstabelecimentoItem {
     const status = this.estabelecimento().status;
 
     if (status === 'INATIVO') {
-      return 'estabelecimento-item__status--inactive';
+      return 'estabelecimento-item-status--inactive';
     }
 
     if (status === 'BLOQUEADO') {
-      return 'estabelecimento-item__status--blocked';
+      return 'estabelecimento-item-status--blocked';
     }
 
-    return 'estabelecimento-item__status--active';
+    return 'estabelecimento-item-status--active';
   });
   readonly formattedUnits = computed(() => {
     const total = this.estabelecimento().quantidadeUnidades;

@@ -1,63 +1,87 @@
-<article class="unidade-item" [class.unidade-item--card]="viewMode() === 'cards'">
-  <div class="unidade-item__media">
+<article
+  [routerLink]="['/estabelecimentos', unidade().estabelecimentoId, unidade().id]"
+  class="unidade-item"
+  [class.unidade-item--card]="viewMode() === 'cards'"
+>
+  <div class="unidade-item-media">
     @if (unidade().imagemUrl) {
       <img
-        class="unidade-item__image"
+        class="unidade-item-image"
         [src]="unidade().imagemUrl"
         [alt]="'Foto da unidade ' + unidade().nome"
       >
     } @else {
-      <span class="unidade-item__placeholder">{{ initials() }}</span>
+      <span class="unidade-item-placeholder">{{ initials() }}</span>
     }
   </div>
 
-  <div class="unidade-item__content">
-    <div class="unidade-item__header">
-      <div class="unidade-item__headline">
-        <div class="unidade-item__headline-row">
-          <h2 class="unidade-item__title">{{ unidade().nome }}</h2>
+  <div class="unidade-item-content">
+    <div class="unidade-item-header">
+      <div class="unidade-item-headline">
+        <div class="unidade-item-headline-row">
+          <h2 class="unidade-item-title">{{ unidade().nome }}</h2>
 
           @if (unidade().matriz) {
-            <span class="unidade-item__tag">Matriz</span>
+            <span class="unidade-item-tag">Matriz</span>
           }
         </div>
 
-        <span class="unidade-item__subtitle">{{ formattedType() }}</span>
+        <span class="unidade-item-subtitle">{{ formattedType() }}</span>
       </div>
 
       <span
-        class="unidade-item__status"
-        [class.unidade-item__status--inactive]="statusClass() === 'unidade-item__status--inactive'"
-        [class.unidade-item__status--active]="statusClass() === 'unidade-item__status--active'"
-        [class.unidade-item__status--blocked]="statusClass() === 'unidade-item__status--blocked'"
+        class="unidade-item-status"
+        [class.unidade-item-status--inactive]="statusClass() === 'unidade-item-status--inactive'"
+        [class.unidade-item-status--active]="statusClass() === 'unidade-item-status--active'"
+        [class.unidade-item-status--blocked]="statusClass() === 'unidade-item-status--blocked'"
       >{{ formattedStatus() }}</span>
     </div>
 
-    <div class="unidade-item__details">
-      <span class="unidade-item__detail">
+    <div class="unidade-item-details">
+      <span class="unidade-item-detail">
         <i class="pi pi-id-card" aria-hidden="true"></i>
         <span>{{ unidade().cnpj }}</span>
       </span>
 
-      <span class="unidade-item__detail">
+      <span class="unidade-item-detail">
         <i class="pi pi-map-marker" aria-hidden="true"></i>
         <span>{{ formattedLocation() }}</span>
       </span>
 
-      <span class="unidade-item__detail">
+      <span class="unidade-item-detail">
         <i class="pi pi-building" aria-hidden="true"></i>
         <span>{{ formattedType() }}</span>
       </span>
 
-      <span class="unidade-item__detail">
+      <span class="unidade-item-detail">
         <i class="pi pi-envelope" aria-hidden="true"></i>
         <span>{{ unidade().email }}</span>
       </span>
 
-      <span class="unidade-item__detail">
+      <span class="unidade-item-detail">
         <i class="pi pi-phone" aria-hidden="true"></i>
         <span>{{ unidade().telefone }}</span>
       </span>
+    </div>
+
+    <div class="unidade-item-actions" aria-label="Acoes da unidade">
+      <button
+        class="entity-action"
+        type="button"
+        [attr.aria-label]="'Editar unidade ' + unidade().nome"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        <span>Editar</span>
+      </button>
+
+      <button
+        class="entity-action entity-action--danger"
+        type="button"
+        [attr.aria-label]="'Deletar unidade ' + unidade().nome"
+      >
+        <i class="pi pi-trash" aria-hidden="true"></i>
+        <span>Deletar</span>
+      </button>
     </div>
   </div>
 </article>

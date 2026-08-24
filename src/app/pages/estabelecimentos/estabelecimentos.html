@@ -5,11 +5,11 @@
     <span>Gerencie as academias, studios, boxes e demais unidades cadastradas no GymCore. A partir dela, será possível cadastrar novos estabelecimentos, consultar e editar seus dados, ativar ou inativar cadastros e acessar informações relacionadas à operação de cada estabelecimento.</span>
   </div>
   <div class="establishment-toolbar">
-    <div class="establishment-toolbar__filters">
-      <div class="establishment-toolbar__input-wrapper">
+    <div class="establishment-toolbar-filters">
+      <div class="establishment-toolbar-input-wrapper">
         <i class="pi pi-search" aria-hidden="true"></i>
         <input
-          class="establishment-toolbar__input"
+          class="establishment-toolbar-input"
           type="text"
           placeholder="Pesquise por nome, razão social, CNPJ ou status"
           [value]="filterValue()"
@@ -19,7 +19,7 @@
 
         @if (filterValue()) {
           <button
-            class="establishment-toolbar__clear"
+            class="establishment-toolbar-clear"
             type="button"
             (click)="clearFilter()"
             aria-label="Limpar filtro de estabelecimentos"
@@ -30,10 +30,15 @@
       </div>
     </div>
 
-    <div class="establishment-toolbar__view">
+    <div class="establishment-toolbar-actions">
+      <button class="entity-action entity-action--primary" type="button">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>Cadastrar estabelecimento</span>
+      </button>
+
       <div class="view-toggle" role="group" aria-label="Alternar visualização de estabelecimentos">
         <button
-          class="view-toggle__button"
+          class="view-toggle-button"
           type="button"
           [class.is-active]="viewMode() === 'list'"
           (click)="setViewMode('list')"
@@ -43,7 +48,7 @@
         </button>
 
         <button
-          class="view-toggle__button"
+          class="view-toggle-button"
           type="button"
           [class.is-active]="viewMode() === 'cards'"
           (click)="setViewMode('cards')"
@@ -61,7 +66,7 @@
         <app-estabelecimento-item [estabelecimento]="establishment" [viewMode]="viewMode()"></app-estabelecimento-item>
       }
     } @else {
-      <span class="establishment-content__empty">Nenhum estabelecimento encontrado para o filtro informado.</span>
+      <span class="establishment-content-empty">Nenhum estabelecimento encontrado para o filtro informado.</span>
     }
   </div>
 </div>

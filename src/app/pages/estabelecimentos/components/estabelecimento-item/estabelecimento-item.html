@@ -1,51 +1,71 @@
 <article [routerLink]="['/estabelecimentos', estabelecimento().id]" class="estabelecimento-item" [class.estabelecimento-item--card]="viewMode() === 'cards'">
-  <div class="estabelecimento-item__media">
+  <div class="estabelecimento-item-media">
     @if (estabelecimento().imagemUrl) {
       <img
-        class="estabelecimento-item__image"
+        class="estabelecimento-item-image"
         [src]="estabelecimento().imagemUrl"
         [alt]="'Foto do estabelecimento ' + estabelecimento().nomeFantasia"
       >
     } @else {
-      <span class="estabelecimento-item__placeholder">{{ initials() }}</span>
+      <span class="estabelecimento-item-placeholder">{{ initials() }}</span>
     }
   </div>
 
-  <div class="estabelecimento-item__content">
-    <div class="estabelecimento-item__header">
-      <div class="estabelecimento-item__headline">
-        <h2 class="estabelecimento-item__title">{{ estabelecimento().nomeFantasia }}</h2>
-        <span class="estabelecimento-item__subtitle">{{ estabelecimento().razaoSocial }}</span>
+  <div class="estabelecimento-item-content">
+    <div class="estabelecimento-item-header">
+      <div class="estabelecimento-item-headline">
+        <h2 class="estabelecimento-item-title">{{ estabelecimento().nomeFantasia }}</h2>
+        <span class="estabelecimento-item-subtitle">{{ estabelecimento().razaoSocial }}</span>
       </div>
 
       <span
-        class="estabelecimento-item__status"
-        [class.estabelecimento-item__status--inactive]="statusClass() === 'estabelecimento-item__status--inactive'"
-        [class.estabelecimento-item__status--active]="statusClass() === 'estabelecimento-item__status--active'"
-        [class.estabelecimento-item__status--blocked]="statusClass() === 'estabelecimento-item__status--blocked'"
+        class="estabelecimento-item-status"
+        [class.estabelecimento-item-status--inactive]="statusClass() === 'estabelecimento-item-status--inactive'"
+        [class.estabelecimento-item-status--active]="statusClass() === 'estabelecimento-item-status--active'"
+        [class.estabelecimento-item-status--blocked]="statusClass() === 'estabelecimento-item-status--blocked'"
       >{{ formattedStatus() }}</span>
     </div>
 
-    <div class="estabelecimento-item__details">
-      <span class="estabelecimento-item__detail">
+    <div class="estabelecimento-item-details">
+      <span class="estabelecimento-item-detail">
         <i class="pi pi-id-card" aria-hidden="true"></i>
         <span>{{ estabelecimento().cnpj }}</span>
       </span>
 
-      <span class="estabelecimento-item__detail">
+      <span class="estabelecimento-item-detail">
         <i class="pi pi-sitemap" aria-hidden="true"></i>
         <span>{{ formattedUnits() }}</span>
       </span>
 
-      <span class="estabelecimento-item__detail">
+      <span class="estabelecimento-item-detail">
         <i class="pi pi-envelope" aria-hidden="true"></i>
         <span>{{ estabelecimento().email }}</span>
       </span>
 
-      <span class="estabelecimento-item__detail">
+      <span class="estabelecimento-item-detail">
         <i class="pi pi-phone" aria-hidden="true"></i>
         <span>{{ estabelecimento().telefone }}</span>
       </span>
+    </div>
+
+    <div class="estabelecimento-item-actions" aria-label="Acoes do estabelecimento">
+      <button
+        class="entity-action"
+        type="button"
+        [attr.aria-label]="'Editar estabelecimento ' + estabelecimento().nomeFantasia"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        <span>Editar</span>
+      </button>
+
+      <button
+        class="entity-action entity-action--danger"
+        type="button"
+        [attr.aria-label]="'Deletar estabelecimento ' + estabelecimento().nomeFantasia"
+      >
+        <i class="pi pi-trash" aria-hidden="true"></i>
+        <span>Deletar</span>
+      </button>
     </div>
   </div>
 </article>

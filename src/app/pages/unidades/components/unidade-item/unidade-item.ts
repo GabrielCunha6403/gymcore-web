@@ -1,9 +1,11 @@
 import { Component, computed, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { EstabelecimentoViewMode, StatusEstabelecimento, TipoEstabelecimento, Unidade } from '../../../estabelecimentos/types/types';
 
 @Component({
   selector: 'app-unidade-item',
+  imports: [RouterLink],
   templateUrl: './unidade-item.html',
   styleUrl: './unidade-item.scss',
 })
@@ -22,14 +24,14 @@ export class UnidadeItem {
     const status = this.unidade().status;
 
     if (status === 'INATIVO') {
-      return 'unidade-item__status--inactive';
+      return 'unidade-item-status--inactive';
     }
 
     if (status === 'BLOQUEADO') {
-      return 'unidade-item__status--blocked';
+      return 'unidade-item-status--blocked';
     }
 
-    return 'unidade-item__status--active';
+    return 'unidade-item-status--active';
   });
 
   private formatStatus(status: StatusEstabelecimento): string {

@@ -27,7 +27,7 @@ export class TopMenu {
       section: 'Gestão',
       items: [
         { label: 'Estabelecimentos', icon: 'pi pi-shop', route: '/estabelecimentos' },
-        { label: 'Professores', icon: 'pi pi-user', route: '/workouts' },
+        { label: 'Professores', icon: 'pi pi-user', route: '/professores' },
         { label: 'Alunos', icon: 'pi pi-users', route: '/workouts' },
         { label: 'Modalidades', icon: 'pi pi-tags', route: '/workouts' },
         { label: 'Planos', icon: 'pi pi-id-card', route: '/workouts' },

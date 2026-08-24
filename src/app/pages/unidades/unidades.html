@@ -2,34 +2,34 @@
   <app-breadcrumb></app-breadcrumb>
   @if (estabelecimento(); as estabelecimento) {
     <div class="detail-header">
-      <div class="detail-header__media">
+      <div class="detail-header-media">
         @if (estabelecimento.imagemUrl) {
           <img [src]="estabelecimento.imagemUrl" [alt]="'Foto do estabelecimento ' + estabelecimento.nomeFantasia">
         } @else {
-          <span class="detail-header__placeholder">{{ estabelecimentoInitials() }}</span>
+          <span class="detail-header-placeholder">{{ estabelecimentoInitials() }}</span>
         }
       </div>
 
       <div class="title-area">
         <h1>{{ estabelecimento.nomeFantasia }}</h1>
 
-        <div class="estabelecimento-item__details">
-          <span class="estabelecimento-item__detail">
+        <div class="estabelecimento-item-details">
+          <span class="estabelecimento-item-detail">
             <i class="pi pi-id-card" aria-hidden="true"></i>
             <span>{{ estabelecimento.cnpj }}</span>
           </span>
 
-          <span class="estabelecimento-item__detail">
+          <span class="estabelecimento-item-detail">
             <i class="pi pi-sitemap" aria-hidden="true"></i>
             <span>{{ formattedUnits() }}</span>
           </span>
 
-          <span class="estabelecimento-item__detail">
+          <span class="estabelecimento-item-detail">
             <i class="pi pi-envelope" aria-hidden="true"></i>
             <span>{{ estabelecimento.email }}</span>
           </span>
 
-          <span class="estabelecimento-item__detail">
+          <span class="estabelecimento-item-detail">
             <i class="pi pi-phone" aria-hidden="true"></i>
             <span>{{ estabelecimento.telefone }}</span>
           </span>
@@ -38,15 +38,15 @@
     </div>
   } @else {
     <div class="detail-header detail-header--missing">
-      <div class="detail-header__media">
-        <span class="detail-header__placeholder">{{ estabelecimentoInitials() }}</span>
+      <div class="detail-header-media">
+        <span class="detail-header-placeholder">{{ estabelecimentoInitials() }}</span>
       </div>
 
       <div class="title-area">
         <h1>Estabelecimento não encontrado</h1>
 
-        <div class="estabelecimento-item__details">
-          <span class="estabelecimento-item__detail">
+        <div class="estabelecimento-item-details">
+          <span class="estabelecimento-item-detail">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
             <span>Verifique o identificador informado para carregar as unidades.</span>
           </span>
@@ -56,11 +56,11 @@
   }
 
   <div class="establishment-toolbar">
-    <div class="establishment-toolbar__filters">
-      <div class="establishment-toolbar__input-wrapper">
+    <div class="establishment-toolbar-filters">
+      <div class="establishment-toolbar-input-wrapper">
         <i class="pi pi-search" aria-hidden="true"></i>
         <input
-          class="establishment-toolbar__input"
+          class="establishment-toolbar-input"
           type="text"
           placeholder="Pesquise por nome, tipo, status ou localização"
           [value]="filterValue()"
@@ -70,7 +70,7 @@
 
         @if (filterValue()) {
           <button
-            class="establishment-toolbar__clear"
+            class="establishment-toolbar-clear"
             type="button"
             (click)="clearFilter()"
             aria-label="Limpar filtro de unidades"
@@ -81,10 +81,15 @@
       </div>
     </div>
 
-    <div class="establishment-toolbar__view">
+    <div class="establishment-toolbar-actions">
+      <button class="entity-action entity-action--primary" type="button">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>Cadastrar unidade</span>
+      </button>
+
       <div class="view-toggle" role="group" aria-label="Alternar visualização de unidades">
         <button
-          class="view-toggle__button"
+          class="view-toggle-button"
           type="button"
           [class.is-active]="viewMode() === 'list'"
           (click)="setViewMode('list')"
@@ -94,7 +99,7 @@
         </button>
 
         <button
-          class="view-toggle__button"
+          class="view-toggle-button"
           type="button"
           [class.is-active]="viewMode() === 'cards'"
           (click)="setViewMode('cards')"
@@ -113,9 +118,9 @@
       }
     } @else {
       @if (unidades().length) {
-        <span class="establishment-content__empty">Nenhuma unidade encontrada para o filtro informado.</span>
+        <span class="establishment-content-empty">Nenhuma unidade encontrada para o filtro informado.</span>
       } @else {
-        <span class="establishment-content__empty">Nenhuma unidade cadastrada para este estabelecimento.</span>
+        <span class="establishment-content-empty">Nenhuma unidade cadastrada para este estabelecimento.</span>
       }
     }
   </div>

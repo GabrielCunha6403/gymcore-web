@@ -1,0 +1,216 @@
+<div class="unit-detail-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  @if (unidade(); as unidade) {
+    <div class="unit-header">
+      <div class="unit-header-media">
+        @if (unidade.imagemUrl) {
+          <img [src]="unidade.imagemUrl" [alt]="'Foto da unidade ' + unidade.nome">
+        } @else {
+          <span class="unit-header-placeholder">{{ unidadeInitials() }}</span>
+        }
+      </div>
+
+      <div class="unit-header-content">
+        <div class="unit-header-title-row">
+          <div class="title-area">
+            <h1>{{ unidade.nome }}</h1>
+            @if (estabelecimento(); as estabelecimento) {
+              <span>{{ estabelecimento.nomeFantasia }}</span>
+            }
+          </div>
+
+          <div class="unit-header-badges">
+            @if (unidade.matriz) {
+              <span class="unit-tag">Matriz</span>
+            }
+
+            <span [class]="'unit-status ' + statusClass(unidade.status)">
+              {{ formatStatus(unidade.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="unit-details">
+          <span class="unit-detail">
+            <i class="pi pi-id-card" aria-hidden="true"></i>
+            <span>{{ unidade.cnpj }}</span>
+          </span>
+
+          <span class="unit-detail">
+            <i class="pi pi-building" aria-hidden="true"></i>
+            <span>{{ formatType(unidade.tipo) }}</span>
+          </span>
+
+          <span class="unit-detail">
+            <i class="pi pi-envelope" aria-hidden="true"></i>
+            <span>{{ unidade.email }}</span>
+          </span>
+
+          <span class="unit-detail">
+            <i class="pi pi-phone" aria-hidden="true"></i>
+            <span>{{ unidade.telefone }}</span>
+          </span>
+
+          <span class="unit-detail unit-detail--wide">
+            <i class="pi pi-map-marker" aria-hidden="true"></i>
+            <span>{{ formattedAddress() }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <section class="unit-general" aria-labelledby="unit-general-title">
+      <div class="unit-section-header">
+        <h2 id="unit-general-title">Dados gerais</h2>
+      </div>
+
+      <div class="unit-info-grid">
+        <div class="unit-info">
+          <span class="unit-info-label">CEP</span>
+          <strong>{{ unidade.endereco.cep }}</strong>
+        </div>
+
+        <div class="unit-info">
+          <span class="unit-info-label">Cidade</span>
+          <strong>{{ unidade.endereco.cidade }} - {{ unidade.endereco.uf }}</strong>
+        </div>
+
+        <div class="unit-info">
+          <span class="unit-info-label">Bairro</span>
+          <strong>{{ unidade.endereco.bairro }}</strong>
+        </div>
+
+        <div class="unit-info">
+          <span class="unit-info-label">Tipo</span>
+          <strong>{{ formatType(unidade.tipo) }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="unit-operations" aria-labelledby="unit-operations-title">
+      <div class="unit-section-header">
+        <h2 id="unit-operations-title">Controle da unidade</h2>
+      </div>
+
+      <div class="unit-tabs" role="tablist" aria-label="Controle operacional da unidade">
+        @for (tab of tabs; track tab.id) {
+          <button
+            class="unit-tabs-button"
+            type="button"
+            role="tab"
+            [id]="'tab-' + tab.id"
+            [class.is-active]="activeTab() === tab.id"
+            [attr.aria-selected]="activeTab() === tab.id"
+            [attr.aria-controls]="'panel-' + tab.id"
+            (click)="setActiveTab(tab.id)"
+          >
+            <i class="pi" [class]="tab.icon" aria-hidden="true"></i>
+            <span>{{ tab.label }}</span>
+          </button>
+        }
+      </div>
+
+      <div
+        class="unit-tab-panel"
+        role="tabpanel"
+        [id]="'panel-' + activeTab()"
+        [attr.aria-labelledby]="'tab-' + activeTab()"
+      >
+        <div class="unit-tab-panel-header">
+          <h3>{{ activeContent().title }}</h3>
+
+          <button class="entity-action entity-action--primary" type="button">
+            <i class="pi pi-plus" aria-hidden="true"></i>
+            <span>{{ activeContent().createLabel }}</span>
+          </button>
+        </div>
+
+        <div class="unit-metrics">
+          @for (metric of activeContent().metrics; track metric.label) {
+            <div class="unit-metric">
+              <i class="pi" [class]="metric.icon" aria-hidden="true"></i>
+              <span>{{ metric.label }}</span>
+              <strong>{{ metric.value }}</strong>
+            </div>
+          }
+        </div>
+
+        <div class="unit-records">
+          @for (item of activeContent().items; track item.title) {
+            <article class="unit-record">
+              <div class="unit-record-main">
+                @if (shouldShowRecordAvatar()) {
+                  <div class="unit-record-media">
+                    @if (item.photoUrl) {
+                      <img [src]="item.photoUrl" [alt]="'Foto de ' + item.title">
+                    } @else {
+                      <span class="unit-record-placeholder">{{ getInitials(item.title) }}</span>
+                    }
+                  </div>
+                }
+
+                <div class="unit-record-content">
+                  <h4>{{ item.title }}</h4>
+                  <span>{{ item.subtitle }}</span>
+                  <small>{{ item.meta }}</small>
+                </div>
+              </div>
+
+              <div class="unit-record-aside">
+                <span class="unit-record-status">{{ item.status }}</span>
+
+                <div class="unit-record-actions" [attr.aria-label]="'Acoes do ' + activeContent().entityLabel">
+                  <button
+                    class="entity-action"
+                    type="button"
+                    [attr.aria-label]="'Visualizar ' + activeContent().entityLabel + ' ' + item.title"
+                  >
+                    <i class="pi pi-eye" aria-hidden="true"></i>
+                    <span>Visualizar</span>
+                  </button>
+
+                  <button
+                    class="entity-action"
+                    type="button"
+                    [attr.aria-label]="'Editar ' + activeContent().entityLabel + ' ' + item.title"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                    <span>Editar</span>
+                  </button>
+
+                  <button
+                    class="entity-action entity-action--danger"
+                    type="button"
+                    [attr.aria-label]="'Deletar ' + activeContent().entityLabel + ' ' + item.title"
+                  >
+                    <i class="pi pi-trash" aria-hidden="true"></i>
+                    <span>Deletar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+  } @else {
+    <div class="unit-header unit-header--missing">
+      <div class="unit-header-media">
+        <span class="unit-header-placeholder">{{ unidadeInitials() }}</span>
+      </div>
+
+      <div class="unit-header-content">
+        <div class="title-area">
+          <h1>Unidade não encontrada</h1>
+          <span>Verifique o identificador informado para carregar os detalhes da unidade.</span>
+        </div>
+
+        <a class="unit-back-link" [routerLink]="['/estabelecimentos', estabelecimentoId]">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          <span>Voltar para unidades</span>
+        </a>
+      </div>
+    </div>
+  }
+</div>
