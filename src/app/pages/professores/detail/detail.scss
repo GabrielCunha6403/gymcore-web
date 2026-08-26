@@ -1,0 +1,268 @@
+.teacher-detail-body {
+  width: 70%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.teacher-header {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.teacher-header-media {
+  width: 13rem;
+  height: 13rem;
+  overflow: hidden;
+  border: 1px solid var(--primary-color);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.teacher-header-media img,
+.teacher-header-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-header-media img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.teacher-header-placeholder {
+  background: linear-gradient(135deg, rgba(139, 0, 255, 0.9), rgba(77, 12, 125, 0.9));
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.teacher-header-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.teacher-header-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.teacher-header .title-area {
+  gap: 8px;
+}
+
+.teacher-header .title-area h1 {
+  margin: 0;
+  color: white;
+}
+
+.teacher-header .title-area span {
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
+}
+
+.teacher-header-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.teacher-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.teacher-status--active {
+  background: rgba(34, 197, 94, 0.14);
+  color: #9ef0b5;
+}
+
+.teacher-status--inactive {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ff9b9b;
+}
+
+.teacher-status--away {
+  background: rgba(245, 158, 11, 0.14);
+  color: #ffd089;
+}
+
+.teacher-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+
+.teacher-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.teacher-detail i {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.teacher-detail span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.teacher-section {
+  background: var(--tertiary-color);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.teacher-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.teacher-section-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.teacher-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.teacher-info {
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 16px;
+}
+
+.teacher-info--wide {
+  grid-column: span 2;
+}
+
+.teacher-info span {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teacher-info strong {
+  color: white;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.teacher-linked-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.teacher-linked-list h3 {
+  margin: 0 0 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.teacher-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.teacher-chip {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.86);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teacher-chip i {
+  color: var(--primary-color);
+}
+
+.teacher-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: white;
+  text-decoration: none;
+}
+
+.teacher-back-link i {
+  color: var(--primary-color);
+}
+
+@media (max-width: 1024px) {
+  .teacher-detail-body {
+    width: min(92%, 100%);
+  }
+
+  .teacher-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .teacher-header,
+  .teacher-header-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .teacher-header-media {
+    width: 100%;
+  }
+
+  .teacher-header-badges {
+    justify-content: flex-start;
+  }
+
+  .teacher-details,
+  .teacher-info-grid,
+  .teacher-linked-list {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-info--wide {
+    grid-column: auto;
+  }
+}

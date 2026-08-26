@@ -1,3 +1,63 @@
-<div class="wizard-body">
+<div class="wizard">
+  <nav class="wizard-steps" aria-label="Etapas do formulário">
+    @for (step of steps(); track step.label; let index = $index) {
+      <div class="wizard-step-content">
+        <button
+          class="wizard-step"
+          type="button"
+          [class.wizard-step--active]="currentStepIndex() === index"
+          [class.wizard-step--completed]="step.completed || index < currentStepIndex()"
+          [attr.aria-label]="'Ir para etapa ' + step.label"
+          [attr.aria-current]="currentStepIndex() === index ? 'step' : null"
+          [title]="step.label"
+          [disabled]="!canGoToStep(index)"
+          (click)="goToStep(index)"
+        >
+          <i [class]="step.icon" aria-hidden="true"></i>
+        </button>
+        <span [class.selected]="currentStepIndex() === index">{{ step.label }}</span>
+      </div>
 
+      @if (index < steps().length - 1) {
+        <span
+          class="wizard-step-connector"
+          [class.wizard-step-connector--filled]="index < currentStepIndex()"
+          aria-hidden="true"
+        ></span>
+      }
+    }
+  </nav>
+
+  @if (currentStep(); as step) {
+    <header class="wizard-current-step">
+      <span>Etapa {{ currentStepIndex() + 1 }} de {{ steps().length }}</span>
+      <p>{{ step.description }}</p>
+    </header>
+  }
+
+  <div class="wizard-content">
+    <ng-content select="[appWizardStep]"></ng-content>
+  </div>
+
+  <div class="wizard-actions">
+    <button
+      class="wizard-action"
+      type="button"
+      [disabled]="isFirstStep()"
+      (click)="goToPreviousStep()"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      <span>Anterior</span>
+    </button>
+
+    <button
+      class="wizard-action wizard-action--primary"
+      type="button"
+      [disabled]="isLastStep() || !canAdvanceFromCurrentStep()"
+      (click)="goToNextStep()"
+    >
+      <span>Próximo</span>
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
 </div>

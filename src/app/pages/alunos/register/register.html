@@ -2,17 +2,17 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Cadastrar professor</h1>
-    <span>Preencha os dados do professor para vinculá-lo às unidades e modalidades do sistema.</span>
+    <h1>Cadastrar aluno</h1>
+    <span>Preencha os dados do aluno para criar sua matrícula em uma unidade do sistema.</span>
   </div>
 
   <div class="register-container">
-    <form class="teacher-register-form" [formGroup]="professorForm" (ngSubmit)="submitProfessor()">
+    <form class="teacher-register-form" [formGroup]="alunoForm" (ngSubmit)="submitAluno()">
       <app-wizard [steps]="registerSteps()">
         <section
           appWizardStep
           class="teacher-register-step"
-          [formGroup]="professorForm.controls.dadosPessoais"
+          [formGroup]="alunoForm.controls.dadosPessoais"
         >
           <div class="form-grid">
             <div class="form-field form-field--full">
@@ -22,10 +22,10 @@
                 formControlName="nome"
                 maxlength="150"
                 autocomplete="name"
-                placeholder="Ex.: Ana Paula Souza"
+                placeholder="Ex.: Bruno Nogueira"
               >
               <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.nome"
+                [control]="alunoForm.controls.dadosPessoais.controls.nome"
                 [messages]="{
                   required: '* Nome obrigatório',
                   maxlength: '* Nome deve ter no máximo 150 caracteres'
@@ -45,7 +45,7 @@
                 (input)="applyCpfMask()"
               >
               <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.cpf"
+                [control]="alunoForm.controls.dadosPessoais.controls.cpf"
                 [messages]="{
                   required: '* CPF obrigatório',
                   invalidCpf: '* CPF inválido'
@@ -57,7 +57,7 @@
               <span>Data de nascimento <span class="required-mark">*</span></span>
               <input type="date" formControlName="dataNascimento">
               <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.dataNascimento"
+                [control]="alunoForm.controls.dadosPessoais.controls.dataNascimento"
                 [messages]="{
                   required: '* Data de nascimento obrigatória'
                 }"
@@ -72,10 +72,6 @@
                   <option [value]="sexo">{{ sexo }}</option>
                 }
               </select>
-              <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.sexo"
-                [message]="'* Sexo inválido'"
-              ></app-error-message-control>
             </div>
 
             <div class="form-field">
@@ -84,10 +80,10 @@
                 type="email"
                 formControlName="email"
                 autocomplete="email"
-                placeholder="ana@email.com"
+                placeholder="bruno@email.com"
               >
               <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.email"
+                [control]="alunoForm.controls.dadosPessoais.controls.email"
                 [messages]="{
                   required: '* Email obrigatório',
                   email: '* Email inválido'
@@ -107,11 +103,20 @@
                 (input)="applyTelefoneMask()"
               >
               <app-error-message-control
-                [control]="professorForm.controls.dadosPessoais.controls.telefone"
+                [control]="alunoForm.controls.dadosPessoais.controls.telefone"
                 [messages]="{
                   required: '* Telefone obrigatório',
                   pattern: '* Telefone inválido'
                 }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro do aluno ativo</span>
+              <app-error-message-control
+                [control]="alunoForm.controls.dadosPessoais.controls.ativo"
+                [message]="'* Status do aluno inválido'"
               ></app-error-message-control>
             </div>
           </div>
@@ -120,7 +125,7 @@
         <section
           appWizardStep
           class="teacher-register-step"
-          [formGroup]="professorForm.controls.endereco"
+          [formGroup]="alunoForm.controls.endereco"
         >
           <div class="form-grid">
             <div class="form-field">
@@ -135,7 +140,7 @@
                 (input)="applyCepMask()"
               >
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.cep"
+                [control]="alunoForm.controls.endereco.controls.cep"
                 [messages]="{
                   required: '* CEP obrigatório',
                   pattern: '* CEP inválido'
@@ -152,7 +157,7 @@
                 placeholder="Rua, avenida ou travessa"
               >
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.logradouro"
+                [control]="alunoForm.controls.endereco.controls.logradouro"
                 [messages]="{
                   required: '* Logradouro obrigatório'
                 }"
@@ -170,7 +175,7 @@
                 (input)="applyNumeroMask()"
               >
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.numero"
+                [control]="alunoForm.controls.endereco.controls.numero"
                 [messages]="{
                   required: '* Número obrigatório',
                   pattern: '* Número inválido'
@@ -180,14 +185,14 @@
 
             <div class="form-field">
               <span>Complemento</span>
-              <input type="text" formControlName="complemento" placeholder="Sala, bloco, apto">
+              <input type="text" formControlName="complemento" placeholder="Casa, bloco, apto">
             </div>
 
             <div class="form-field">
               <span>Bairro <span class="required-mark">*</span></span>
               <input type="text" formControlName="bairro" placeholder="Ex.: Centro">
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.bairro"
+                [control]="alunoForm.controls.endereco.controls.bairro"
                 [messages]="{
                   required: '* Bairro obrigatório'
                 }"
@@ -200,10 +205,10 @@
                 type="text"
                 formControlName="cidade"
                 autocomplete="address-level2"
-                placeholder="Ex.: São Paulo"
+                placeholder="Ex.: Fortaleza"
               >
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.cidade"
+                [control]="alunoForm.controls.endereco.controls.cidade"
                 [messages]="{
                   required: '* Cidade obrigatória'
                 }"
@@ -219,7 +224,7 @@
                 }
               </select>
               <app-error-message-control
-                [control]="professorForm.controls.endereco.controls.uf"
+                [control]="alunoForm.controls.endereco.controls.uf"
                 [messages]="{
                   required: '* UF obrigatória'
                 }"
@@ -231,48 +236,7 @@
         <section
           appWizardStep
           class="teacher-register-step"
-          [formGroup]="professorForm.controls.profissional"
-        >
-          <div class="form-grid">
-            <div class="form-field">
-              <span>Registro profissional <span class="required-mark">*</span></span>
-              <input
-                type="text"
-                formControlName="registroProfissional"
-                placeholder="CREF, registro ou identificador"
-              >
-              <app-error-message-control
-                [control]="professorForm.controls.profissional.controls.registroProfissional"
-                [messages]="{
-                  required: '* Registro profissional obrigatório'
-                }"
-              ></app-error-message-control>
-            </div>
-
-            <div class="form-field form-field--inline">
-              <input type="checkbox" formControlName="ativo">
-              <span>Cadastro profissional ativo</span>
-              <app-error-message-control
-                [control]="professorForm.controls.profissional.controls.ativo"
-                [message]="'* Status profissional inválido'"
-              ></app-error-message-control>
-            </div>
-
-            <div class="form-field form-field--full">
-              <span>Observações</span>
-              <textarea
-                formControlName="observacoes"
-                rows="5"
-                placeholder="Inclua informações relevantes sobre o professor"
-              ></textarea>
-            </div>
-          </div>
-        </section>
-
-        <section
-          appWizardStep
-          class="teacher-register-step"
-          [formGroup]="professorForm.controls.atuacao"
+          [formGroup]="alunoForm.controls.matricula"
         >
           <div class="form-grid">
             <div class="form-field autocomplete-field">
@@ -331,7 +295,7 @@
                 }
               </div>
               <app-error-message-control
-                [control]="professorForm.controls.atuacao.controls.estabelecimentoId"
+                [control]="alunoForm.controls.matricula.controls.estabelecimentoId"
                 [messages]="{
                   required: '* Estabelecimento obrigatório'
                 }"
@@ -395,7 +359,7 @@
                 }
               </div>
               <app-error-message-control
-                [control]="professorForm.controls.atuacao.controls.unidadeId"
+                [control]="alunoForm.controls.matricula.controls.unidadeId"
                 [messages]="{
                   required: '* Unidade obrigatória'
                 }"
@@ -403,54 +367,90 @@
             </div>
 
             <div class="form-field">
-              <span>Código interno <span class="required-mark">*</span></span>
-              <input
-                type="text"
-                formControlName="codigoInterno"
-                autocomplete="off"
-                placeholder="Ex.: PROF-001"
-              >
+              <span>Plano <span class="required-mark">*</span></span>
+              <select formControlName="planoId" [disabled]="!selectedUnidade()">
+                <option value="">Selecione</option>
+                @for (plano of planosDaUnidade(); track plano.id) {
+                  <option [value]="plano.id">{{ plano.nome }} · {{ plano.valor }}</option>
+                }
+              </select>
               <app-error-message-control
-                [control]="professorForm.controls.atuacao.controls.codigoInterno"
+                [control]="alunoForm.controls.matricula.controls.planoId"
                 [messages]="{
-                  required: '* Código interno obrigatório'
+                  required: '* Plano obrigatório'
                 }"
               ></app-error-message-control>
             </div>
 
-            <div class="form-field form-field--inline">
-              <input type="checkbox" formControlName="ativo">
-              <span>Atuação ativa</span>
+            <div class="form-field">
+              <span>Código da matrícula <span class="required-mark">*</span></span>
+              <input type="text" formControlName="codigoMatricula" autocomplete="off" placeholder="Ex.: MAT-001">
               <app-error-message-control
-                [control]="professorForm.controls.atuacao.controls.ativo"
-                [message]="'* Status de atuação inválido'"
+                [control]="alunoForm.controls.matricula.controls.codigoMatricula"
+                [messages]="{
+                  required: '* Código da matrícula obrigatório'
+                }"
               ></app-error-message-control>
             </div>
 
-            <fieldset class="form-fieldset form-field--full">
-              <legend>Modalidades</legend>
+            <div class="form-field">
+              <span>Data de início <span class="required-mark">*</span></span>
+              <input type="date" formControlName="dataInicio">
+              <app-error-message-control
+                [control]="alunoForm.controls.matricula.controls.dataInicio"
+                [messages]="{
+                  required: '* Data de início obrigatória'
+                }"
+              ></app-error-message-control>
+            </div>
 
-              @if (selectedUnidade()) {
-                @if (modalidadesOptions().length) {
-                  <div class="checkbox-grid">
-                    @for (modalidade of modalidadesOptions(); track modalidade) {
-                      <label class="checkbox-option">
-                        <input
-                          type="checkbox"
-                          [checked]="isModalidadeSelected(modalidade)"
-                          (change)="toggleModalidade(modalidade, $any($event.target).checked)"
-                        >
-                        <span>{{ modalidade }}</span>
-                      </label>
-                    }
-                  </div>
-                } @else {
-                  <span class="form-helper">Nenhuma modalidade disponível para a unidade selecionada.</span>
+            <div class="form-field">
+              <span>Data de fim</span>
+              <input type="date" formControlName="dataFim">
+            </div>
+
+            <div class="form-field">
+              <span>Dia de vencimento <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="diaVencimento"
+                inputmode="numeric"
+                maxlength="2"
+                placeholder="Ex.: 10"
+                (input)="applyDiaVencimentoMask()"
+              >
+              <app-error-message-control
+                [control]="alunoForm.controls.matricula.controls.diaVencimento"
+                [messages]="{
+                  required: '* Dia de vencimento obrigatório',
+                  invalidDay: '* Informe um dia entre 1 e 31'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Status da matrícula <span class="required-mark">*</span></span>
+              <select formControlName="status">
+                @for (status of matriculaStatusOptions; track status) {
+                  <option [value]="status">{{ formatStatus(status) }}</option>
                 }
-              } @else {
-                <span class="form-helper">Selecione uma unidade para carregar as modalidades disponíveis.</span>
-              }
-            </fieldset>
+              </select>
+              <app-error-message-control
+                [control]="alunoForm.controls.matricula.controls.status"
+                [messages]="{
+                  required: '* Status da matrícula obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Motivo do cancelamento</span>
+              <textarea
+                formControlName="motivoCancelamento"
+                rows="5"
+                placeholder="Preencha apenas quando a matrícula estiver cancelada"
+              ></textarea>
+            </div>
           </div>
         </section>
 
@@ -461,19 +461,23 @@
               <dl>
                 <div>
                   <dt>Nome</dt>
-                  <dd>{{ displayValue(professorForm.controls.dadosPessoais.controls.nome.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.dadosPessoais.controls.nome.value) }}</dd>
                 </div>
                 <div>
                   <dt>CPF</dt>
-                  <dd>{{ displayValue(professorForm.controls.dadosPessoais.controls.cpf.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.dadosPessoais.controls.cpf.value) }}</dd>
                 </div>
                 <div>
                   <dt>Email</dt>
-                  <dd>{{ displayValue(professorForm.controls.dadosPessoais.controls.email.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.dadosPessoais.controls.email.value) }}</dd>
                 </div>
                 <div>
                   <dt>Telefone</dt>
-                  <dd>{{ displayValue(professorForm.controls.dadosPessoais.controls.telefone.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.dadosPessoais.controls.telefone.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(alunoForm.controls.dadosPessoais.controls.ativo.value) }}</dd>
                 </div>
               </dl>
             </div>
@@ -483,39 +487,25 @@
               <dl>
                 <div>
                   <dt>Logradouro</dt>
-                  <dd>{{ displayValue(professorForm.controls.endereco.controls.logradouro.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.endereco.controls.logradouro.value) }}</dd>
                 </div>
                 <div>
                   <dt>Número</dt>
-                  <dd>{{ displayValue(professorForm.controls.endereco.controls.numero.value) }}</dd>
+                  <dd>{{ displayValue(alunoForm.controls.endereco.controls.numero.value) }}</dd>
                 </div>
                 <div>
                   <dt>Cidade / UF</dt>
                   <dd>
-                    {{ displayValue(professorForm.controls.endereco.controls.cidade.value) }}
+                    {{ displayValue(alunoForm.controls.endereco.controls.cidade.value) }}
                     /
-                    {{ displayValue(professorForm.controls.endereco.controls.uf.value) }}
+                    {{ displayValue(alunoForm.controls.endereco.controls.uf.value) }}
                   </dd>
                 </div>
               </dl>
             </div>
 
             <div class="confirmation-group">
-              <h3>Profissional</h3>
-              <dl>
-                <div>
-                  <dt>Registro</dt>
-                  <dd>{{ displayValue(professorForm.controls.profissional.controls.registroProfissional.value) }}</dd>
-                </div>
-                <div>
-                  <dt>Status</dt>
-                  <dd>{{ displayBoolean(professorForm.controls.profissional.controls.ativo.value) }}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <div class="confirmation-group">
-              <h3>Atuação</h3>
+              <h3>Matrícula</h3>
               <dl>
                 <div>
                   <dt>Estabelecimento</dt>
@@ -526,25 +516,29 @@
                   <dd>{{ displayUnidade() }}</dd>
                 </div>
                 <div>
-                  <dt>Código interno</dt>
-                  <dd>{{ displayValue(professorForm.controls.atuacao.controls.codigoInterno.value) }}</dd>
+                  <dt>Plano</dt>
+                  <dd>{{ displayPlano() }}</dd>
                 </div>
                 <div>
-                  <dt>Modalidades</dt>
-                  <dd>{{ displayList(professorForm.controls.atuacao.controls.modalidades.value) }}</dd>
+                  <dt>Código</dt>
+                  <dd>{{ displayValue(alunoForm.controls.matricula.controls.codigoMatricula.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Vencimento</dt>
+                  <dd>{{ displayValue(alunoForm.controls.matricula.controls.diaVencimento.value) }}</dd>
                 </div>
                 <div>
                   <dt>Status</dt>
-                  <dd>{{ displayBoolean(professorForm.controls.atuacao.controls.ativo.value) }}</dd>
+                  <dd>{{ formatStatus(alunoForm.controls.matricula.controls.status.value) }}</dd>
                 </div>
               </dl>
             </div>
           </div>
 
           <div class="submit-area">
-            <button class="submit-button" type="submit" [disabled]="professorForm.invalid">
+            <button class="submit-button" type="submit" [disabled]="alunoForm.invalid">
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>Cadastrar professor</span>
+              <span>Cadastrar aluno</span>
             </button>
           </div>
         </section>

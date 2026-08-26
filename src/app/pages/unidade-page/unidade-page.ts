@@ -20,6 +20,7 @@ interface TabMetric {
 }
 
 interface TabItem {
+  id?: string;
   title: string;
   subtitle: string;
   meta: string;
@@ -46,8 +47,8 @@ interface TabContent {
 })
 export class UnidadePage {
   private readonly route = inject(ActivatedRoute);
-  readonly estabelecimentoId = this.getRouteParam('estabelecimentoId');
-  private readonly unidadeId = this.getRouteParam('unidadeId');
+  readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
+  readonly idUnidade = this.getRouteParam('idUnidade');
 
   readonly activeTab = signal<UnidadeTabId>('professores');
   readonly tabs: UnidadeTab[] = [
@@ -58,10 +59,10 @@ export class UnidadePage {
   ];
 
   readonly estabelecimento = computed<Estabelecimento | null>(() => (
-    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.estabelecimentoId) ?? null
+    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.idEstabelecimento) ?? null
   ));
   readonly unidade = computed<Unidade | null>(() => (
-    UNIDADES_MOCK.find((item) => item.id === this.unidadeId && item.estabelecimentoId === this.estabelecimentoId) ?? null
+    UNIDADES_MOCK.find((item) => item.id === this.idUnidade && item.estabelecimentoId === this.idEstabelecimento) ?? null
   ));
   readonly unidadeInitials = computed(() => {
     const unidade = this.unidade();
@@ -102,20 +103,23 @@ export class UnidadePage {
       ],
       items: [
         {
-          title: 'Ana Beatriz Lima',
+          id: 'prof-1',
+          title: 'Ana Beatriz Costa',
           photoUrl: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&w=120&q=80',
           subtitle: 'Musculação e funcional',
           meta: 'Segunda a sexta, 06:00 às 12:00',
           status: 'Ativo',
         },
         {
-          title: 'Carlos Henrique Souza',
+          id: 'prof-2',
+          title: 'Carlos Henrique Lima',
           subtitle: 'Cross training',
           meta: 'Terça e quinta, 18:00 às 22:00',
           status: 'Ativo',
         },
         {
-          title: 'Marina Costa',
+          id: 'prof-3',
+          title: 'Mariana Torres Nunes',
           subtitle: 'Pilates e mobilidade',
           meta: 'Agenda pendente para esta unidade',
           status: 'Pendente',
@@ -133,6 +137,7 @@ export class UnidadePage {
       ],
       items: [
         {
+          id: 'aluno-1',
           title: 'Bruno Nogueira',
           photoUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=120&q=80',
           subtitle: 'Plano mensal',
@@ -140,12 +145,14 @@ export class UnidadePage {
           status: 'Ativo',
         },
         {
+          id: 'aluno-2',
           title: 'Larissa Moura',
           subtitle: 'Plano trimestral',
           meta: 'Pagamento vence em 25/08/2026',
           status: 'Atenção',
         },
         {
+          id: 'aluno-3',
           title: 'Rafael Martins',
           subtitle: 'Plano anual',
           meta: 'Check-in recorrente no turno da noite',

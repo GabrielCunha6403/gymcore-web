@@ -1,0 +1,215 @@
+<div class="teacher-detail-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  @if (professor(); as professor) {
+    @if (details(); as details) {
+      <div class="teacher-header">
+        <div class="teacher-header-media">
+          @if (professor.fotoUrl) {
+            <img [src]="professor.fotoUrl" [alt]="'Foto de ' + professor.nome">
+          } @else {
+            <span class="teacher-header-placeholder">{{ initials() }}</span>
+          }
+        </div>
+
+        <div class="teacher-header-content">
+          <div class="teacher-header-title-row">
+            <div class="title-area">
+              <h1>{{ professor.nome }}</h1>
+              <span>{{ professor.email }}</span>
+            </div>
+
+            <div class="teacher-header-badges">
+              <span [class]="'teacher-status ' + statusClass(professor.status)">
+                {{ formatStatus(professor.status) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="teacher-details">
+            <span class="teacher-detail">
+              <i class="pi pi-id-card" aria-hidden="true"></i>
+              <span>{{ professor.cpf }}</span>
+            </span>
+
+            <span class="teacher-detail">
+              <i class="pi pi-phone" aria-hidden="true"></i>
+              <span>{{ professor.contato }}</span>
+            </span>
+
+            <span class="teacher-detail">
+              <i class="pi pi-briefcase" aria-hidden="true"></i>
+              <span>{{ details.profissional.registroProfissional }}</span>
+            </span>
+
+            <span class="teacher-detail">
+              <i class="pi pi-building" aria-hidden="true"></i>
+              <span>{{ primaryUnit()?.unidade ?? '-' }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <section class="teacher-section" aria-labelledby="teacher-personal-title">
+        <div class="teacher-section-header">
+          <h2 id="teacher-personal-title">Dados pessoais</h2>
+        </div>
+
+        <div class="teacher-info-grid">
+          <div class="teacher-info">
+            <span>Nome completo</span>
+            <strong>{{ professor.nome }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>CPF</span>
+            <strong>{{ professor.cpf }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Data de nascimento</span>
+            <strong>{{ details.dataNascimento }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Sexo</span>
+            <strong>{{ details.sexo }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Email</span>
+            <strong>{{ professor.email }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Telefone</span>
+            <strong>{{ professor.contato }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="teacher-section" aria-labelledby="teacher-address-title">
+        <div class="teacher-section-header">
+          <h2 id="teacher-address-title">Endereço</h2>
+        </div>
+
+        <div class="teacher-info-grid">
+          <div class="teacher-info">
+            <span>CEP</span>
+            <strong>{{ details.endereco.cep }}</strong>
+          </div>
+
+          <div class="teacher-info teacher-info--wide">
+            <span>Logradouro</span>
+            <strong>{{ details.endereco.logradouro }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Número</span>
+            <strong>{{ details.endereco.numero }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Complemento</span>
+            <strong>{{ displayValue(details.endereco.complemento) }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Bairro</span>
+            <strong>{{ details.endereco.bairro }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Cidade / UF</span>
+            <strong>{{ details.endereco.cidade }} - {{ details.endereco.uf }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="teacher-section" aria-labelledby="teacher-professional-title">
+        <div class="teacher-section-header">
+          <h2 id="teacher-professional-title">Profissional</h2>
+        </div>
+
+        <div class="teacher-info-grid">
+          <div class="teacher-info">
+            <span>Registro profissional</span>
+            <strong>{{ details.profissional.registroProfissional }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Status profissional</span>
+            <strong>{{ displayBoolean(details.profissional.ativo) }}</strong>
+          </div>
+
+          <div class="teacher-info teacher-info--wide">
+            <span>Observações</span>
+            <strong>{{ details.profissional.observacoes }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="teacher-section" aria-labelledby="teacher-work-title">
+        <div class="teacher-section-header">
+          <h2 id="teacher-work-title">Atuação</h2>
+        </div>
+
+        <div class="teacher-info-grid">
+          <div class="teacher-info">
+            <span>Código interno</span>
+            <strong>{{ details.atuacao.codigoInterno }}</strong>
+          </div>
+
+          <div class="teacher-info">
+            <span>Status de atuação</span>
+            <strong>{{ displayBoolean(details.atuacao.ativo) }}</strong>
+          </div>
+        </div>
+
+        <div class="teacher-linked-list">
+          <div>
+            <h3>Unidades vinculadas</h3>
+            <div class="teacher-chips">
+              @for (unidade of professor.unidades; track unidade.unidade) {
+                <span class="teacher-chip">
+                  <i class="pi pi-building" aria-hidden="true"></i>
+                  {{ unidade.unidade }} · {{ unidade.estabelecimento }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <div>
+            <h3>Modalidades</h3>
+            <div class="teacher-chips">
+              @for (modalidade of professor.modalidades; track modalidade) {
+                <span class="teacher-chip">
+                  <i class="pi pi-tag" aria-hidden="true"></i>
+                  {{ modalidade }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  } @else {
+    <div class="teacher-header teacher-header--missing">
+      <div class="teacher-header-media">
+        <span class="teacher-header-placeholder">{{ initials() }}</span>
+      </div>
+
+      <div class="teacher-header-content">
+        <div class="title-area">
+          <h1>Professor não encontrado</h1>
+          <span>Verifique o identificador informado para carregar os detalhes do professor.</span>
+        </div>
+
+        <a class="teacher-back-link" [routerLink]="backLink()">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          <span>Voltar</span>
+        </a>
+      </div>
+    </div>
+  }
+</div>

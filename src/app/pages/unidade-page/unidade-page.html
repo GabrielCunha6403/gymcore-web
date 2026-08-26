@@ -160,15 +160,35 @@
               <div class="unit-record-aside">
                 <span class="unit-record-status">{{ item.status }}</span>
 
-                <div class="unit-record-actions" [attr.aria-label]="'Acoes do ' + activeContent().entityLabel">
-                  <button
-                    class="entity-action"
-                    type="button"
-                    [attr.aria-label]="'Visualizar ' + activeContent().entityLabel + ' ' + item.title"
-                  >
-                    <i class="pi pi-eye" aria-hidden="true"></i>
-                    <span>Visualizar</span>
-                  </button>
+                <div class="unit-record-actions" [attr.aria-label]="'Ações do ' + activeContent().entityLabel">
+                  @if (activeTab() === 'professores' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'professor', item.id]"
+                      [attr.aria-label]="'Visualizar professor ' + item.title"
+                    >
+                      <i class="pi pi-eye" aria-hidden="true"></i>
+                      <span>Visualizar</span>
+                    </a>
+                  } @else if (activeTab() === 'alunos' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'aluno', item.id]"
+                      [attr.aria-label]="'Visualizar aluno ' + item.title"
+                    >
+                      <i class="pi pi-eye" aria-hidden="true"></i>
+                      <span>Visualizar</span>
+                    </a>
+                  } @else {
+                    <button
+                      class="entity-action"
+                      type="button"
+                      [attr.aria-label]="'Visualizar ' + activeContent().entityLabel + ' ' + item.title"
+                    >
+                      <i class="pi pi-eye" aria-hidden="true"></i>
+                      <span>Visualizar</span>
+                    </button>
+                  }
 
                   <button
                     class="entity-action"
@@ -206,7 +226,7 @@
           <span>Verifique o identificador informado para carregar os detalhes da unidade.</span>
         </div>
 
-        <a class="unit-back-link" [routerLink]="['/estabelecimentos', estabelecimentoId]">
+        <a class="unit-back-link" [routerLink]="['/estabelecimentos', idEstabelecimento]">
           <i class="pi pi-arrow-left" aria-hidden="true"></i>
           <span>Voltar para unidades</span>
         </a>

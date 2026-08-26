@@ -39,22 +39,23 @@ export class Breadcrumb {
 
     while (currentRoute?.firstChild) {
       currentRoute = currentRoute.firstChild;
-      const activeRoute = currentRoute;
-      const routeSegments = activeRoute.url.map((segment) => segment.path).filter(Boolean);
+      const routeSegments = currentRoute.url.map((segment) => segment.path).filter(Boolean);
 
-      routeSegments.forEach((segment, index) => {
-        currentUrl += `/${segment}`;
+      if (!routeSegments.length) {
+        continue;
+      }
 
-        const label = this.resolveLabel(activeRoute, segment, currentUrl, index === routeSegments.length - 1);
+      currentUrl += `/${routeSegments.join('/')}`;
 
-        if (!label || currentUrl === '/home') {
-          return;
-        }
+      const label = this.resolveLabel(currentRoute, routeSegments.at(-1) ?? '', currentUrl);
 
-        breadcrumbs.push({
-          label,
-          url: currentUrl,
-        });
+      if (!label || currentUrl === '/home') {
+        continue;
+      }
+
+      breadcrumbs.push({
+        label,
+        url: currentUrl,
       });
     }
 
@@ -65,14 +66,11 @@ export class Breadcrumb {
     route: ActivatedRouteSnapshot,
     routeSegment: string,
     currentUrl: string,
-    isLastSegment: boolean,
   ): string {
-    if (isLastSegment) {
-      const routeDataLabel = route.data['breadcrumb'];
+    const routeDataLabel = route.data['breadcrumb'];
 
-      if (typeof routeDataLabel === 'string' && routeDataLabel.trim()) {
-        return routeDataLabel;
-      }
+    if (typeof routeDataLabel === 'string' && routeDataLabel.trim()) {
+      return routeDataLabel;
     }
 
     const configuredLabel = this.findConfiguredLabel(currentUrl);

@@ -2,8 +2,8 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Professores</h1>
-    <span>Consulte os professores cadastrados no sistema, independente do estabelecimento ou unidade vinculada.</span>
+    <h1>Alunos</h1>
+    <span>Consulte os alunos cadastrados no sistema, suas matrículas, planos e unidades vinculadas.</span>
   </div>
 
   <div class="teachers-toolbar">
@@ -13,10 +13,10 @@
         <input
           class="teachers-toolbar-input"
           type="text"
-          placeholder="Pesquise por nome, CPF, estabelecimento, unidade ou modalidade"
+          placeholder="Pesquise por nome, CPF, matrícula, plano, unidade ou modalidade"
           [value]="filterValue()"
           (input)="updateFilter($any($event.target).value)"
-          aria-label="Pesquisar professores por nome, CPF, estabelecimento, unidade ou modalidade"
+          aria-label="Pesquisar alunos por nome, CPF, matrícula, plano, unidade ou modalidade"
         >
 
         @if (filterValue()) {
@@ -24,7 +24,7 @@
             class="teachers-toolbar-clear"
             type="button"
             (click)="clearFilter()"
-            aria-label="Limpar filtro de professores"
+            aria-label="Limpar filtro de alunos"
           >
             <i class="pi pi-times" aria-hidden="true"></i>
           </button>
@@ -35,13 +35,13 @@
     <div class="teachers-toolbar-actions">
       <button class="entity-action entity-action--primary" type="button" routerLink="register">
         <i class="pi pi-plus" aria-hidden="true"></i>
-        <span>Cadastrar professor</span>
+        <span>Cadastrar aluno</span>
       </button>
     </div>
   </div>
 
   <div class="teachers-table">
-    <table class="teachers-table-element" aria-label="Listagem de professores">
+    <table class="teachers-table-element" aria-label="Listagem de alunos">
       <colgroup>
         <col class="teachers-table-col-photo">
         <col class="teachers-table-col-name">
@@ -58,23 +58,23 @@
           <th scope="col">Nome / CPF</th>
           <th scope="col">Email / Contato</th>
           <th scope="col">Unidades</th>
-          <th scope="col">Modalidades</th>
+          <th scope="col">Plano / Matrícula</th>
           <th scope="col">Status</th>
           <th scope="col">Ações</th>
         </tr>
       </thead>
 
       <tbody>
-        @if (filteredProfessores().length) {
-          @for (professor of filteredProfessores(); track professor.id) {
+        @if (filteredAlunos().length) {
+          @for (aluno of filteredAlunos(); track aluno.id) {
             <tr class="teachers-table-row">
               <td class="teachers-table-cell teachers-table-cell--photo" data-label="Foto">
                 <div class="teachers-table-cell-content">
                   <div class="teacher-photo">
-                    @if (professor.fotoUrl) {
-                      <img [src]="professor.fotoUrl" [alt]="'Foto de ' + professor.nome">
+                    @if (aluno.fotoUrl) {
+                      <img [src]="aluno.fotoUrl" [alt]="'Foto de ' + aluno.nome">
                     } @else {
-                      <span>{{ initials(professor) }}</span>
+                      <span>{{ initials(aluno) }}</span>
                     }
                   </div>
                 </div>
@@ -82,33 +82,33 @@
 
               <td class="teachers-table-cell" data-label="Nome / CPF">
                 <div class="teachers-table-cell-content">
-                  <strong>{{ professor.nome }}</strong>
-                  <span>{{ professor.cpf }}</span>
+                  <strong>{{ aluno.nome }}</strong>
+                  <span>{{ aluno.cpf }}</span>
                 </div>
               </td>
 
               <td class="teachers-table-cell" data-label="Email / Contato">
                 <div class="teachers-table-cell-content">
-                  <strong>{{ professor.email }}</strong>
-                  <span>{{ professor.contato }}</span>
+                  <strong>{{ aluno.email }}</strong>
+                  <span>{{ aluno.contato }}</span>
                 </div>
               </td>
 
               <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Unidades">
                 <div class="teachers-table-cell-content">
-                  <span>{{ professor.unidades[0].unidade }}</span>
+                  <span>{{ aluno.unidades[0].unidade }}</span>
 
-                  @if (hiddenCount(professor.unidades)) {
+                  @if (hiddenCount(aluno.unidades)) {
                     <button
                       class="teacher-more"
                       type="button"
-                      [attr.aria-label]="'Ver outras unidades de ' + professor.nome"
+                      [attr.aria-label]="'Ver outras unidades de ' + aluno.nome"
                     >
-                      +{{ hiddenCount(professor.unidades) }}
+                      +{{ hiddenCount(aluno.unidades) }}
 
                       <span class="teacher-more-popover" role="tooltip">
-                        @for (unidade of professor.unidades.slice(1); track unidade.unidade) {
-                          <span>{{ unidade.unidade }}</span>
+                        @for (unidade of aluno.unidades.slice(1); track unidade.unidade) {
+                          <span>{{ unitLabel(unidade) }}</span>
                         }
                       </span>
                     </button>
@@ -116,25 +116,10 @@
                 </div>
               </td>
 
-              <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Modalidades">
+              <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Plano / Matrícula">
                 <div class="teachers-table-cell-content">
-                  <span>{{ professor.modalidades[0] }}</span>
-
-                  @if (hiddenCount(professor.modalidades)) {
-                    <button
-                      class="teacher-more"
-                      type="button"
-                      [attr.aria-label]="'Ver outras modalidades de ' + professor.nome"
-                    >
-                      +{{ hiddenCount(professor.modalidades) }}
-
-                      <span class="teacher-more-popover" role="tooltip">
-                        @for (modalidade of professor.modalidades.slice(1); track modalidade) {
-                          <span>{{ modalidade }}</span>
-                        }
-                      </span>
-                    </button>
-                  }
+                  <strong>{{ aluno.planoAtual }}</strong>
+                  <span>{{ aluno.matricula.codigo }} · {{ formatMatriculaStatus(aluno.matricula.status) }}</span>
                 </div>
               </td>
 
@@ -142,10 +127,10 @@
                 <div class="teachers-table-cell-content">
                   <span
                     class="teacher-status"
-                    [class.teacher-status--active]="professor.status === 'ATIVO'"
-                    [class.teacher-status--inactive]="professor.status === 'INATIVO'"
-                    [class.teacher-status--away]="professor.status === 'AFASTADO'"
-                  >{{ formatStatus(professor.status) }}</span>
+                    [class.teacher-status--active]="aluno.status === 'ATIVO'"
+                    [class.teacher-status--inactive]="aluno.status === 'INATIVO'"
+                    [class.teacher-status--away]="aluno.status === 'PENDENTE'"
+                  >{{ formatStatus(aluno.status) }}</span>
                 </div>
               </td>
 
@@ -154,13 +139,13 @@
                   <button
                     class="teacher-action"
                     type="button"
-                    [routerLink]="['/professores', professor.id]"
-                    [attr.aria-label]="'Visualizar professor ' + professor.nome"
+                    [routerLink]="['/alunos', aluno.id]"
+                    [attr.aria-label]="'Visualizar aluno ' + aluno.nome"
                   >
                     <i class="pi pi-eye" aria-hidden="true"></i>
                   </button>
 
-                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar professor ' + professor.nome">
+                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar aluno ' + aluno.nome">
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                   </button>
                 </div>
@@ -169,7 +154,7 @@
           }
         } @else {
           <tr>
-            <td class="teachers-table-empty" colspan="7">Nenhum professor encontrado para o filtro informado.</td>
+            <td class="teachers-table-empty" colspan="7">Nenhum aluno encontrado para o filtro informado.</td>
           </tr>
         }
       </tbody>

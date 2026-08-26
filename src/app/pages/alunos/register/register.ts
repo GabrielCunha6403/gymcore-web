@@ -8,26 +8,34 @@ import {
 } from '@angular/forms';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
+import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
-import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
 import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../../estabelecimentos/mocks/mocks';
 import { Estabelecimento, Unidade } from '../../estabelecimentos/types/types';
 
-const UNIDADE_MODALIDADES: Record<string, string[]> = {
-  '1-1': ['Musculação', 'Funcional', 'Pilates'],
-  '1-2': ['Musculação', 'Lutas', 'Dança'],
-  '2-1': ['Pilates', 'Funcional', 'Dança'],
-  '3-1': ['Funcional', 'Lutas'],
-};
+interface PlanoOption {
+  id: string;
+  unidadeId: string;
+  nome: string;
+  valor: string;
+}
+
+const PLANOS_POR_UNIDADE: PlanoOption[] = [
+  { id: 'plano-1', unidadeId: '1-1', nome: 'Mensal Basic', valor: 'R$ 99,90' },
+  { id: 'plano-2', unidadeId: '1-1', nome: 'Mensal Full', valor: 'R$ 149,90' },
+  { id: 'plano-3', unidadeId: '1-2', nome: 'Trimestral Performance', valor: 'R$ 399,90' },
+  { id: 'plano-4', unidadeId: '2-1', nome: 'Pilates Individual', valor: 'R$ 289,90' },
+  { id: 'plano-5', unidadeId: '3-1', nome: 'Cross Training Livre', valor: 'R$ 179,90' },
+];
 
 @Component({
-  selector: 'app-professor-register',
+  selector: 'app-aluno-register',
   imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
-export class Register {
+export class AlunoRegister {
   private readonly fb = inject(FormBuilder);
 
   protected readonly estabelecimentoSearch = signal('');
@@ -38,6 +46,7 @@ export class Register {
   protected readonly selectedUnidadeId = signal('');
 
   public readonly sexoOptions = ['Feminino', 'Masculino', 'Outro'];
+  public readonly matriculaStatusOptions = ['ATIVA', 'PENDENTE', 'CANCELADA', 'ENCERRADA'];
   public readonly ufOptions = [
     'AC',
     'AL',
@@ -70,20 +79,15 @@ export class Register {
   public readonly estabelecimentos = ESTABELECIMENTOS_MOCK;
   public readonly unidades = UNIDADES_MOCK;
 
-  public readonly professorForm = this.fb.group({
+  public readonly alunoForm = this.fb.group({
     dadosPessoais: this.fb.group({
       nome: ['', [Validators.required, Validators.maxLength(150)]],
-      cpf: [
-        '',
-        [
-          Validators.required,
-          Register.cpfValidator,
-        ],
-      ],
+      cpf: ['', [Validators.required, AlunoRegister.cpfValidator]],
       dataNascimento: [null as Date | null, [Validators.required]],
       sexo: [null as string | null],
       email: ['', [Validators.required, Validators.email]],
       telefone: ['', [Validators.required, Validators.pattern(/^\(\d{2}\) \d{4,5}-\d{4}$/)]],
+      ativo: [true, [AlunoRegister.booleanRequiredValidator]],
     }),
 
     endereco: this.fb.group({
@@ -96,46 +100,36 @@ export class Register {
       uf: [null as string | null, [Validators.required]],
     }),
 
-    profissional: this.fb.group({
-      registroProfissional: ['', [Validators.required]],
-      observacoes: [''],
-      ativo: [true, [Register.booleanRequiredValidator]],
-    }),
-
-    atuacao: this.fb.group({
+    matricula: this.fb.group({
       estabelecimentoId: ['', [Validators.required]],
       unidadeId: ['', [Validators.required]],
-      codigoInterno: ['', [Validators.required]],
-      modalidades: this.fb.control<string[]>([], {
-        nonNullable: true,
-      }),
-      ativo: [true, [Register.booleanRequiredValidator]],
+      planoId: ['', [Validators.required]],
+      codigoMatricula: ['', [Validators.required]],
+      dataInicio: [null as Date | null, [Validators.required]],
+      dataFim: [null as Date | null],
+      diaVencimento: ['', [Validators.required, AlunoRegister.diaVencimentoValidator]],
+      status: ['ATIVA', [Validators.required]],
+      motivoCancelamento: [''],
     }),
   });
 
   public readonly registerSteps = signal<WizardStep[]>([
     {
       label: 'Dados Pessoais',
-      description: 'Preencha os dados pessoais do professor',
+      description: 'Preencha os dados pessoais do aluno',
       icon: 'pi pi-user',
       completed: false,
     },
     {
       label: 'Endereço',
-      description: 'Informe o endereço de contato do professor',
+      description: 'Informe o endereço residencial do aluno',
       icon: 'pi pi-map-marker',
       completed: false,
     },
     {
-      label: 'Profissional',
-      description: 'Adicione os dados profissionais e observações internas',
-      icon: 'pi pi-id-card',
-      completed: false,
-    },
-    {
-      label: 'Atuação',
-      description: 'Selecione o estabelecimento, a unidade e as configurações de atuação',
-      icon: 'pi pi-briefcase',
+      label: 'Matrícula',
+      description: 'Selecione a unidade, o plano e as condições iniciais da matrícula',
+      icon: 'pi pi-file-edit',
       completed: false,
     },
     {
@@ -143,7 +137,7 @@ export class Register {
       description: 'Revise as informações antes de salvar o cadastro',
       icon: 'pi pi-check-circle',
       completed: false,
-    }
+    },
   ]);
 
   protected readonly filteredEstabelecimentos = computed(() => {
@@ -185,10 +179,10 @@ export class Register {
     );
   });
 
-  protected readonly modalidadesOptions = computed(() => {
+  protected readonly planosDaUnidade = computed(() => {
     const unidadeId = this.selectedUnidadeId();
 
-    return unidadeId ? UNIDADE_MODALIDADES[unidadeId] ?? [] : [];
+    return unidadeId ? PLANOS_POR_UNIDADE.filter((plano) => plano.unidadeId === unidadeId) : [];
   });
 
   protected readonly selectedEstabelecimento = computed(() =>
@@ -199,39 +193,22 @@ export class Register {
     this.findUnidadeById(this.selectedUnidadeId()),
   );
 
-  public toggleModalidade(modalidade: string, checked: boolean): void {
-    const control = this.professorForm.controls.atuacao.controls.modalidades;
-    const modalidades = control.value;
-
-    control.setValue(
-      checked
-        ? Array.from(new Set([...modalidades, modalidade]))
-        : modalidades.filter((item) => item !== modalidade),
-    );
-    control.markAsTouched();
-    control.updateValueAndValidity();
-  }
-
-  public isModalidadeSelected(modalidade: string): boolean {
-    return this.professorForm.controls.atuacao.controls.modalidades.value.includes(modalidade);
-  }
-
   protected updateEstabelecimentoSearch(value: string): void {
     this.estabelecimentoSearch.set(value);
     this.estabelecimentoDropdownOpen.set(true);
 
     if (value !== this.selectedEstabelecimento()?.nomeFantasia) {
-      this.clearAtuacaoSelection(false);
+      this.clearMatriculaSelection(false);
     }
   }
 
   protected selectEstabelecimento(estabelecimento: Estabelecimento): void {
-    const atuacao = this.professorForm.controls.atuacao.controls;
+    const matricula = this.alunoForm.controls.matricula.controls;
 
-    atuacao.estabelecimentoId.setValue(estabelecimento.id);
-    atuacao.estabelecimentoId.markAsTouched();
-    atuacao.unidadeId.reset('');
-    atuacao.modalidades.setValue([]);
+    matricula.estabelecimentoId.setValue(estabelecimento.id);
+    matricula.estabelecimentoId.markAsTouched();
+    matricula.unidadeId.reset('');
+    matricula.planoId.reset('');
     this.selectedEstabelecimentoId.set(estabelecimento.id);
     this.selectedUnidadeId.set('');
     this.estabelecimentoSearch.set(estabelecimento.nomeFantasia);
@@ -245,81 +222,89 @@ export class Register {
     this.unidadeDropdownOpen.set(true);
 
     if (value !== this.selectedUnidade()?.nome) {
-      this.professorForm.controls.atuacao.controls.unidadeId.reset('');
-      this.professorForm.controls.atuacao.controls.modalidades.setValue([]);
+      this.alunoForm.controls.matricula.controls.unidadeId.reset('');
+      this.alunoForm.controls.matricula.controls.planoId.reset('');
       this.selectedUnidadeId.set('');
     }
   }
 
   protected selectUnidade(unidade: Unidade): void {
-    const atuacao = this.professorForm.controls.atuacao.controls;
+    const matricula = this.alunoForm.controls.matricula.controls;
 
-    atuacao.unidadeId.setValue(unidade.id);
-    atuacao.unidadeId.markAsTouched();
-    atuacao.modalidades.setValue([]);
+    matricula.unidadeId.setValue(unidade.id);
+    matricula.unidadeId.markAsTouched();
+    matricula.planoId.reset('');
     this.selectedUnidadeId.set(unidade.id);
     this.unidadeSearch.set(unidade.nome);
     this.unidadeDropdownOpen.set(false);
   }
 
   protected clearEstabelecimentoSelection(): void {
-    this.clearAtuacaoSelection(true);
-    this.professorForm.controls.atuacao.controls.estabelecimentoId.markAsTouched();
-    this.professorForm.controls.atuacao.controls.unidadeId.markAsTouched();
+    this.clearMatriculaSelection(true);
+    this.alunoForm.controls.matricula.controls.estabelecimentoId.markAsTouched();
+    this.alunoForm.controls.matricula.controls.unidadeId.markAsTouched();
+    this.alunoForm.controls.matricula.controls.planoId.markAsTouched();
   }
 
   protected clearUnidadeSelection(): void {
-    const atuacao = this.professorForm.controls.atuacao.controls;
+    const matricula = this.alunoForm.controls.matricula.controls;
 
-    atuacao.unidadeId.reset('');
-    atuacao.unidadeId.markAsTouched();
-    atuacao.modalidades.setValue([]);
+    matricula.unidadeId.reset('');
+    matricula.unidadeId.markAsTouched();
+    matricula.planoId.reset('');
+    matricula.planoId.markAsTouched();
     this.selectedUnidadeId.set('');
     this.unidadeSearch.set('');
     this.unidadeDropdownOpen.set(false);
   }
 
   protected closeEstabelecimentoDropdown(): void {
-    this.professorForm.controls.atuacao.controls.estabelecimentoId.markAsTouched();
+    this.alunoForm.controls.matricula.controls.estabelecimentoId.markAsTouched();
     this.estabelecimentoDropdownOpen.set(false);
   }
 
   protected closeUnidadeDropdown(): void {
-    this.professorForm.controls.atuacao.controls.unidadeId.markAsTouched();
+    this.alunoForm.controls.matricula.controls.unidadeId.markAsTouched();
     this.unidadeDropdownOpen.set(false);
   }
 
   public applyCpfMask(): void {
-    const control = this.professorForm.controls.dadosPessoais.controls.cpf;
+    const control = this.alunoForm.controls.dadosPessoais.controls.cpf;
 
     control.setValue(this.formatCpf(control.value), { emitEvent: false });
   }
 
   public applyTelefoneMask(): void {
-    const control = this.professorForm.controls.dadosPessoais.controls.telefone;
+    const control = this.alunoForm.controls.dadosPessoais.controls.telefone;
 
     control.setValue(this.formatTelefone(control.value), { emitEvent: false });
   }
 
   public applyCepMask(): void {
-    const control = this.professorForm.controls.endereco.controls.cep;
+    const control = this.alunoForm.controls.endereco.controls.cep;
 
     control.setValue(this.formatCep(control.value), { emitEvent: false });
   }
 
   public applyNumeroMask(): void {
-    const control = this.professorForm.controls.endereco.controls.numero;
+    const control = this.alunoForm.controls.endereco.controls.numero;
 
     control.setValue(this.onlyDigits(control.value), { emitEvent: false });
   }
 
-  public submitProfessor(): void {
-    if (this.professorForm.invalid) {
-      this.professorForm.markAllAsTouched();
+  public applyDiaVencimentoMask(): void {
+    const control = this.alunoForm.controls.matricula.controls.diaVencimento;
+
+    control.setValue(this.onlyDigits(control.value).slice(0, 2), { emitEvent: false });
+  }
+
+  public submitAluno(): void {
+    if (this.alunoForm.invalid) {
+      this.alunoForm.markAllAsTouched();
       return;
     }
 
-    console.log('Professor cadastrado', this.professorForm.getRawValue());
+    console.log('Aluno cadastrado', this.alunoForm.getRawValue());
   }
 
   public displayValue(value: unknown): string {
@@ -334,16 +319,18 @@ export class Register {
     return value ? 'Ativo' : 'Inativo';
   }
 
-  public displayList(values: string[] | null | undefined): string {
-    return values?.length ? values.join(', ') : '-';
-  }
-
   public displayEstabelecimento(): string {
     return this.selectedEstabelecimento()?.nomeFantasia ?? '-';
   }
 
   public displayUnidade(): string {
     return this.selectedUnidade()?.nome ?? '-';
+  }
+
+  public displayPlano(): string {
+    const plano = this.findPlanoById(this.alunoForm.controls.matricula.controls.planoId.value);
+
+    return plano ? `${plano.nome} · ${plano.valor}` : '-';
   }
 
   protected initials(value: string): string {
@@ -354,6 +341,28 @@ export class Register {
       .map((word) => word[0])
       .join('')
       .toUpperCase();
+  }
+
+  protected formatStatus(value: string | null): string {
+    return value
+      ? value.toLowerCase().replace(/^\w/, (char) => char.toUpperCase())
+      : '-';
+  }
+
+  private clearMatriculaSelection(clearEstabelecimentoSearch: boolean): void {
+    const matricula = this.alunoForm.controls.matricula.controls;
+
+    matricula.estabelecimentoId.reset('');
+    matricula.unidadeId.reset('');
+    matricula.planoId.reset('');
+    this.selectedEstabelecimentoId.set('');
+    this.selectedUnidadeId.set('');
+    if (clearEstabelecimentoSearch) {
+      this.estabelecimentoSearch.set('');
+    }
+    this.unidadeSearch.set('');
+    this.estabelecimentoDropdownOpen.set(false);
+    this.unidadeDropdownOpen.set(false);
   }
 
   private formatCpf(value: string | null): string {
@@ -406,28 +415,16 @@ export class Register {
     return value?.replace(/\D/g, '') ?? '';
   }
 
-  private clearAtuacaoSelection(clearEstabelecimentoSearch: boolean): void {
-    const atuacao = this.professorForm.controls.atuacao.controls;
-
-    atuacao.estabelecimentoId.reset('');
-    atuacao.unidadeId.reset('');
-    atuacao.modalidades.setValue([]);
-    this.selectedEstabelecimentoId.set('');
-    this.selectedUnidadeId.set('');
-    if (clearEstabelecimentoSearch) {
-      this.estabelecimentoSearch.set('');
-    }
-    this.unidadeSearch.set('');
-    this.estabelecimentoDropdownOpen.set(false);
-    this.unidadeDropdownOpen.set(false);
-  }
-
   private findEstabelecimentoById(id: string | null): Estabelecimento | undefined {
     return this.estabelecimentos.find((estabelecimento) => estabelecimento.id === id);
   }
 
   private findUnidadeById(id: string | null): Unidade | undefined {
     return this.unidades.find((unidade) => unidade.id === id);
+  }
+
+  private findPlanoById(id: string | null): PlanoOption | undefined {
+    return PLANOS_POR_UNIDADE.find((plano) => plano.id === id);
   }
 
   private normalizeSearch(value: string): string {
@@ -440,6 +437,18 @@ export class Register {
 
   private static booleanRequiredValidator(control: AbstractControl<boolean | null>): ValidationErrors | null {
     return typeof control.value === 'boolean' ? null : { required: true };
+  }
+
+  private static diaVencimentoValidator(control: AbstractControl<string | null>): ValidationErrors | null {
+    const value = Number(control.value);
+
+    if (!control.value) {
+      return null;
+    }
+
+    return Number.isInteger(value) && value >= 1 && value <= 31
+      ? null
+      : { invalidDay: true };
   }
 
   private static cpfValidator(control: AbstractControl<string | null>): ValidationErrors | null {
@@ -458,8 +467,8 @@ export class Register {
     }
 
     const digits = cpf.split('').map(Number);
-    const firstCheckDigit = Register.calculateCpfCheckDigit(digits.slice(0, 9));
-    const secondCheckDigit = Register.calculateCpfCheckDigit(digits.slice(0, 10));
+    const firstCheckDigit = AlunoRegister.calculateCpfCheckDigit(digits.slice(0, 9));
+    const secondCheckDigit = AlunoRegister.calculateCpfCheckDigit(digits.slice(0, 10));
 
     return firstCheckDigit === digits[9] && secondCheckDigit === digits[10]
       ? null

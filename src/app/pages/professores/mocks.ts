@@ -13,7 +13,7 @@ export const PROFESSORES_MOCK: Professor[] = [
       { estabelecimento: 'PowerFit', unidade: 'PowerFit Aldeota' },
       { estabelecimento: 'PowerFit', unidade: 'PowerFit Sul' },
     ],
-    modalidades: ['Musculacao', 'Treinamento funcional', 'Alongamento'],
+    modalidades: ['Musculação', 'Treinamento funcional', 'Alongamento'],
   },
   {
     id: 'prof-2',
@@ -40,7 +40,7 @@ export const PROFESSORES_MOCK: Professor[] = [
       { estabelecimento: 'Zenith Wellness', unidade: 'Zenith Wellness Beira Mar' },
       { estabelecimento: 'PowerFit', unidade: 'PowerFit Aldeota' },
     ],
-    modalidades: ['Yoga', 'Pilates', 'Respiracao'],
+    modalidades: ['Yoga', 'Pilates', 'Respiração'],
   },
   {
     id: 'prof-4',
@@ -54,7 +54,7 @@ export const PROFESSORES_MOCK: Professor[] = [
       { estabelecimento: 'Iron Box', unidade: 'Iron Box Sul' },
       { estabelecimento: 'Pulse Performance', unidade: 'Pulse Performance Iguatemi' },
     ],
-    modalidades: ['Cross training', 'Levantamento olimpico'],
+    modalidades: ['Cross training', 'Levantamento olímpico'],
   },
   {
     id: 'prof-5',
@@ -66,7 +66,7 @@ export const PROFESSORES_MOCK: Professor[] = [
     unidades: [
       { estabelecimento: 'Arena Kids', unidade: 'Arena Kids Parquelandia' },
     ],
-    modalidades: ['Natacao infantil', 'Recreacao esportiva'],
+    modalidades: ['Natação infantil', 'Recreação esportiva'],
   },
   {
     id: 'prof-6',
@@ -81,6 +81,6 @@ export const PROFESSORES_MOCK: Professor[] = [
       { estabelecimento: 'Pulse Performance', unidade: 'Pulse Performance Dunas' },
       { estabelecimento: 'Zenith Wellness', unidade: 'Zenith Wellness Cocó' },
     ],
-    modalidades: ['Performance', 'Corrida', 'Treinamento funcional', 'Musculacao'],
+    modalidades: ['Performance', 'Corrida', 'Treinamento funcional', 'Musculação'],
   },
 ];

@@ -15,8 +15,379 @@
   gap: 16px;
 }
 
+.teacher-register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.teacher-register-step {
+  display: block;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.form-field--full {
+  grid-column: 1 / -1;
+}
+
+.form-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.required-mark {
+  color: #ff5c7a;
+}
+
+.form-field--inline {
+  min-height: 44px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: end;
+  gap: 10px;
+}
+
+.form-field--inline > span {
+  flex: 1;
+}
+
+.form-field--inline app-error-message-control {
+  flex-basis: 100%;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  padding: 0 12px;
+  font: inherit;
+  outline: none;
+}
+
+.form-field textarea {
+  min-height: 120px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.form-field input[type='checkbox'],
+.checkbox-option input[type='checkbox'] {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--primary-color);
+}
+
+.checkbox-option input[type='checkbox'] {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.checkbox-option input[type='checkbox']:checked {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.checkbox-option input[type='checkbox']:checked::before {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border: solid white;
+  border-width: 0 0 2px 2px;
+  transform: rotate(-45deg);
+}
+
+.form-field input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--primary-color);
+}
+
+.autocomplete-field {
+  position: relative;
+}
+
+.autocomplete-control {
+  position: relative;
+}
+
+.autocomplete-control input {
+  padding-right: 42px;
+}
+
+.autocomplete-control input:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.autocomplete-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.autocomplete-clear:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  max-height: 252px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: #171717;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  padding: 6px;
+}
+
+.autocomplete-option {
+  width: 100%;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: white;
+  padding: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.autocomplete-option:hover {
+  background: rgba(139, 0, 255, 0.16);
+}
+
+.autocomplete-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(139, 0, 255, 0.18);
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.autocomplete-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.autocomplete-option-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.autocomplete-option-text strong,
+.autocomplete-option-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-option-text strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.autocomplete-option-text small,
+.autocomplete-empty,
+.form-helper {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.autocomplete-empty {
+  display: block;
+  padding: 12px;
+}
+
+.form-helper {
+  display: block;
+}
+
+.form-fieldset {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 16px;
+  color: white;
+}
+
+.form-fieldset legend {
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 0 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confirmation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.confirmation-group {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  color: white;
+}
+
+.confirmation-group h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.confirmation-group dl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.confirmation-group dl div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.confirmation-group dt {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.confirmation-group dd {
+  min-width: 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.submit-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.submit-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 @media (max-width: 1024px) {
   .teacher-register-body {
     width: min(92%, 100%);
+  }
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field--full {
+    grid-column: auto;
+  }
+
+  .checkbox-grid,
+  .confirmation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmation-group dl div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .submit-button {
+    width: 100%;
   }
 }

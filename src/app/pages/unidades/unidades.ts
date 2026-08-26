@@ -17,13 +17,13 @@ import { UnidadeItem } from './components/unidade-item/unidade-item';
 })
 export class Unidades {
   private readonly route = inject(ActivatedRoute);
-  private readonly estabelecimentoId = this.getRouteParam('estabelecimentoId');
+  private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
 
   readonly estabelecimento = computed<Estabelecimento | null>(() => (
-    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.estabelecimentoId) ?? null
+    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.idEstabelecimento) ?? null
   ));
   readonly unidades = computed<Unidade[]>(() => (
-    UNIDADES_MOCK.filter((item) => item.estabelecimentoId === this.estabelecimentoId)
+    UNIDADES_MOCK.filter((item) => item.estabelecimentoId === this.idEstabelecimento)
   ));
   readonly viewMode = signal<EstabelecimentoViewMode>('list');
   readonly filterValue = signal('');
