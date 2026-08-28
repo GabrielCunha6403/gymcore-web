@@ -1,0 +1,250 @@
+<div class="establishment-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Cadastrar estabelecimento</h1>
+    <span>Preencha os dados principais do estabelecimento para iniciar a gestão no GymCore.</span>
+  </div>
+
+  <div class="register-container">
+    <form
+      class="establishment-register-form"
+      [formGroup]="estabelecimentoForm"
+      (ngSubmit)="submitEstabelecimento()"
+    >
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="establishment-register-step"
+          [formGroup]="estabelecimentoForm.controls.dadosGerais"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Nome fantasia <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="150"
+                autocomplete="organization"
+                placeholder="Ex.: PowerFit"
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.dadosGerais.controls.nome"
+                [messages]="{
+                  required: '* Nome fantasia obrigatório',
+                  maxlength: '* Nome fantasia deve ter no máximo 150 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Razão social <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="razaoSocial"
+                maxlength="180"
+                autocomplete="organization"
+                placeholder="Ex.: PowerFit Academia LTDA"
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.dadosGerais.controls.razaoSocial"
+                [messages]="{
+                  required: '* Razão social obrigatória',
+                  maxlength: '* Razão social deve ter no máximo 180 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Tipo <span class="required-mark">*</span></span>
+              <select formControlName="tipo">
+                <option [ngValue]="null">Selecione</option>
+                @for (tipo of tipoOptions; track tipo.value) {
+                  <option [value]="tipo.value">{{ tipo.label }}</option>
+                }
+              </select>
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.dadosGerais.controls.tipo"
+                [messages]="{
+                  required: '* Tipo obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Status <span class="required-mark">*</span></span>
+              <select formControlName="status">
+                @for (status of statusOptions; track status.value) {
+                  <option [value]="status.value">{{ status.label }}</option>
+                }
+              </select>
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.dadosGerais.controls.status"
+                [messages]="{
+                  required: '* Status obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro ativo</span>
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.dadosGerais.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section
+          appWizardStep
+          class="establishment-register-step"
+          [formGroup]="estabelecimentoForm.controls.contato"
+        >
+          <div class="form-grid">
+            <div class="form-field">
+              <span>Email <span class="required-mark">*</span></span>
+              <input
+                type="email"
+                formControlName="email"
+                maxlength="150"
+                autocomplete="email"
+                placeholder="contato@powerfit.com.br"
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.contato.controls.email"
+                [messages]="{
+                  required: '* Email obrigatório',
+                  email: '* Email inválido',
+                  maxlength: '* Email deve ter no máximo 150 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Telefone <span class="required-mark">*</span></span>
+              <input
+                type="tel"
+                formControlName="telefone"
+                inputmode="tel"
+                maxlength="15"
+                autocomplete="tel"
+                placeholder="(00) 00000-0000"
+                (input)="applyTelefoneMask()"
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.contato.controls.telefone"
+                [messages]="{
+                  required: '* Telefone obrigatório',
+                  pattern: '* Telefone inválido'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Site</span>
+              <input
+                type="text"
+                formControlName="site"
+                maxlength="200"
+                autocomplete="url"
+                placeholder="www.powerfit.com.br"
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.contato.controls.site"
+                [messages]="{
+                  maxlength: '* Site deve ter no máximo 200 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>URL da logo</span>
+              <input
+                type="text"
+                formControlName="logoUrl"
+                maxlength="500"
+                autocomplete="url"
+                placeholder="https://..."
+              >
+              <app-error-message-control
+                [control]="estabelecimentoForm.controls.contato.controls.logoUrl"
+                [messages]="{
+                  maxlength: '* URL da logo deve ter no máximo 500 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="establishment-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Dados gerais</h3>
+              <dl>
+                <div>
+                  <dt>Nome fantasia</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.dadosGerais.controls.nome.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Razão social</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.dadosGerais.controls.razaoSocial.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Tipo</dt>
+                  <dd>{{ displayTipo() }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayStatus() }}</dd>
+                </div>
+                <div>
+                  <dt>Ativo</dt>
+                  <dd>{{ displayBoolean(estabelecimentoForm.controls.dadosGerais.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="confirmation-group">
+              <h3>Contato</h3>
+              <dl>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.contato.controls.email.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Telefone</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.contato.controls.telefone.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Site</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.contato.controls.site.value) }}</dd>
+                </div>
+                <div>
+                  <dt>URL da logo</dt>
+                  <dd>{{ displayValue(estabelecimentoForm.controls.contato.controls.logoUrl.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="estabelecimentoForm.invalid || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar estabelecimento' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

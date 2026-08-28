@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -6,13 +7,22 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
-import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../../estabelecimentos/mocks/mocks';
 import { Estabelecimento, Unidade } from '../../estabelecimentos/types/types';
+import {ProfessorForm} from '../types/types';
+import {ProfessoresService} from '../professores.service';
+import {ToastService} from '../../../components/toast/toast.service';
+
+interface UnidadeSearchParams {
+  idEstabelecimento: string;
+  busca: string;
+}
 
 const UNIDADE_MODALIDADES: Record<string, string[]> = {
   '1-1': ['Musculação', 'Funcional', 'Pilates'],
@@ -29,6 +39,12 @@ const UNIDADE_MODALIDADES: Record<string, string[]> = {
 })
 export class Register {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
+  private readonly professorService = inject(ProfessoresService);
+  private readonly estabelecimentoSearchTerms = new Subject<string>();
+  private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -36,6 +52,12 @@ export class Register {
   protected readonly unidadeDropdownOpen = signal(false);
   protected readonly selectedEstabelecimentoId = signal('');
   protected readonly selectedUnidadeId = signal('');
+  protected readonly estabelecimentos = signal<Estabelecimento[]>([]);
+  protected readonly estabelecimentosLoading = signal(false);
+  protected readonly estabelecimentosSearchError = signal(false);
+  protected readonly unidades = signal<Unidade[]>([]);
+  protected readonly unidadesLoading = signal(false);
+  protected readonly unidadesSearchError = signal(false);
 
   public readonly sexoOptions = ['Feminino', 'Masculino', 'Outro'];
   public readonly ufOptions = [
@@ -67,9 +89,6 @@ export class Register {
     'SE',
     'TO',
   ];
-  public readonly estabelecimentos = ESTABELECIMENTOS_MOCK;
-  public readonly unidades = UNIDADES_MOCK;
-
   public readonly professorForm = this.fb.group({
     dadosPessoais: this.fb.group({
       nome: ['', [Validators.required, Validators.maxLength(150)]],
@@ -146,44 +165,65 @@ export class Register {
     }
   ]);
 
-  protected readonly filteredEstabelecimentos = computed(() => {
-    const term = this.normalizeSearch(this.estabelecimentoSearch());
+  constructor() {
+    this.estabelecimentoSearchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap(() => {
+          this.estabelecimentosLoading.set(true);
+          this.estabelecimentosSearchError.set(false);
+        }),
+        switchMap((busca) =>
+          this.professorService.getEstabelecimentos(busca).pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar estabelecimentos', error);
+              this.estabelecimentosSearchError.set(true);
+              return of([]);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((estabelecimentos) => {
+        this.estabelecimentos.set(estabelecimentos);
+        this.estabelecimentosLoading.set(false);
+      });
 
-    if (!term) {
-      return this.estabelecimentos;
-    }
+    this.unidadeSearchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.idEstabelecimento === current.idEstabelecimento &&
+            previous.busca === current.busca,
+        ),
+        tap(() => {
+          this.unidadesLoading.set(true);
+          this.unidadesSearchError.set(false);
+        }),
+        switchMap(({ idEstabelecimento, busca }) =>
+          this.professorService.getUnidades(idEstabelecimento, busca).pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar unidades', error);
+              this.unidadesSearchError.set(true);
+              return of([]);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((unidades) => {
+        this.unidades.set(unidades);
+        this.unidadesLoading.set(false);
+      });
 
-    return this.estabelecimentos.filter((estabelecimento) =>
-      this.normalizeSearch(
-        `${estabelecimento.nomeFantasia} ${estabelecimento.razaoSocial} ${estabelecimento.cnpj}`,
-      ).includes(term),
-    );
-  });
+    this.searchEstabelecimentos('');
+  }
 
-  protected readonly unidadesDoEstabelecimento = computed(() => {
-    const estabelecimentoId = this.selectedEstabelecimentoId();
+  protected readonly filteredEstabelecimentos = computed(() => this.estabelecimentos());
 
-    if (!estabelecimentoId) {
-      return [];
-    }
-
-    return this.unidades.filter((unidade) => unidade.estabelecimentoId === estabelecimentoId);
-  });
-
-  protected readonly filteredUnidades = computed(() => {
-    const term = this.normalizeSearch(this.unidadeSearch());
-    const unidades = this.unidadesDoEstabelecimento();
-
-    if (!term) {
-      return unidades;
-    }
-
-    return unidades.filter((unidade) =>
-      this.normalizeSearch(
-        `${unidade.nome} ${unidade.tipo} ${unidade.endereco.bairro} ${unidade.endereco.cidade}`,
-      ).includes(term),
-    );
-  });
+  protected readonly filteredUnidades = computed(() => this.unidades());
 
   protected readonly modalidadesOptions = computed(() => {
     const unidadeId = this.selectedUnidadeId();
@@ -219,9 +259,19 @@ export class Register {
   protected updateEstabelecimentoSearch(value: string): void {
     this.estabelecimentoSearch.set(value);
     this.estabelecimentoDropdownOpen.set(true);
+    this.searchEstabelecimentos(value);
 
     if (value !== this.selectedEstabelecimento()?.nomeFantasia) {
-      this.clearAtuacaoSelection(false);
+      const atuacao = this.professorForm.controls.atuacao.controls;
+
+      atuacao.estabelecimentoId.reset('');
+      atuacao.unidadeId.reset('');
+      atuacao.modalidades.setValue([]);
+      this.selectedEstabelecimentoId.set('');
+      this.selectedUnidadeId.set('');
+      this.unidades.set([]);
+      this.unidadeSearch.set('');
+      this.unidadeDropdownOpen.set(false);
     }
   }
 
@@ -238,17 +288,20 @@ export class Register {
     this.unidadeSearch.set('');
     this.estabelecimentoDropdownOpen.set(false);
     this.unidadeDropdownOpen.set(true);
+    this.searchUnidades('', estabelecimento.id);
   }
 
   protected updateUnidadeSearch(value: string): void {
     this.unidadeSearch.set(value);
-    this.unidadeDropdownOpen.set(true);
+    this.unidadeDropdownOpen.set(!!this.selectedEstabelecimentoId());
 
     if (value !== this.selectedUnidade()?.nome) {
       this.professorForm.controls.atuacao.controls.unidadeId.reset('');
       this.professorForm.controls.atuacao.controls.modalidades.setValue([]);
       this.selectedUnidadeId.set('');
     }
+
+    this.searchUnidades(value);
   }
 
   protected selectUnidade(unidade: Unidade): void {
@@ -277,6 +330,7 @@ export class Register {
     this.selectedUnidadeId.set('');
     this.unidadeSearch.set('');
     this.unidadeDropdownOpen.set(false);
+    this.searchUnidades('');
   }
 
   protected closeEstabelecimentoDropdown(): void {
@@ -320,6 +374,14 @@ export class Register {
     }
 
     console.log('Professor cadastrado', this.professorForm.getRawValue());
+
+    const professor: ProfessorForm = this.professorForm.getRawValue() as unknown as ProfessorForm;
+
+    this.professorService.registerProfessor(professor).subscribe(res => {
+      console.log(res);
+      this.router.navigate(['/professores']);
+      this.toastService.success("Professor cadastrado com sucesso!");
+    });
   }
 
   public displayValue(value: unknown): string {
@@ -414,6 +476,7 @@ export class Register {
     atuacao.modalidades.setValue([]);
     this.selectedEstabelecimentoId.set('');
     this.selectedUnidadeId.set('');
+    this.unidades.set([]);
     if (clearEstabelecimentoSearch) {
       this.estabelecimentoSearch.set('');
     }
@@ -423,11 +486,29 @@ export class Register {
   }
 
   private findEstabelecimentoById(id: string | null): Estabelecimento | undefined {
-    return this.estabelecimentos.find((estabelecimento) => estabelecimento.id === id);
+    return this.estabelecimentos().find((estabelecimento) => estabelecimento.id === id);
+  }
+
+  private searchEstabelecimentos(value: string): void {
+    this.estabelecimentoSearchTerms.next(value.trim());
   }
 
   private findUnidadeById(id: string | null): Unidade | undefined {
-    return this.unidades.find((unidade) => unidade.id === id);
+    return this.unidades().find((unidade) => unidade.id === id);
+  }
+
+  private searchUnidades(value: string, idEstabelecimento = this.selectedEstabelecimentoId()): void {
+    if (!idEstabelecimento) {
+      this.unidades.set([]);
+      this.unidadesLoading.set(false);
+      this.unidadesSearchError.set(false);
+      return;
+    }
+
+    this.unidadeSearchTerms.next({
+      idEstabelecimento,
+      busca: value.trim(),
+    });
   }
 
   private normalizeSearch(value: string): string {

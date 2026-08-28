@@ -82,7 +82,11 @@
     </div>
 
     <div class="establishment-toolbar-actions">
-      <button class="entity-action entity-action--primary" type="button">
+      <button
+        class="entity-action entity-action--primary"
+        type="button"
+        [routerLink]="['/estabelecimentos', estabelecimento()?.id, 'register']"
+      >
         <i class="pi pi-plus" aria-hidden="true"></i>
         <span>Cadastrar unidade</span>
       </button>
@@ -117,7 +121,7 @@
         <app-unidade-item [unidade]="unidade" [viewMode]="viewMode()"></app-unidade-item>
       }
     } @else {
-      @if (unidades().length) {
+      @if (filteredUnidades().length) {
         <span class="establishment-content-empty">Nenhuma unidade encontrada para o filtro informado.</span>
       } @else {
         <span class="establishment-content-empty">Nenhuma unidade cadastrada para este estabelecimento.</span>

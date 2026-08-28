@@ -31,7 +31,11 @@
     </div>
 
     <div class="establishment-toolbar-actions">
-      <button class="entity-action entity-action--primary" type="button">
+      <button
+        class="entity-action entity-action--primary"
+        type="button"
+        [routerLink]="['/estabelecimentos/register']"
+      >
         <i class="pi pi-plus" aria-hidden="true"></i>
         <span>Cadastrar estabelecimento</span>
       </button>

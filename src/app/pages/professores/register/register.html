@@ -302,7 +302,11 @@
 
                 @if (estabelecimentoDropdownOpen()) {
                   <div class="autocomplete-dropdown">
-                    @if (filteredEstabelecimentos().length) {
+                    @if (estabelecimentosLoading()) {
+                      <span class="autocomplete-empty">Buscando estabelecimentos...</span>
+                    } @else if (estabelecimentosSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
+                    } @else if (filteredEstabelecimentos().length) {
                       @for (estabelecimento of filteredEstabelecimentos(); track estabelecimento.id) {
                         <button
                           class="autocomplete-option"
@@ -366,7 +370,11 @@
 
                 @if (unidadeDropdownOpen()) {
                   <div class="autocomplete-dropdown">
-                    @if (filteredUnidades().length) {
+                    @if (unidadesLoading()) {
+                      <span class="autocomplete-empty">Buscando unidades...</span>
+                    } @else if (unidadesSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar as unidades.</span>
+                    } @else if (filteredUnidades().length) {
                       @for (unidade of filteredUnidades(); track unidade.id) {
                         <button
                           class="autocomplete-option"

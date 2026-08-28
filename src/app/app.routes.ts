@@ -37,7 +37,18 @@ export const routes: Routes = [
   {
     path: 'estabelecimentos',
     data: { breadcrumb: 'Estabelecimentos' },
-    loadComponent: () => import('./pages/estabelecimentos/estabelecimentos').then((m) => m.Estabelecimentos),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./pages/estabelecimentos/estabelecimentos').then((m) => m.Estabelecimentos),
+      },
+      {
+        path: 'register',
+        data: { breadcrumb: 'Cadastrar estabelecimento' },
+        loadComponent: () => import('./pages/estabelecimentos/register/register').then((m) => m.EstabelecimentoRegister),
+      },
+    ],
   },
   {
     path: 'professores',
@@ -92,6 +103,11 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         loadComponent: () => import('./pages/unidades/unidades').then((m) => m.Unidades),
+      },
+      {
+        path: 'register',
+        data: { breadcrumb: 'Cadastrar unidade' },
+        loadComponent: () => import('./pages/unidades/register/register').then((m) => m.UnidadeRegister),
       },
       {
         path: ':idUnidade',

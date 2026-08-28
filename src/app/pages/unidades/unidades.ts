@@ -1,56 +1,31 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
 import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../estabelecimentos/mocks/mocks';
 import { Estabelecimento, EstabelecimentoViewMode, Unidade } from '../estabelecimentos/types/types';
 import { UnidadeItem } from './components/unidade-item/unidade-item';
+import {UnidadesService} from './unidades.service';
 
 @Component({
   selector: 'app-detail',
   imports: [
     Breadcrumb,
     UnidadeItem,
+    RouterLink,
   ],
   templateUrl: './unidades.html',
   styleUrl: './unidades.scss',
 })
-export class Unidades {
+export class Unidades implements OnInit{
   private readonly route = inject(ActivatedRoute);
   private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
+  private readonly unidadesService = inject(UnidadesService);
 
-  readonly estabelecimento = computed<Estabelecimento | null>(() => (
-    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.idEstabelecimento) ?? null
-  ));
-  readonly unidades = computed<Unidade[]>(() => (
-    UNIDADES_MOCK.filter((item) => item.estabelecimentoId === this.idEstabelecimento)
-  ));
+  readonly estabelecimento = signal<Estabelecimento | null>(null);
   readonly viewMode = signal<EstabelecimentoViewMode>('list');
   readonly filterValue = signal('');
-  readonly filteredUnidades = computed(() => {
-    const normalizedFilter = this.normalizeValue(this.filterValue());
-
-    if (!normalizedFilter) {
-      return this.unidades();
-    }
-
-    return this.unidades().filter((unidade) => {
-      const searchableValues = [
-        unidade.nome,
-        unidade.cnpj,
-        unidade.email,
-        unidade.telefone,
-        this.formatEnumLabel(unidade.tipo),
-        this.formatEnumLabel(unidade.status),
-        unidade.endereco.logradouro,
-        unidade.endereco.bairro,
-        unidade.endereco.cidade,
-        unidade.endereco.uf,
-      ];
-
-      return searchableValues.some((value) => this.normalizeValue(value).includes(normalizedFilter));
-    });
-  });
+  readonly filteredUnidades = signal<Unidade[]>([]);
   readonly estabelecimentoInitials = computed(() => {
     const estabelecimento = this.estabelecimento();
 
@@ -63,32 +38,37 @@ export class Unidades {
     return `${firstWord.charAt(0)}${secondWord.charAt(0) || firstWord.charAt(1) || ''}`.toUpperCase();
   });
   readonly formattedUnits = computed(() => {
-    const total = this.unidades().length;
+    const total = this.filteredUnidades().length;
     return `${total} ${total === 1 ? 'unidade' : 'unidades'}`;
   });
+
+  ngOnInit(): void {
+    this.getUnidades(this.idEstabelecimento);
+    this.getEstabelecimento(this.idEstabelecimento);
+  }
+
+  getUnidades(busca: string) {
+    this.unidadesService.getUnidades(this.idEstabelecimento, busca).subscribe(res => {
+      this.filteredUnidades.set(res);
+    });
+  }
+
+  getEstabelecimento(idEstabelecimento: string) {
+    this.unidadesService.getEstabelecimento(idEstabelecimento).subscribe(res => {
+      this.estabelecimento.set(res);
+    });
+  }
 
   setViewMode(mode: EstabelecimentoViewMode): void {
     this.viewMode.set(mode);
   }
 
   updateFilter(value: string): void {
-    this.filterValue.set(value);
+    this.getUnidades(value);
   }
 
   clearFilter(): void {
     this.filterValue.set('');
-  }
-
-  private formatEnumLabel(value: string): string {
-    return value.replace(/_/g, ' ');
-  }
-
-  private normalizeValue(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
   }
 
   private getRouteParam(paramName: string): string {

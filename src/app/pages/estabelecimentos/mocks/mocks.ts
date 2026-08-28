@@ -68,7 +68,7 @@ export const ESTABELECIMENTOS_MOCK: Estabelecimento[] = [
 
 export const UNIDADES_MOCK: Unidade[] = [
   {
-    id: '1-1',
+    id: '1',
     estabelecimentoId: '1',
     nome: 'PowerFit Aldeota',
     cnpj: '12.345.678/0001-90',
@@ -87,7 +87,7 @@ export const UNIDADES_MOCK: Unidade[] = [
     }
   },
   {
-    id: '1-2',
+    id: '2',
     estabelecimentoId: '1',
     nome: 'PowerFit Sul',
     cnpj: '12.345.678/0002-70',
@@ -105,7 +105,7 @@ export const UNIDADES_MOCK: Unidade[] = [
     }
   },
   {
-    id: '2-1',
+    id: '1',
     estabelecimentoId: '2',
     nome: 'Move Studio Meireles',
     cnpj: '23.456.789/0001-01',
@@ -125,7 +125,7 @@ export const UNIDADES_MOCK: Unidade[] = [
     }
   },
   {
-    id: '3-1',
+    id: '1',
     estabelecimentoId: '3',
     nome: 'Iron Box Sul',
     cnpj: '34.567.890/0001-12',

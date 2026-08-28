@@ -1,0 +1,331 @@
+<div class="unit-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Cadastrar unidade</h1>
+    <span>Preencha os dados da unidade para vinculá-la ao estabelecimento selecionado.</span>
+  </div>
+
+  <div class="register-container">
+    <form class="unit-register-form" [formGroup]="unidadeForm" (ngSubmit)="submitUnidade()">
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="unit-register-step"
+          [formGroup]="unidadeForm.controls.dadosGerais"
+        >
+          <div class="form-grid">
+            <div class="form-field">
+              <span>Estabelecimento</span>
+              <input type="text" [value]="estabelecimentoNome()" disabled>
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.idEstabelecimento"
+                [messages]="{
+                  required: '* Estabelecimento obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro ativo</span>
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Nome da unidade <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="150"
+                autocomplete="organization"
+                placeholder="Ex.: PowerFit Aldeota"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.nome"
+                [messages]="{
+                  required: '* Nome da unidade obrigatório',
+                  maxlength: '* Nome deve ter no máximo 150 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>CNPJ <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="cnpj"
+                inputmode="numeric"
+                maxlength="18"
+                autocomplete="off"
+                placeholder="00.000.000/0000-00"
+                (input)="applyCnpjMask()"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.cnpj"
+                [messages]="{
+                  required: '* CNPJ obrigatório',
+                  pattern: '* CNPJ inválido'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Email <span class="required-mark">*</span></span>
+              <input
+                type="email"
+                formControlName="email"
+                maxlength="150"
+                autocomplete="email"
+                placeholder="unidade@powerfit.com.br"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.email"
+                [messages]="{
+                  required: '* Email obrigatório',
+                  email: '* Email inválido',
+                  maxlength: '* Email deve ter no máximo 150 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Telefone <span class="required-mark">*</span></span>
+              <input
+                type="tel"
+                formControlName="telefone"
+                inputmode="tel"
+                maxlength="15"
+                autocomplete="tel"
+                placeholder="(00) 00000-0000"
+                (input)="applyTelefoneMask()"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.dadosGerais.controls.telefone"
+                [messages]="{
+                  required: '* Telefone obrigatório',
+                  pattern: '* Telefone inválido'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section
+          appWizardStep
+          class="unit-register-step"
+          [formGroup]="unidadeForm.controls.endereco"
+        >
+          <div class="form-grid">
+            <div class="form-field">
+              <span>CEP <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="cep"
+                inputmode="numeric"
+                maxlength="9"
+                autocomplete="postal-code"
+                placeholder="00000-000"
+                (input)="applyCepMask()"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.cep"
+                [messages]="{
+                  required: '* CEP obrigatório',
+                  pattern: '* CEP inválido'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>UF <span class="required-mark">*</span></span>
+              <select formControlName="uf">
+                <option [ngValue]="null">Selecione</option>
+                @for (uf of ufOptions; track uf) {
+                  <option [value]="uf">{{ uf }}</option>
+                }
+              </select>
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.uf"
+                [messages]="{
+                  required: '* UF obrigatória',
+                  minlength: '* UF deve ter 2 caracteres',
+                  maxlength: '* UF deve ter 2 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Logradouro <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="logradouro"
+                maxlength="200"
+                autocomplete="address-line1"
+                placeholder="Rua, avenida ou travessa"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.logradouro"
+                [messages]="{
+                  required: '* Logradouro obrigatório',
+                  maxlength: '* Logradouro deve ter no máximo 200 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Número <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="numero"
+                maxlength="30"
+                autocomplete="address-line2"
+                placeholder="Ex.: 120"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.numero"
+                [messages]="{
+                  required: '* Número obrigatório',
+                  maxlength: '* Número deve ter no máximo 30 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Complemento</span>
+              <input
+                type="text"
+                formControlName="complemento"
+                maxlength="100"
+                placeholder="Sala, bloco, andar"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.complemento"
+                [messages]="{
+                  maxlength: '* Complemento deve ter no máximo 100 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Bairro <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="bairro"
+                maxlength="100"
+                placeholder="Ex.: Centro"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.bairro"
+                [messages]="{
+                  required: '* Bairro obrigatório',
+                  maxlength: '* Bairro deve ter no máximo 100 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Cidade <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="cidade"
+                maxlength="100"
+                autocomplete="address-level2"
+                placeholder="Ex.: São Paulo"
+              >
+              <app-error-message-control
+                [control]="unidadeForm.controls.endereco.controls.cidade"
+                [messages]="{
+                  required: '* Cidade obrigatória',
+                  maxlength: '* Cidade deve ter no máximo 100 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="unit-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Dados gerais</h3>
+              <dl>
+                <div>
+                  <dt>Estabelecimento</dt>
+                  <dd>{{ estabelecimentoNome() }}</dd>
+                </div>
+                <div>
+                  <dt>Unidade</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.dadosGerais.controls.nome.value) }}</dd>
+                </div>
+                <div>
+                  <dt>CNPJ</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.dadosGerais.controls.cnpj.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.dadosGerais.controls.email.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Telefone</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.dadosGerais.controls.telefone.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(unidadeForm.controls.dadosGerais.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="confirmation-group">
+              <h3>Endereço</h3>
+              <dl>
+                <div>
+                  <dt>CEP</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.endereco.controls.cep.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Logradouro</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.endereco.controls.logradouro.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Número</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.endereco.controls.numero.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Complemento</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.endereco.controls.complemento.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Bairro</dt>
+                  <dd>{{ displayValue(unidadeForm.controls.endereco.controls.bairro.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Cidade / UF</dt>
+                  <dd>{{ displayEndereco() }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="unidadeForm.invalid || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar unidade' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

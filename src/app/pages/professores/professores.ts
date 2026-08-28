@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
 import { PROFESSORES_MOCK } from './mocks';
-import { Professor, ProfessorStatus, ProfessorUnidade } from './types';
+import { Professor, ProfessorStatus, ProfessorUnidade } from './types/types';
 
 @Component({
   selector: 'app-professores',
@@ -54,10 +54,6 @@ export class Professores {
     return status
       .toLowerCase()
       .replace(/^\w/, (char) => char.toUpperCase());
-  }
-
-  unitLabel(unidade: ProfessorUnidade): string {
-    return `${unidade.unidade} - ${unidade.estabelecimento}`;
   }
 
   hiddenCount(values: unknown[]): number {

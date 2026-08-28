@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { PROFESSORES_MOCK } from '../mocks';
-import { Professor, ProfessorStatus } from '../types';
+import { Professor, ProfessorStatus } from '../types/types';
 
 interface ProfessorDetailExtra {
   dataNascimento: string;

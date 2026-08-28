@@ -1,4 +1,4 @@
-import { Professor } from './types';
+import { Professor } from './types/types';
 
 export const PROFESSORES_MOCK: Professor[] = [
   {

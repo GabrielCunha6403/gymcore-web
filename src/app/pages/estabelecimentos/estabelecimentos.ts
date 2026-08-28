@@ -1,63 +1,48 @@
-import { Component, computed, signal } from '@angular/core';
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
 import { EstabelecimentoItem } from './components/estabelecimento-item/estabelecimento-item';
 import { ESTABELECIMENTOS_MOCK } from './mocks/mocks';
 import { Estabelecimento, EstabelecimentoViewMode } from './types/types';
+import {EstabelecimentosService} from './estabelecimentos.service';
 
 @Component({
   selector: 'app-estabelecimentos',
   imports: [
     Breadcrumb,
-    EstabelecimentoItem
+    EstabelecimentoItem,
+    RouterLink
   ],
   templateUrl: './estabelecimentos.html',
   styleUrl: './estabelecimentos.scss',
 })
-export class Estabelecimentos {
-  readonly listEsterabelecimentos = signal<Estabelecimento[]>(ESTABELECIMENTOS_MOCK);
+export class Estabelecimentos implements OnInit{
   readonly viewMode = signal<EstabelecimentoViewMode>('list');
   readonly filterValue = signal('');
-  readonly filteredEstabelecimentos = computed(() => {
-    const normalizedFilter = this.normalizeValue(this.filterValue());
+  readonly filteredEstabelecimentos = signal<Estabelecimento[]>([]);
 
-    if (!normalizedFilter) {
-      return this.listEsterabelecimentos();
-    }
+  private readonly estabelecimentoService = inject(EstabelecimentosService);
 
-    return this.listEsterabelecimentos().filter((estabelecimento) => {
-      const searchableValues = [
-        estabelecimento.nomeFantasia,
-        estabelecimento.razaoSocial,
-        estabelecimento.cnpj,
-        this.formatEnumLabel(estabelecimento.status)
-      ];
+  ngOnInit(): void {
+    this.listEstabelecimentos(this.filterValue());
+  }
 
-      return searchableValues.some((value) => this.normalizeValue(value).includes(normalizedFilter));
+  listEstabelecimentos(busca: string) {
+    this.estabelecimentoService.getEstabelecimentos(busca).subscribe(res => {
+      this.filteredEstabelecimentos.set(res);
     });
-  });
+  }
 
   setViewMode(mode: EstabelecimentoViewMode): void {
     this.viewMode.set(mode);
   }
 
   updateFilter(value: string): void {
-    this.filterValue.set(value);
+    this.listEstabelecimentos(value);
   }
 
   clearFilter(): void {
     this.filterValue.set('');
-  }
-
-  private formatEnumLabel(value: string): string {
-    return value.replace(/_/g, ' ');
-  }
-
-  private normalizeValue(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
   }
 }
