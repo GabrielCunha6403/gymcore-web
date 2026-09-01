@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -6,13 +7,20 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
-import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../../estabelecimentos/mocks/mocks';
-import { Estabelecimento, Unidade } from '../../estabelecimentos/types/types';
+import { ToastService } from '../../../components/toast/toast.service';
+import { Estabelecimento, PlanoUnidade, Unidade } from '../../estabelecimentos/types/types';
+import { EstabelecimentosService } from '../../estabelecimentos/estabelecimentos.service';
+import { UnidadesService } from '../../unidades/unidades.service';
+import { UnidadePlanosService } from '../../unidade-planos/unidade-planos.service';
+import { AlunosService } from '../alunos.service';
+import { AlunoForm, MatriculaStatus } from '../types';
 
 interface PlanoOption {
   id: string;
@@ -21,13 +29,10 @@ interface PlanoOption {
   valor: string;
 }
 
-const PLANOS_POR_UNIDADE: PlanoOption[] = [
-  { id: 'plano-1', unidadeId: '1-1', nome: 'Mensal Basic', valor: 'R$ 99,90' },
-  { id: 'plano-2', unidadeId: '1-1', nome: 'Mensal Full', valor: 'R$ 149,90' },
-  { id: 'plano-3', unidadeId: '1-2', nome: 'Trimestral Performance', valor: 'R$ 399,90' },
-  { id: 'plano-4', unidadeId: '2-1', nome: 'Pilates Individual', valor: 'R$ 289,90' },
-  { id: 'plano-5', unidadeId: '3-1', nome: 'Cross Training Livre', valor: 'R$ 179,90' },
-];
+interface UnidadeSearchParams {
+  idEstabelecimento: string;
+  busca: string;
+}
 
 @Component({
   selector: 'app-aluno-register',
@@ -37,6 +42,15 @@ const PLANOS_POR_UNIDADE: PlanoOption[] = [
 })
 export class AlunoRegister {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
+  private readonly estabelecimentosService = inject(EstabelecimentosService);
+  private readonly unidadesService = inject(UnidadesService);
+  private readonly unidadePlanosService = inject(UnidadePlanosService);
+  private readonly alunosService = inject(AlunosService);
+  private readonly estabelecimentoSearchTerms = new Subject<string>();
+  private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -44,9 +58,25 @@ export class AlunoRegister {
   protected readonly unidadeDropdownOpen = signal(false);
   protected readonly selectedEstabelecimentoId = signal('');
   protected readonly selectedUnidadeId = signal('');
+  protected readonly estabelecimentos = signal<Estabelecimento[]>([]);
+  protected readonly estabelecimentosLoading = signal(false);
+  protected readonly estabelecimentosSearchError = signal(false);
+  protected readonly unidades = signal<Unidade[]>([]);
+  protected readonly unidadesLoading = signal(false);
+  protected readonly unidadesSearchError = signal(false);
+  protected readonly planosDaUnidade = signal<PlanoOption[]>([]);
+  protected readonly planosLoading = signal(false);
+  protected readonly submitLoading = signal(false);
+  protected readonly submitError = signal('');
 
   public readonly sexoOptions = ['Feminino', 'Masculino', 'Outro'];
-  public readonly matriculaStatusOptions = ['ATIVA', 'PENDENTE', 'CANCELADA', 'ENCERRADA'];
+  public readonly matriculaStatusOptions: MatriculaStatus[] = [
+    'ATIVA',
+    'PENDENTE',
+    'TRANCADA',
+    'CANCELADA',
+    'ENCERRADA',
+  ];
   public readonly ufOptions = [
     'AC',
     'AL',
@@ -76,9 +106,6 @@ export class AlunoRegister {
     'SE',
     'TO',
   ];
-  public readonly estabelecimentos = ESTABELECIMENTOS_MOCK;
-  public readonly unidades = UNIDADES_MOCK;
-
   public readonly alunoForm = this.fb.group({
     dadosPessoais: this.fb.group({
       nome: ['', [Validators.required, Validators.maxLength(150)]],
@@ -104,11 +131,10 @@ export class AlunoRegister {
       estabelecimentoId: ['', [Validators.required]],
       unidadeId: ['', [Validators.required]],
       planoId: ['', [Validators.required]],
-      codigoMatricula: ['', [Validators.required]],
       dataInicio: [null as Date | null, [Validators.required]],
       dataFim: [null as Date | null],
       diaVencimento: ['', [Validators.required, AlunoRegister.diaVencimentoValidator]],
-      status: ['ATIVA', [Validators.required]],
+      status: ['ATIVA' as MatriculaStatus, [Validators.required]],
       motivoCancelamento: [''],
     }),
   });
@@ -140,50 +166,65 @@ export class AlunoRegister {
     },
   ]);
 
-  protected readonly filteredEstabelecimentos = computed(() => {
-    const term = this.normalizeSearch(this.estabelecimentoSearch());
+  constructor() {
+    this.estabelecimentoSearchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap(() => {
+          this.estabelecimentosLoading.set(true);
+          this.estabelecimentosSearchError.set(false);
+        }),
+        switchMap((busca) =>
+          this.estabelecimentosService.getEstabelecimentos(busca).pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar estabelecimentos', error);
+              this.estabelecimentosSearchError.set(true);
+              return of([]);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((estabelecimentos) => {
+        this.estabelecimentos.set(estabelecimentos);
+        this.estabelecimentosLoading.set(false);
+      });
 
-    if (!term) {
-      return this.estabelecimentos;
-    }
+    this.unidadeSearchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(
+          (previous, current) =>
+            previous.idEstabelecimento === current.idEstabelecimento &&
+            previous.busca === current.busca,
+        ),
+        tap(() => {
+          this.unidadesLoading.set(true);
+          this.unidadesSearchError.set(false);
+        }),
+        switchMap(({ idEstabelecimento, busca }) =>
+          this.unidadesService.getUnidades(idEstabelecimento, busca).pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar unidades', error);
+              this.unidadesSearchError.set(true);
+              return of([]);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((unidades) => {
+        this.unidades.set(unidades);
+        this.unidadesLoading.set(false);
+      });
 
-    return this.estabelecimentos.filter((estabelecimento) =>
-      this.normalizeSearch(
-        `${estabelecimento.nomeFantasia} ${estabelecimento.razaoSocial} ${estabelecimento.cnpj}`,
-      ).includes(term),
-    );
-  });
+    this.searchEstabelecimentos('');
+  }
 
-  protected readonly unidadesDoEstabelecimento = computed(() => {
-    const estabelecimentoId = this.selectedEstabelecimentoId();
+  protected readonly filteredEstabelecimentos = computed(() => this.estabelecimentos());
 
-    if (!estabelecimentoId) {
-      return [];
-    }
-
-    return this.unidades.filter((unidade) => unidade.estabelecimentoId === estabelecimentoId);
-  });
-
-  protected readonly filteredUnidades = computed(() => {
-    const term = this.normalizeSearch(this.unidadeSearch());
-    const unidades = this.unidadesDoEstabelecimento();
-
-    if (!term) {
-      return unidades;
-    }
-
-    return unidades.filter((unidade) =>
-      this.normalizeSearch(
-        `${unidade.nome} ${unidade.tipo} ${unidade.endereco.bairro} ${unidade.endereco.cidade}`,
-      ).includes(term),
-    );
-  });
-
-  protected readonly planosDaUnidade = computed(() => {
-    const unidadeId = this.selectedUnidadeId();
-
-    return unidadeId ? PLANOS_POR_UNIDADE.filter((plano) => plano.unidadeId === unidadeId) : [];
-  });
+  protected readonly filteredUnidades = computed(() => this.unidades());
 
   protected readonly selectedEstabelecimento = computed(() =>
     this.findEstabelecimentoById(this.selectedEstabelecimentoId()),
@@ -196,6 +237,7 @@ export class AlunoRegister {
   protected updateEstabelecimentoSearch(value: string): void {
     this.estabelecimentoSearch.set(value);
     this.estabelecimentoDropdownOpen.set(true);
+    this.searchEstabelecimentos(value);
 
     if (value !== this.selectedEstabelecimento()?.nomeFantasia) {
       this.clearMatriculaSelection(false);
@@ -215,17 +257,22 @@ export class AlunoRegister {
     this.unidadeSearch.set('');
     this.estabelecimentoDropdownOpen.set(false);
     this.unidadeDropdownOpen.set(true);
+    this.planosDaUnidade.set([]);
+    this.searchUnidades('', estabelecimento.id);
   }
 
   protected updateUnidadeSearch(value: string): void {
     this.unidadeSearch.set(value);
-    this.unidadeDropdownOpen.set(true);
+    this.unidadeDropdownOpen.set(!!this.selectedEstabelecimento());
 
     if (value !== this.selectedUnidade()?.nome) {
       this.alunoForm.controls.matricula.controls.unidadeId.reset('');
       this.alunoForm.controls.matricula.controls.planoId.reset('');
       this.selectedUnidadeId.set('');
+      this.planosDaUnidade.set([]);
     }
+
+    this.searchUnidades(value);
   }
 
   protected selectUnidade(unidade: Unidade): void {
@@ -237,6 +284,7 @@ export class AlunoRegister {
     this.selectedUnidadeId.set(unidade.id);
     this.unidadeSearch.set(unidade.nome);
     this.unidadeDropdownOpen.set(false);
+    this.loadPlanos(unidade.id);
   }
 
   protected clearEstabelecimentoSelection(): void {
@@ -256,6 +304,8 @@ export class AlunoRegister {
     this.selectedUnidadeId.set('');
     this.unidadeSearch.set('');
     this.unidadeDropdownOpen.set(false);
+    this.planosDaUnidade.set([]);
+    this.searchUnidades('');
   }
 
   protected closeEstabelecimentoDropdown(): void {
@@ -304,7 +354,20 @@ export class AlunoRegister {
       return;
     }
 
-    console.log('Aluno cadastrado', this.alunoForm.getRawValue());
+    this.submitLoading.set(true);
+    this.submitError.set('');
+
+    this.alunosService.registerAluno(this.toRequest()).subscribe({
+      next: () => {
+        this.toastService.success('Aluno cadastrado com sucesso!');
+        this.router.navigate(['/alunos']);
+      },
+      error: (error) => {
+        console.error('Erro ao cadastrar aluno', error);
+        this.submitError.set('Não foi possível cadastrar o aluno.');
+        this.submitLoading.set(false);
+      },
+    });
   }
 
   public displayValue(value: unknown): string {
@@ -349,6 +412,39 @@ export class AlunoRegister {
       : '-';
   }
 
+  private toRequest(): AlunoForm {
+    const { dadosPessoais, endereco, matricula } = this.alunoForm.getRawValue();
+
+    return {
+      dadosPessoais: {
+        nome: dadosPessoais.nome ?? '',
+        cpf: dadosPessoais.cpf ?? '',
+        dataNascimento: dadosPessoais.dataNascimento as unknown as string,
+        sexo: dadosPessoais.sexo || undefined,
+        email: dadosPessoais.email ?? '',
+        telefone: dadosPessoais.telefone ?? '',
+        ativo: dadosPessoais.ativo ?? true,
+      },
+      endereco: {
+        cep: endereco.cep ?? '',
+        logradouro: endereco.logradouro ?? '',
+        numero: endereco.numero ?? '',
+        complemento: endereco.complemento || undefined,
+        bairro: endereco.bairro ?? '',
+        cidade: endereco.cidade ?? '',
+        uf: endereco.uf ?? '',
+      },
+      matricula: {
+        planoUnidadeId: matricula.planoId ?? '',
+        dataInicio: matricula.dataInicio as unknown as string,
+        dataFim: (matricula.dataFim as unknown as string) || undefined,
+        diaVencimento: Number(matricula.diaVencimento),
+        status: matricula.status ?? 'ATIVA',
+        motivoCancelamento: matricula.motivoCancelamento || undefined,
+      },
+    };
+  }
+
   private clearMatriculaSelection(clearEstabelecimentoSearch: boolean): void {
     const matricula = this.alunoForm.controls.matricula.controls;
 
@@ -363,6 +459,26 @@ export class AlunoRegister {
     this.unidadeSearch.set('');
     this.estabelecimentoDropdownOpen.set(false);
     this.unidadeDropdownOpen.set(false);
+    this.planosDaUnidade.set([]);
+    this.unidades.set([]);
+  }
+
+  private searchEstabelecimentos(value: string): void {
+    this.estabelecimentoSearchTerms.next(value.trim());
+  }
+
+  private searchUnidades(value: string, idEstabelecimento = this.selectedEstabelecimentoId()): void {
+    if (!idEstabelecimento) {
+      this.unidades.set([]);
+      this.unidadesLoading.set(false);
+      this.unidadesSearchError.set(false);
+      return;
+    }
+
+    this.unidadeSearchTerms.next({
+      idEstabelecimento,
+      busca: value.trim(),
+    });
   }
 
   private formatCpf(value: string | null): string {
@@ -416,23 +532,44 @@ export class AlunoRegister {
   }
 
   private findEstabelecimentoById(id: string | null): Estabelecimento | undefined {
-    return this.estabelecimentos.find((estabelecimento) => estabelecimento.id === id);
+    return this.estabelecimentos().find((estabelecimento) => estabelecimento.id === id);
   }
 
   private findUnidadeById(id: string | null): Unidade | undefined {
-    return this.unidades.find((unidade) => unidade.id === id);
+    return this.unidades().find((unidade) => unidade.id === id);
   }
 
   private findPlanoById(id: string | null): PlanoOption | undefined {
-    return PLANOS_POR_UNIDADE.find((plano) => plano.id === id);
+    return this.planosDaUnidade().find((plano) => plano.id === id);
   }
 
-  private normalizeSearch(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private loadPlanos(idUnidade: string): void {
+    this.planosLoading.set(true);
+
+    this.unidadePlanosService.getPlanosVinculados(idUnidade).subscribe({
+      next: (res) => {
+        this.planosDaUnidade.set(res.map((vinculo) => this.toPlanoOption(vinculo)));
+        this.planosLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar planos da unidade', error);
+        this.planosDaUnidade.set([]);
+        this.planosLoading.set(false);
+      },
+    });
+  }
+
+  private toPlanoOption(vinculo: PlanoUnidade): PlanoOption {
+    return {
+      id: vinculo.id,
+      unidadeId: vinculo.unidadeId,
+      nome: vinculo.nomeExibicao || vinculo.planoNome,
+      valor: this.formatCurrency(vinculo.valor),
+    };
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 
   private static booleanRequiredValidator(control: AbstractControl<boolean | null>): ValidationErrors | null {

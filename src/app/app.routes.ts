@@ -1,30 +1,21 @@
 import { ResolveFn, Routes } from '@angular/router';
-import { ALUNOS_MOCK } from './pages/alunos/mocks';
 import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from './pages/estabelecimentos/mocks/mocks';
 import { PROFESSORES_MOCK } from './pages/professores/mocks';
 
 export const estabelecimentoBreadcrumbResolver: ResolveFn<string> = (route) => {
-  const estabelecimento = ESTABELECIMENTOS_MOCK.find((item) => item.id === route.paramMap.get('idEstabelecimento'));
-
-  return estabelecimento?.nomeFantasia ?? 'Detalhes';
+  return `Estabelecimento ${route.paramMap.get('idEstabelecimento')}`;
 };
 
 export const unidadeBreadcrumbResolver: ResolveFn<string> = (route) => {
-  const unidade = UNIDADES_MOCK.find((item) => item.id === route.paramMap.get('idUnidade'));
-
-  return unidade?.nome ?? 'Unidade';
+  return `Unidade ${route.paramMap.get('idUnidade')}`;
 };
 
 export const professorBreadcrumbResolver: ResolveFn<string> = (route) => {
-  const professor = PROFESSORES_MOCK.find((item) => item.id === route.paramMap.get('idProfessor'));
-
-  return professor?.nome ?? 'Professor';
+  return `Professor ${route.paramMap.get('idProfessor')}`;
 };
 
 export const alunoBreadcrumbResolver: ResolveFn<string> = (route) => {
-  const aluno = ALUNOS_MOCK.find((item) => item.id === route.paramMap.get('idAluno'));
-
-  return aluno?.nome ?? 'Aluno';
+  return `Aluno ${route.paramMap.get('idAluno')}`;
 };
 
 export const routes: Routes = [
@@ -47,6 +38,61 @@ export const routes: Routes = [
         path: 'register',
         data: { breadcrumb: 'Cadastrar estabelecimento' },
         loadComponent: () => import('./pages/estabelecimentos/register/register').then((m) => m.EstabelecimentoRegister),
+      },
+      {
+        path: ':idEstabelecimento',
+        data: { breadcrumb: 'Estabelecimento' },
+        resolve: { breadcrumb: estabelecimentoBreadcrumbResolver },
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('./pages/unidades/unidades').then((m) => m.Unidades),
+          },
+          {
+            path: 'register',
+            data: { breadcrumb: 'Cadastrar unidade' },
+            loadComponent: () => import('./pages/unidades/register/register').then((m) => m.UnidadeRegister),
+          },
+          {
+            path: 'modalidades/register',
+            data: { breadcrumb: 'Cadastrar modalidade' },
+            loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
+          },
+          {
+            path: ':idUnidade',
+            resolve: { breadcrumb: unidadeBreadcrumbResolver },
+            children: [
+              {
+                path: '',
+                pathMatch: 'full',
+                loadComponent: () => import('./pages/unidade-page/unidade-page').then((m) => m.UnidadePage),
+              },
+              {
+                path: 'professor/:idProfessor',
+                data: { breadcrumb: 'Detalhes' },
+                resolve: { breadcrumb: professorBreadcrumbResolver },
+                loadComponent: () => import('./pages/professores/detail/detail').then((m) => m.Detail),
+              },
+              {
+                path: 'aluno/:idAluno',
+                data: { breadcrumb: 'Detalhes' },
+                resolve: { breadcrumb: alunoBreadcrumbResolver },
+                loadComponent: () => import('./pages/alunos/detail/detail').then((m) => m.AlunoDetail),
+              },
+              {
+                path: 'modalidades/vincular',
+                data: { breadcrumb: 'Vincular modalidade' },
+                loadComponent: () => import('./pages/unidade-modalidades/register/register').then((m) => m.UnidadeModalidadeRegister),
+              },
+              {
+                path: 'planos/register',
+                data: { breadcrumb: 'Cadastrar plano' },
+                loadComponent: () => import('./pages/unidade-planos/register/register').then((m) => m.PlanoRegister),
+              },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -91,46 +137,6 @@ export const routes: Routes = [
         data: { breadcrumb: 'Detalhes' },
         resolve: { breadcrumb: alunoBreadcrumbResolver },
         loadComponent: () => import('./pages/alunos/detail/detail').then((m) => m.AlunoDetail),
-      },
-    ],
-  },
-  {
-    path: 'estabelecimentos/:idEstabelecimento',
-    data: { breadcrumb: 'Detalhes' },
-    resolve: { breadcrumb: estabelecimentoBreadcrumbResolver },
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () => import('./pages/unidades/unidades').then((m) => m.Unidades),
-      },
-      {
-        path: 'register',
-        data: { breadcrumb: 'Cadastrar unidade' },
-        loadComponent: () => import('./pages/unidades/register/register').then((m) => m.UnidadeRegister),
-      },
-      {
-        path: ':idUnidade',
-        resolve: { breadcrumb: unidadeBreadcrumbResolver },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            loadComponent: () => import('./pages/unidade-page/unidade-page').then((m) => m.UnidadePage),
-          },
-          {
-            path: 'professor/:idProfessor',
-            data: { breadcrumb: 'Detalhes' },
-            resolve: { breadcrumb: professorBreadcrumbResolver },
-            loadComponent: () => import('./pages/professores/detail/detail').then((m) => m.Detail),
-          },
-          {
-            path: 'aluno/:idAluno',
-            data: { breadcrumb: 'Detalhes' },
-            resolve: { breadcrumb: alunoBreadcrumbResolver },
-            loadComponent: () => import('./pages/alunos/detail/detail').then((m) => m.AlunoDetail),
-          },
-        ],
       },
     ],
   },

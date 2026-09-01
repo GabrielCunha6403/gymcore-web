@@ -55,25 +55,54 @@
     </div>
   }
 
+  <div class="establishment-tabs" role="tablist" aria-label="Cadastros do estabelecimento">
+    @for (tab of tabs; track tab.id) {
+      <button
+        class="establishment-tabs-button"
+        type="button"
+        role="tab"
+        [id]="'tab-' + tab.id"
+        [class.is-active]="activeTab() === tab.id"
+        [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-controls]="'panel-' + tab.id"
+        (click)="setActiveTab(tab.id)"
+      >
+        <i class="pi" [class]="tab.icon" aria-hidden="true"></i>
+        <span>{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+
   <div class="establishment-toolbar">
     <div class="establishment-toolbar-filters">
       <div class="establishment-toolbar-input-wrapper">
         <i class="pi pi-search" aria-hidden="true"></i>
-        <input
-          class="establishment-toolbar-input"
-          type="text"
-          placeholder="Pesquise por nome, tipo, status ou localização"
-          [value]="filterValue()"
-          (input)="updateFilter($any($event.target).value)"
-          aria-label="Pesquisar unidades por nome, tipo, status ou localização"
-        >
+        @if (activeTab() === 'modalidades') {
+          <input
+            class="establishment-toolbar-input"
+            type="text"
+            placeholder="Pesquise por nome da modalidade"
+            [value]="filterValue()"
+            (input)="updateFilter($any($event.target).value)"
+            aria-label="Pesquisar modalidades por nome"
+          >
+        } @else {
+          <input
+            class="establishment-toolbar-input"
+            type="text"
+            placeholder="Pesquise por nome, tipo, status ou localização"
+            [value]="filterValue()"
+            (input)="updateFilter($any($event.target).value)"
+            aria-label="Pesquisar unidades por nome, tipo, status ou localização"
+          >
+        }
 
         @if (filterValue()) {
           <button
             class="establishment-toolbar-clear"
             type="button"
             (click)="clearFilter()"
-            aria-label="Limpar filtro de unidades"
+            aria-label="Limpar filtro"
           >
             <i class="pi pi-times" aria-hidden="true"></i>
           </button>
@@ -82,16 +111,27 @@
     </div>
 
     <div class="establishment-toolbar-actions">
-      <button
-        class="entity-action entity-action--primary"
-        type="button"
-        [routerLink]="['/estabelecimentos', estabelecimento()?.id, 'register']"
-      >
-        <i class="pi pi-plus" aria-hidden="true"></i>
-        <span>Cadastrar unidade</span>
-      </button>
+      @if (activeTab() === 'modalidades') {
+        <button
+          class="entity-action entity-action--primary"
+          type="button"
+          [routerLink]="['/estabelecimentos', estabelecimento()?.id, 'modalidades', 'register']"
+        >
+          <i class="pi pi-plus" aria-hidden="true"></i>
+          <span>Cadastrar modalidade</span>
+        </button>
+      } @else {
+        <button
+          class="entity-action entity-action--primary"
+          type="button"
+          [routerLink]="['/estabelecimentos', estabelecimento()?.id, 'register']"
+        >
+          <i class="pi pi-plus" aria-hidden="true"></i>
+          <span>Cadastrar unidade</span>
+        </button>
+      }
 
-      <div class="view-toggle" role="group" aria-label="Alternar visualização de unidades">
+      <div class="view-toggle" role="group" aria-label="Alternar visualização">
         <button
           class="view-toggle-button"
           type="button"
@@ -115,17 +155,37 @@
     </div>
   </div>
 
-  <div class="establishment-content" [class.establishment-content--cards]="viewMode() === 'cards'">
-    @if (filteredUnidades().length) {
-      @for (unidade of filteredUnidades(); track unidade.id) {
-        <app-unidade-item [unidade]="unidade" [viewMode]="viewMode()"></app-unidade-item>
+  @if (activeTab() === 'modalidades') {
+    <div
+      class="establishment-content"
+      [class.establishment-content--cards]="viewMode() === 'cards'"
+      role="tabpanel"
+      [id]="'panel-modalidades'"
+      [attr.aria-labelledby]="'tab-modalidades'"
+    >
+      @if (filteredModalidades().length) {
+        @for (modalidade of filteredModalidades(); track modalidade.id) {
+          <app-modalidade-item [modalidade]="modalidade" [viewMode]="viewMode()"></app-modalidade-item>
+        }
+      } @else {
+        <span class="establishment-content-empty">Nenhuma modalidade cadastrada para este estabelecimento.</span>
       }
-    } @else {
+    </div>
+  } @else {
+    <div
+      class="establishment-content"
+      [class.establishment-content--cards]="viewMode() === 'cards'"
+      role="tabpanel"
+      [id]="'panel-unidades'"
+      [attr.aria-labelledby]="'tab-unidades'"
+    >
       @if (filteredUnidades().length) {
-        <span class="establishment-content-empty">Nenhuma unidade encontrada para o filtro informado.</span>
+        @for (unidade of filteredUnidades(); track unidade.id) {
+          <app-unidade-item [unidade]="unidade" [viewMode]="viewMode()"></app-unidade-item>
+        }
       } @else {
         <span class="establishment-content-empty">Nenhuma unidade cadastrada para este estabelecimento.</span>
       }
-    }
-  </div>
+    </div>
+  }
 </div>

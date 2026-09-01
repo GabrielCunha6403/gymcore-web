@@ -15,7 +15,7 @@ import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
 import { Estabelecimento, Unidade } from '../../estabelecimentos/types/types';
-import {ProfessorForm} from '../types/types';
+import {ProfessorForm, ProfessorStatus} from '../types/types';
 import {ProfessoresService} from '../professores.service';
 import {ToastService} from '../../../components/toast/toast.service';
 
@@ -60,6 +60,11 @@ export class Register {
   protected readonly unidadesSearchError = signal(false);
 
   public readonly sexoOptions = ['Feminino', 'Masculino', 'Outro'];
+  public readonly statusOptions: { value: ProfessorStatus; label: string }[] = [
+    { value: 'ATIVO', label: 'Ativo' },
+    { value: 'INATIVO', label: 'Inativo' },
+    { value: 'AFASTADO', label: 'Afastado' },
+  ];
   public readonly ufOptions = [
     'AC',
     'AL',
@@ -118,7 +123,7 @@ export class Register {
     profissional: this.fb.group({
       registroProfissional: ['', [Validators.required]],
       observacoes: [''],
-      ativo: [true, [Register.booleanRequiredValidator]],
+      status: ['ATIVO' as ProfessorStatus | null, [Validators.required]],
     }),
 
     atuacao: this.fb.group({
@@ -394,6 +399,10 @@ export class Register {
 
   public displayBoolean(value: boolean | null | undefined): string {
     return value ? 'Ativo' : 'Inativo';
+  }
+
+  public displayStatus(value: ProfessorStatus | null | undefined): string {
+    return this.statusOptions.find((option) => option.value === value)?.label ?? '-';
   }
 
   public displayList(values: string[] | null | undefined): string {

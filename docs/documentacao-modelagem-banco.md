@@ -928,3 +928,206 @@ Registra alterações relevantes realizadas no contexto de uma unidade.
                                                    evento auditado foi
                                                    registrado.
   ------------------------------------------------------------------------
+## Tabelas de domínio
+
+As tabelas desta seção representam conjuntos controlados de valores utilizados por outras entidades da modelagem.
+
+Diferentemente de estados internos da aplicação, esses domínios foram modelados como tabelas por possuírem potencial de evolução, parametrização ou inclusão de novos valores sem necessidade de alteração estrutural das entidades que os utilizam.
+
+---
+
+## `tipo_estabelecimento`
+
+Define os tipos de estabelecimentos que podem ser cadastrados no sistema.
+
+Exemplos de valores: `ACADEMIA`, `STUDIO`, `BOX`, `CENTRO_ESPORTIVO`, `ARTES_MARCIAIS` e `OUTRO`.
+
+Substitui o campo textual `tipo` existente em `estabelecimento` por uma referência ao domínio.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_tipo_estabelecimento` | `bigint` | Identificador único do tipo de estabelecimento. |
+| `codigo` | `varchar(40)` | Código único utilizado internamente pela aplicação, como `ACADEMIA` ou `STUDIO`. |
+| `descricao` | `varchar(100)` | Descrição apresentada ao usuário. |
+| `ativo` | `boolean` | Indica se o tipo pode ser utilizado em novos cadastros. |
+
+### Relacionamento
+
+`estabelecimento` passa a possuir:
+
+`id_tipo_estabelecimento` → `tipo_estabelecimento.id_tipo_estabelecimento`
+
+---
+
+## `tipo_cobranca`
+
+Define as formas de cobrança que podem ser configuradas para um plano oferecido por uma unidade.
+
+Exemplos de valores: `MENSAL`, `RECORRENTE` e `UNICO`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_tipo_cobranca` | `bigint` | Identificador único do tipo de cobrança. |
+| `codigo` | `varchar(30)` | Código único utilizado internamente pela aplicação. |
+| `descricao` | `varchar(100)` | Descrição do tipo de cobrança apresentada ao usuário. |
+| `ativo` | `boolean` | Indica se o tipo de cobrança está disponível para utilização. |
+
+### Relacionamento
+
+`plano_unidade` passa a possuir:
+
+`id_tipo_cobranca` → `tipo_cobranca.id_tipo_cobranca`
+
+substituindo o campo textual `tipo_cobranca`.
+
+---
+
+## `tipo_desconto`
+
+Define as formas disponíveis para cálculo de um desconto.
+
+Exemplos de valores: `PERCENTUAL` e `VALOR_FIXO`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_tipo_desconto` | `bigint` | Identificador único do tipo de desconto. |
+| `codigo` | `varchar(30)` | Código único utilizado internamente, como `PERCENTUAL` ou `VALOR_FIXO`. |
+| `descricao` | `varchar(100)` | Descrição do tipo de desconto. |
+| `ativo` | `boolean` | Indica se o tipo pode ser utilizado em novas regras de desconto. |
+
+### Relacionamentos
+
+Utilizado por:
+
+- `plano_unidade_desconto.id_tipo_desconto`
+- `matricula_desconto.id_tipo_desconto`
+
+O tipo deve ser armazenado também em `matricula_desconto` para preservar a forma como o benefício foi efetivamente concedido à matrícula.
+
+---
+
+## `tipo_aplicacao_desconto`
+
+Define a duração ou recorrência de uma regra de desconto.
+
+Exemplos de valores:
+
+- `UNICO`: aplicado uma única vez;
+- `POR_PERIODO`: aplicado durante determinada quantidade de meses;
+- `RECORRENTE`: aplicado continuamente enquanto o desconto permanecer válido.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_tipo_aplicacao_desconto` | `bigint` | Identificador único do tipo de aplicação. |
+| `codigo` | `varchar(30)` | Código único utilizado internamente pela aplicação. |
+| `descricao` | `varchar(150)` | Descrição do comportamento da aplicação do desconto. |
+| `ativo` | `boolean` | Indica se o tipo de aplicação está disponível para novas regras. |
+
+### Relacionamento
+
+`plano_unidade_desconto` passa a possuir:
+
+`id_tipo_aplicacao_desconto` → `tipo_aplicacao_desconto.id_tipo_aplicacao_desconto`
+
+substituindo o campo textual `tipo_aplicacao`.
+
+---
+
+## `condicao_desconto`
+
+Define condições que podem precisar ser satisfeitas para que uma regra de desconto seja aplicada.
+
+Exemplos de condições:
+
+- `CARTAO_CADASTRADO`;
+- `CONVENIO_EMPRESA`;
+- `PRIMEIRA_MATRICULA`;
+- `PAGAMENTO_ANTECIPADO`;
+- `INDICACAO`.
+
+Nem toda regra de desconto precisa possuir uma condição. Por esse motivo, a referência em `plano_unidade_desconto` pode ser opcional.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_condicao_desconto` | `bigint` | Identificador único da condição. |
+| `codigo` | `varchar(50)` | Código único utilizado internamente para identificar a condição. |
+| `descricao` | `varchar(150)` | Descrição da condição necessária para concessão do desconto. |
+| `ativo` | `boolean` | Indica se a condição pode ser utilizada em novas regras. |
+
+### Relacionamento
+
+`plano_unidade_desconto` passa a possuir:
+
+`id_condicao_desconto` → `condicao_desconto.id_condicao_desconto`
+
+A FK pode ser `NULL` quando o desconto não depender de uma condição.
+
+---
+
+## `forma_pagamento`
+
+Define as formas de pagamento aceitas pelo sistema.
+
+Exemplos de valores: `PIX`, `DINHEIRO`, `CARTAO_CREDITO`, `CARTAO_DEBITO`, `BOLETO` e `TRANSFERENCIA`.
+
+A utilização de uma tabela permite que novas formas de pagamento e integrações sejam adicionadas futuramente sem modificar a estrutura da entidade `pagamento`.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_forma_pagamento` | `bigint` | Identificador único da forma de pagamento. |
+| `codigo` | `varchar(40)` | Código único utilizado internamente pela aplicação. |
+| `descricao` | `varchar(100)` | Nome ou descrição apresentada ao usuário. |
+| `permite_recorrencia` | `boolean` | Indica se a forma de pagamento pode ser utilizada em cobranças recorrentes. |
+| `ativo` | `boolean` | Indica se a forma de pagamento está disponível para utilização. |
+
+### Relacionamento
+
+`pagamento` passa a possuir:
+
+`id_forma_pagamento` → `forma_pagamento.id_forma_pagamento`
+
+substituindo o campo textual `forma_pagamento`.
+
+---
+
+## `role_estabelecimento`
+
+Define os papéis que uma pessoa pode exercer dentro de um estabelecimento.
+
+Exemplos de valores: `ADMIN_ESTABELECIMENTO`, `RECEPCIONISTA` e outros perfis administrativos que venham a ser criados.
+
+Essa tabela representa o papel da pessoa no contexto do estabelecimento e não substitui necessariamente as roles utilizadas pelo Keycloak para autorização técnica da aplicação.
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_role_estabelecimento` | `bigint` | Identificador único do papel. |
+| `codigo` | `varchar(40)` | Código único utilizado internamente pela aplicação. |
+| `descricao` | `varchar(100)` | Nome ou descrição do papel. |
+| `ativo` | `boolean` | Indica se o papel pode ser atribuído a novos usuários. |
+
+### Relacionamento
+
+`usuario_estabelecimento` passa a possuir:
+
+`id_role_estabelecimento` → `role_estabelecimento.id_role_estabelecimento`
+
+substituindo o campo textual `role`.
+
+---
+
+## Valores mantidos como enums da aplicação
+
+Alguns valores possuem comportamento diretamente relacionado às regras de negócio e tendem a apresentar um conjunto pequeno e estável de estados. Para esses casos, inicialmente não é necessária uma tabela de domínio.
+
+Recomenda-se mantê-los como enums no backend e armazenar seus códigos diretamente nas respectivas colunas `varchar`.
+
+| Campo | Entidade | Exemplos |
+|---|---|---|
+| `status` | `estabelecimento` | `ATIVO`, `INATIVO`, `BLOQUEADO` |
+| `status` | `matricula` | `ATIVA`, `PENDENTE`, `TRANCADA`, `CANCELADA`, `ENCERRADA` |
+| `status` | `mensalidade` | `PENDENTE`, `PAGA`, `VENCIDA`, `CANCELADA` |
+| `status` | `pagamento` | `PENDENTE`, `CONFIRMADO`, `CANCELADO`, `ESTORNADO` |
+| `acao` | `unidade_auditoria` | `CRIACAO`, `ALTERACAO`, `INATIVACAO`, `CANCELAMENTO`, `ESTORNO` |
+
+Esses valores podem ser convertidos para tabelas de domínio posteriormente caso surja necessidade de parametrização pelo banco de dados.
+

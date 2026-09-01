@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import {environment} from '../../../environments/environments';
-import {ProfessorForm} from './types/types';
+import {PageDto, ProfessorDetalheDto, ProfessorForm, ProfessorListagemDto} from './types/types';
 import { Estabelecimento, Unidade } from '../estabelecimentos/types/types';
 
 @Injectable({
@@ -12,8 +12,10 @@ export class ProfessoresService {
 
   constructor(private http: HttpClient) { }
 
-  getProfessores() {
-    return this.http.get(`${environment.apiUrl}/professor`);
+  getProfessores(busca = '') {
+    const params = new HttpParams().set('busca', busca);
+
+    return this.http.get<PageDto<ProfessorListagemDto>>(`${environment.apiUrl}/professor`, { params });
   }
 
   getEstabelecimentos(busca: string) {
@@ -32,5 +34,9 @@ export class ProfessoresService {
 
   registerProfessor(req: ProfessorForm) {
     return this.http.post(`${environment.apiUrl}/professor`, req);
+  }
+
+  getProfessorById(idProfessor: string) {
+    return this.http.get<ProfessorDetalheDto>(`${environment.apiUrl}/professor/getProfessorById?idProfessor=${idProfessor}`);
   }
 }

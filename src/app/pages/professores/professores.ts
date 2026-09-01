@@ -1,9 +1,9 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
-import { PROFESSORES_MOCK } from './mocks';
-import { Professor, ProfessorStatus, ProfessorUnidade } from './types/types';
+import { ProfessoresService } from './professores.service';
+import { Professor, ProfessorListagemDto, ProfessorStatus } from './types/types';
 
 @Component({
   selector: 'app-professores',
@@ -11,37 +11,30 @@ import { Professor, ProfessorStatus, ProfessorUnidade } from './types/types';
   templateUrl: './professores.html',
   styleUrl: './professores.scss',
 })
-export class Professores {
-  readonly professores = signal<Professor[]>(PROFESSORES_MOCK);
+export class Professores implements OnInit {
+  private readonly professoresService = inject(ProfessoresService);
+
+  readonly filteredProfessores = signal<Professor[]>([]);
   readonly filterValue = signal('');
-  readonly filteredProfessores = computed(() => {
-    const normalizedFilter = this.normalizeValue(this.filterValue());
 
-    if (!normalizedFilter) {
-      return this.professores();
-    }
+  ngOnInit(): void {
+    this.getProfessores('');
+  }
 
-    return this.professores().filter((professor) => {
-      const searchableValues = [
-        professor.nome,
-        professor.cpf,
-        professor.email,
-        professor.contato,
-        this.formatStatus(professor.status),
-        ...professor.unidades.flatMap((item) => [item.estabelecimento, item.unidade]),
-        ...professor.modalidades,
-      ];
-
-      return searchableValues.some((value) => this.normalizeValue(value).includes(normalizedFilter));
+  getProfessores(busca: string): void {
+    this.professoresService.getProfessores(busca).subscribe((res) => {
+      this.filteredProfessores.set(res.content.map((item) => this.toProfessor(item)));
     });
-  });
+  }
 
   updateFilter(value: string): void {
     this.filterValue.set(value);
+    this.getProfessores(value);
   }
 
   clearFilter(): void {
     this.filterValue.set('');
+    this.getProfessores('');
   }
 
   initials(professor: Professor): string {
@@ -60,11 +53,16 @@ export class Professores {
     return Math.max(values.length - 1, 0);
   }
 
-  private normalizeValue(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private toProfessor(dto: ProfessorListagemDto): Professor {
+    return {
+      id: String(dto.idProfessor),
+      nome: dto.nome,
+      cpf: dto.cpf,
+      email: dto.email,
+      contato: dto.contato,
+      status: dto.status,
+      unidades: dto.unidades.map((unidade) => ({ estabelecimento: '', unidade })),
+      modalidades: dto.modalidades,
+    };
   }
 }

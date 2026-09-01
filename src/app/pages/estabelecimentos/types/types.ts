@@ -71,3 +71,103 @@ export interface UnidadeForm {
   endereco: Endereco;
   ativo?: boolean;
 }
+
+export interface Modalidade {
+  id: string;
+  estabelecimentoId: string;
+  nome: string;
+  descricao?: string;
+  ativo: boolean;
+}
+
+export interface ModalidadeForm {
+  idEstabelecimento: string;
+  nome: string;
+  descricao?: string;
+  ativo?: boolean;
+}
+
+export interface UnidadeModalidade {
+  id: string;
+  unidadeId: string;
+  modalidadeId: string;
+  modalidadeNome: string;
+  modalidadeDescricao?: string;
+  modalidadeAtivo: boolean;
+  descricao?: string;
+  capacidadePadrao?: number;
+  ativo: boolean;
+}
+
+export interface UnidadeModalidadeForm {
+  idUnidade: string;
+  idModalidade: string;
+  descricao?: string;
+  capacidadePadrao?: number;
+  ativo?: boolean;
+}
+
+export interface Plano {
+  id: string;
+  estabelecimentoId: string;
+  nome: string;
+  descricao?: string;
+  ativo: boolean;
+}
+
+export interface PlanoForm {
+  idEstabelecimento: string;
+  nome: string;
+  descricao?: string;
+  ativo?: boolean;
+}
+
+export type TipoCobranca =
+  | 'MENSAL'
+  | 'RECORRENTE'
+  | 'UNICO';
+
+export interface PlanoUnidade {
+  id: string;
+  unidadeId: string;
+  planoId: string;
+  planoNome: string;
+  planoDescricao?: string;
+  planoAtivo: boolean;
+  nomeExibicao: string;
+  descricao?: string;
+  valor: number;
+  duracaoMeses?: number;
+  tipoCobranca?: TipoCobranca;
+  taxaAdesao?: number;
+  diaVencimentoPadrao?: number;
+  ativo: boolean;
+}
+
+export interface PlanoUnidadeForm {
+  idUnidade: string;
+  idPlano: string;
+  nomeExibicao: string;
+  descricao?: string;
+  valor: number;
+  duracaoMeses?: number;
+  tipoCobranca: TipoCobranca;
+  taxaAdesao?: number;
+  diaVencimentoPadrao?: number;
+  ativo?: boolean;
+}
+
+export interface UnidadeHorarioFuncionamento {
+  diaSemana: number;
+  horaAbertura: string | null;
+  horaFechamento: string | null;
+}
+
+export interface UnidadeHorarioFuncionamentoForm {
+  idUnidade: string;
+  horarios: {
+    diaSemana: number;
+    horaAbertura?: string;
+    horaFechamento?: string;
+  }[];
+}

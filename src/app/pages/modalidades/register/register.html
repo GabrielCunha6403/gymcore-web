@@ -1,0 +1,117 @@
+<div class="modalidade-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Cadastrar modalidade</h1>
+    <span>Preencha os dados da modalidade para vinculá-la ao estabelecimento {{ estabelecimentoNome() }}.</span>
+  </div>
+
+  <div class="register-container">
+    <form class="modalidade-register-form" [formGroup]="modalidadeForm" (ngSubmit)="submitModalidade()">
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="modalidade-register-step"
+          [formGroup]="modalidadeForm.controls.dadosGerais"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Estabelecimento</span>
+              <input type="text" [value]="estabelecimentoNome()" disabled>
+              <app-error-message-control
+                [control]="modalidadeForm.controls.dadosGerais.controls.idEstabelecimento"
+                [messages]="{
+                  required: '* Estabelecimento obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Nome da modalidade <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Ex.: Musculação"
+              >
+              <app-error-message-control
+                [control]="modalidadeForm.controls.dadosGerais.controls.nome"
+                [messages]="{
+                  required: '* Nome da modalidade obrigatório',
+                  maxlength: '* Nome deve ter no máximo 120 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Descrição</span>
+              <textarea
+                formControlName="descricao"
+                maxlength="1000"
+                rows="4"
+                placeholder="Descreva brevemente a modalidade, público-alvo ou observações gerais"
+              ></textarea>
+              <app-error-message-control
+                [control]="modalidadeForm.controls.dadosGerais.controls.descricao"
+                [messages]="{
+                  maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro ativo</span>
+              <app-error-message-control
+                [control]="modalidadeForm.controls.dadosGerais.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="modalidade-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Dados da modalidade</h3>
+              <dl>
+                <div>
+                  <dt>Estabelecimento</dt>
+                  <dd>{{ estabelecimentoNome() }}</dd>
+                </div>
+                <div>
+                  <dt>Nome</dt>
+                  <dd>{{ displayValue(modalidadeForm.controls.dadosGerais.controls.nome.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Descrição</dt>
+                  <dd>{{ displayValue(modalidadeForm.controls.dadosGerais.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(modalidadeForm.controls.dadosGerais.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="modalidadeForm.invalid || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar modalidade' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

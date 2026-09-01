@@ -1,3 +1,55 @@
+export interface ProfessorListagemDto {
+  idProfessor: number;
+  nome: string;
+  cpf: string;
+  email: string;
+  contato: string;
+  unidades: string[];
+  modalidades: string[];
+  status: ProfessorStatus;
+}
+
+export interface PageDto<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  empty: boolean;
+}
+
+export interface ProfessorDetalheDto {
+  idProfessor: number;
+  nome: string;
+  cpf: string;
+  email: string;
+  contato: string;
+  dataNascimento: string | null;
+  sexo: string | null;
+  endereco: ProfessorDetalheEnderecoDto | null;
+  registroProfissional: string | null;
+  observacoes: string | null;
+  codigoInterno: string | null;
+  ativoAtuacao: boolean | null;
+  unidades: ProfessorDetalheUnidadeDto[];
+  modalidades: string[];
+  status: ProfessorStatus;
+}
+
+export interface ProfessorDetalheEnderecoDto {
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+}
+
+export interface ProfessorDetalheUnidadeDto {
+  estabelecimento: string;
+  unidade: string;
+}
+
 export interface Professor {
   id: string;
   nome: string;
@@ -49,7 +101,7 @@ export interface ProfessorEndereco {
 export interface ProfessorProfissional {
   registroProfissional: string;
   observacoes?: string;
-  ativo: boolean;
+  status: ProfessorStatus;
 }
 
 export interface ProfessorAtuacao {

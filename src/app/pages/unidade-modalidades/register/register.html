@@ -1,0 +1,184 @@
+<div class="vinculo-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Vincular modalidade</h1>
+    <span>Selecione uma modalidade já cadastrada no estabelecimento para disponibilizá-la na unidade {{ unidadeNome() }}.</span>
+  </div>
+
+  <div class="register-container">
+    <form class="vinculo-register-form" [formGroup]="vinculoForm" (ngSubmit)="submitVinculo()">
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="vinculo-register-step"
+          [formGroup]="vinculoForm.controls.dadosVinculo"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Unidade</span>
+              <input type="text" [value]="unidadeNome()" disabled>
+            </div>
+
+            <div class="form-field form-field--full autocomplete-field">
+              <span>Modalidade <span class="required-mark">*</span></span>
+              <div class="autocomplete-control">
+                <input
+                  type="text"
+                  [value]="modalidadeSearch()"
+                  autocomplete="off"
+                  placeholder="Digite para buscar uma modalidade do estabelecimento"
+                  (focus)="modalidadeDropdownOpen.set(true)"
+                  (input)="updateModalidadeSearch($any($event.target).value)"
+                  (blur)="closeModalidadeDropdown()"
+                >
+
+                @if (modalidadeSearch()) {
+                  <button
+                    class="autocomplete-clear"
+                    type="button"
+                    aria-label="Limpar modalidade"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="clearModalidadeSelection()"
+                  >
+                    <i class="pi pi-times" aria-hidden="true"></i>
+                  </button>
+                }
+
+                @if (modalidadeDropdownOpen()) {
+                  <div class="autocomplete-dropdown">
+                    @if (modalidadesLoading()) {
+                      <span class="autocomplete-empty">Buscando modalidades...</span>
+                    } @else if (modalidadesSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar as modalidades.</span>
+                    } @else if (modalidades().length) {
+                      @for (modalidade of modalidades(); track modalidade.id) {
+                        <button
+                          class="autocomplete-option"
+                          type="button"
+                          [class.autocomplete-option--disabled]="isVinculada(modalidade)"
+                          [disabled]="isVinculada(modalidade)"
+                          [attr.aria-disabled]="isVinculada(modalidade)"
+                          (mousedown)="$event.preventDefault()"
+                          (click)="selectModalidade(modalidade)"
+                        >
+                          <span class="autocomplete-avatar">
+                            <span>{{ initials(modalidade.nome) }}</span>
+                          </span>
+
+                          <span class="autocomplete-option-text">
+                            <strong>{{ modalidade.nome }}</strong>
+                            @if (isVinculada(modalidade)) {
+                              <span class="autocomplete-option-linked">Modalidade já possui vínculo com esta unidade</span>
+                            } @else if (modalidade.descricao) {
+                              <small>{{ modalidade.descricao }}</small>
+                            }
+                          </span>
+                        </button>
+                      }
+                    } @else {
+                      <span class="autocomplete-empty">Nenhuma modalidade cadastrada para este estabelecimento.</span>
+                    }
+                  </div>
+                }
+              </div>
+              <app-error-message-control
+                [control]="vinculoForm.controls.dadosVinculo.controls.idModalidade"
+                [messages]="{
+                  required: '* Modalidade obrigatória'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Capacidade padrão</span>
+              <input
+                type="number"
+                formControlName="capacidadePadrao"
+                inputmode="numeric"
+                min="1"
+                placeholder="Ex.: 20"
+              >
+              <app-error-message-control
+                [control]="vinculoForm.controls.dadosVinculo.controls.capacidadePadrao"
+                [messages]="{
+                  min: '* Capacidade deve ser maior que zero'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Vínculo ativo</span>
+              <app-error-message-control
+                [control]="vinculoForm.controls.dadosVinculo.controls.ativo"
+                [message]="'* Status do vínculo inválido'"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Descrição específica desta unidade</span>
+              <textarea
+                formControlName="descricao"
+                maxlength="1000"
+                rows="4"
+                placeholder="Opcional — se vazio, a descrição da modalidade do estabelecimento será utilizada"
+              ></textarea>
+              <app-error-message-control
+                [control]="vinculoForm.controls.dadosVinculo.controls.descricao"
+                [messages]="{
+                  maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="vinculo-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Vínculo</h3>
+              <dl>
+                <div>
+                  <dt>Unidade</dt>
+                  <dd>{{ unidadeNome() }}</dd>
+                </div>
+                <div>
+                  <dt>Modalidade</dt>
+                  <dd>{{ displayModalidade() }}</dd>
+                </div>
+                <div>
+                  <dt>Capacidade padrão</dt>
+                  <dd>{{ displayValue(vinculoForm.controls.dadosVinculo.controls.capacidadePadrao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Descrição</dt>
+                  <dd>{{ displayValue(vinculoForm.controls.dadosVinculo.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(vinculoForm.controls.dadosVinculo.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="vinculoForm.invalid || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Vinculando...' : 'Vincular modalidade' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,290 @@
+<div class="plano-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Cadastrar plano</h1>
+    <span>Cadastre um plano e defina a oferta comercial dele para a unidade {{ unidadeNome() }}.</span>
+  </div>
+
+  <div class="register-container">
+    <form class="plano-register-form" [formGroup]="planoForm" (ngSubmit)="submitPlano()">
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="plano-register-step"
+          [formGroup]="planoForm.controls.dadosPlano"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Unidade</span>
+              <input type="text" [value]="unidadeNome()" disabled>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Nome do plano <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Ex.: Mensal Full"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.nome"
+                [messages]="{
+                  required: '* Nome do plano obrigatório',
+                  maxlength: '* Nome deve ter no máximo 120 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Descrição</span>
+              <textarea
+                formControlName="descricao"
+                maxlength="1000"
+                rows="4"
+                placeholder="Descreva brevemente o plano, benefícios ou observações gerais"
+              ></textarea>
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.descricao"
+                [messages]="{
+                  maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro ativo</span>
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section
+          appWizardStep
+          class="plano-register-step"
+          [formGroup]="planoForm.controls.oferta"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Nome de exibição <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nomeExibicao"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Ex.: Mensal Full - PowerFit Aldeota"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.nomeExibicao"
+                [messages]="{
+                  required: '* Nome de exibição obrigatório',
+                  maxlength: '* Nome deve ter no máximo 120 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Tipo de cobrança <span class="required-mark">*</span></span>
+              <select formControlName="tipoCobranca">
+                <option [ngValue]="null">Selecione</option>
+                @for (tipo of tipoCobrancaOptions; track tipo.value) {
+                  <option [value]="tipo.value">{{ tipo.label }}</option>
+                }
+              </select>
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.tipoCobranca"
+                [messages]="{
+                  required: '* Tipo de cobrança obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Valor (R$) <span class="required-mark">*</span></span>
+              <input
+                type="number"
+                formControlName="valor"
+                inputmode="decimal"
+                min="0.01"
+                step="0.01"
+                placeholder="Ex.: 149.90"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.valor"
+                [messages]="{
+                  required: '* Valor obrigatório',
+                  min: '* Valor deve ser maior que zero'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Duração (meses)</span>
+              <input
+                type="number"
+                formControlName="duracaoMeses"
+                inputmode="numeric"
+                min="1"
+                placeholder="Ex.: 1"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.duracaoMeses"
+                [messages]="{
+                  min: '* Duração deve ser maior que zero'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Taxa de adesão (R$)</span>
+              <input
+                type="number"
+                formControlName="taxaAdesao"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="Ex.: 0"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.taxaAdesao"
+                [messages]="{
+                  min: '* Taxa de adesão não pode ser negativa'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Dia de vencimento padrão <span class="required-mark">*</span></span>
+              <input
+                type="number"
+                formControlName="diaVencimentoPadrao"
+                inputmode="numeric"
+                min="1"
+                max="31"
+                placeholder="Ex.: 10"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.diaVencimentoPadrao"
+                [messages]="{
+                  required: '* Dia de vencimento obrigatório',
+                  min: '* Dia deve estar entre 1 e 31',
+                  max: '* Dia deve estar entre 1 e 31'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Oferta ativa nesta unidade</span>
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.ativo"
+                [message]="'* Status da oferta inválido'"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Descrição específica desta unidade</span>
+              <textarea
+                formControlName="descricao"
+                maxlength="1000"
+                rows="4"
+                placeholder="Opcional — se vazio, a descrição do plano será utilizada"
+              ></textarea>
+              <app-error-message-control
+                [control]="planoForm.controls.oferta.controls.descricao"
+                [messages]="{
+                  maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="plano-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Dados do plano</h3>
+              <dl>
+                <div>
+                  <dt>Unidade</dt>
+                  <dd>{{ unidadeNome() }}</dd>
+                </div>
+                <div>
+                  <dt>Nome</dt>
+                  <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.nome.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Descrição</dt>
+                  <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(planoForm.controls.dadosPlano.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="confirmation-group">
+              <h3>Oferta na unidade</h3>
+              <dl>
+                <div>
+                  <dt>Nome de exibição</dt>
+                  <dd>{{ displayValue(planoForm.controls.oferta.controls.nomeExibicao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Tipo de cobrança</dt>
+                  <dd>{{ displayTipoCobranca(planoForm.controls.oferta.controls.tipoCobranca.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Valor</dt>
+                  <dd>{{ displayCurrency(planoForm.controls.oferta.controls.valor.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Duração</dt>
+                  <dd>{{ displayValue(planoForm.controls.oferta.controls.duracaoMeses.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Taxa de adesão</dt>
+                  <dd>{{ displayCurrency(planoForm.controls.oferta.controls.taxaAdesao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Dia de vencimento</dt>
+                  <dd>{{ displayValue(planoForm.controls.oferta.controls.diaVencimentoPadrao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Descrição</dt>
+                  <dd>{{ displayValue(planoForm.controls.oferta.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(planoForm.controls.oferta.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="planoForm.invalid || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar plano' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

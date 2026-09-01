@@ -1,0 +1,43 @@
+<article class="modalidade-item" [class.modalidade-item--card]="viewMode() === 'cards'">
+  <div class="modalidade-item-media">
+    <span class="modalidade-item-placeholder">{{ initials() }}</span>
+  </div>
+
+  <div class="modalidade-item-content">
+    <div class="modalidade-item-header">
+      <div class="modalidade-item-headline">
+        <h2 class="modalidade-item-title">{{ modalidade().nome }}</h2>
+      </div>
+
+      <span
+        class="modalidade-item-status"
+        [class.modalidade-item-status--inactive]="statusClass() === 'modalidade-item-status--inactive'"
+        [class.modalidade-item-status--active]="statusClass() === 'modalidade-item-status--active'"
+      >{{ formattedStatus() }}</span>
+    </div>
+
+    @if (modalidade().descricao) {
+      <p class="modalidade-item-description">{{ modalidade().descricao }}</p>
+    }
+
+    <div class="modalidade-item-actions" aria-label="Ações da modalidade">
+      <button
+        class="entity-action"
+        type="button"
+        [attr.aria-label]="'Editar modalidade ' + modalidade().nome"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        <span>Editar</span>
+      </button>
+
+      <button
+        class="entity-action entity-action--danger"
+        type="button"
+        [attr.aria-label]="'Deletar modalidade ' + modalidade().nome"
+      >
+        <i class="pi pi-trash" aria-hidden="true"></i>
+        <span>Deletar</span>
+      </button>
+    </div>
+  </div>
+</article>

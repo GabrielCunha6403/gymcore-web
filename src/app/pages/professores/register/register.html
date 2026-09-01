@@ -249,12 +249,19 @@
               ></app-error-message-control>
             </div>
 
-            <div class="form-field form-field--inline">
-              <input type="checkbox" formControlName="ativo">
-              <span>Cadastro profissional ativo</span>
+            <div class="form-field">
+              <span>Status profissional <span class="required-mark">*</span></span>
+              <select formControlName="status">
+                <option [ngValue]="null">Selecione</option>
+                @for (status of statusOptions; track status.value) {
+                  <option [value]="status.value">{{ status.label }}</option>
+                }
+              </select>
               <app-error-message-control
-                [control]="professorForm.controls.profissional.controls.ativo"
-                [message]="'* Status profissional inválido'"
+                [control]="professorForm.controls.profissional.controls.status"
+                [messages]="{
+                  required: '* Status profissional obrigatório'
+                }"
               ></app-error-message-control>
             </div>
 
@@ -517,7 +524,7 @@
                 </div>
                 <div>
                   <dt>Status</dt>
-                  <dd>{{ displayBoolean(professorForm.controls.profissional.controls.ativo.value) }}</dd>
+                  <dd>{{ displayStatus(professorForm.controls.profissional.controls.status.value) }}</dd>
                 </div>
               </dl>
             </div>

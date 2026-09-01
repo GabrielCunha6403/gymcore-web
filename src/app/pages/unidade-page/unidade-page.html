@@ -88,6 +88,76 @@
       </div>
     </section>
 
+    <section class="unit-general" aria-labelledby="unit-schedule-title">
+      <div class="unit-section-header">
+        <h2 id="unit-schedule-title">Horário de funcionamento</h2>
+
+        @if (!horariosLoading() && !horariosEditMode()) {
+          <button class="entity-action entity-action--primary" type="button" (click)="startEditHorarios()">
+            <i class="pi pi-pencil" aria-hidden="true"></i>
+            <span>Editar horários</span>
+          </button>
+        }
+      </div>
+
+      @if (horariosLoading()) {
+        <span class="unit-records-empty">Carregando horários de funcionamento...</span>
+      } @else if (!horariosEditMode()) {
+        <div class="unit-info-grid">
+          @for (dia of horariosSemana(); track dia.diaSemana) {
+            <div class="unit-info">
+              <span class="unit-info-label">{{ diaSemanaLabel(dia.diaSemana) }}</span>
+              <strong>
+                {{ dia.horaAbertura ? (dia.horaAbertura + ' às ' + dia.horaFechamento) : 'Fechado' }}
+              </strong>
+            </div>
+          }
+        </div>
+      } @else {
+        <form [formGroup]="horarioForm" (ngSubmit)="submitHorarios()">
+          <div class="unit-info-grid">
+            @for (grupo of horarioForm.controls.dias.controls; track $index; let i = $index) {
+              <div class="unit-info" [formGroup]="grupo">
+                <span class="unit-schedule-label">{{ diaSemanaLabel(diasOrdenados[i]) }}</span>
+
+                <label class="unit-schedule-closed-toggle">
+                  <input type="checkbox" formControlName="fechado">
+                  <span>Fechado</span>
+                </label>
+
+                @if (!grupo.controls['fechado'].value) {
+                  <div class="unit-schedule-time-inputs">
+                    <input type="time" formControlName="horaAbertura">
+                    <span>às</span>
+                    <input type="time" formControlName="horaFechamento">
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (horariosSubmitError()) {
+            <span class="submit-error">{{ horariosSubmitError() }}</span>
+          }
+
+          <div class="unit-schedule-actions">
+            <button class="entity-action" type="button" (click)="cancelEditHorarios()">
+              <span>Cancelar</span>
+            </button>
+
+            <button
+              class="entity-action entity-action--primary"
+              type="submit"
+              [disabled]="horariosSubmitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ horariosSubmitLoading() ? 'Salvando...' : 'Salvar horários' }}</span>
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+
     <section class="unit-operations" aria-labelledby="unit-operations-title">
       <div class="unit-section-header">
         <h2 id="unit-operations-title">Controle da unidade</h2>
@@ -120,10 +190,28 @@
         <div class="unit-tab-panel-header">
           <h3>{{ activeContent().title }}</h3>
 
-          <button class="entity-action entity-action--primary" type="button">
-            <i class="pi pi-plus" aria-hidden="true"></i>
-            <span>{{ activeContent().createLabel }}</span>
-          </button>
+          @if (activeTab() === 'modalidades') {
+            <a
+              class="entity-action entity-action--primary"
+              [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'modalidades', 'vincular']"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </a>
+          } @else if (activeTab() === 'planos') {
+            <a
+              class="entity-action entity-action--primary"
+              [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'planos', 'register']"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </a>
+          } @else {
+            <button class="entity-action entity-action--primary" type="button">
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </button>
+          }
         </div>
 
         <div class="unit-metrics">
@@ -137,7 +225,16 @@
         </div>
 
         <div class="unit-records">
-          @for (item of activeContent().items; track item.title) {
+          @if (activeTab() === 'modalidades' && modalidadesLoading()) {
+            <span class="unit-records-empty">Carregando modalidades da unidade...</span>
+          } @else if (activeTab() === 'modalidades' && !activeContent().items.length) {
+            <span class="unit-records-empty">Nenhuma modalidade vinculada a esta unidade.</span>
+          } @else if (activeTab() === 'planos' && planosLoading()) {
+            <span class="unit-records-empty">Carregando planos da unidade...</span>
+          } @else if (activeTab() === 'planos' && !activeContent().items.length) {
+            <span class="unit-records-empty">Nenhum plano vinculado a esta unidade.</span>
+          }
+          @for (item of activeContent().items; track item.id ?? item.title) {
             <article class="unit-record">
               <div class="unit-record-main">
                 @if (shouldShowRecordAvatar()) {

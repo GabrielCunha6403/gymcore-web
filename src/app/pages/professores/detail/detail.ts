@@ -1,9 +1,9 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
-import { PROFESSORES_MOCK } from '../mocks';
-import { Professor, ProfessorStatus } from '../types/types';
+import { ProfessoresService } from '../professores.service';
+import { Professor, ProfessorDetalheDto, ProfessorStatus } from '../types/types';
 
 interface ProfessorDetailExtra {
   dataNascimento: string;
@@ -20,7 +20,6 @@ interface ProfessorDetailExtra {
   profissional: {
     registroProfissional: string;
     observacoes: string;
-    ativo: boolean;
   };
   atuacao: {
     codigoInterno: string;
@@ -28,82 +27,27 @@ interface ProfessorDetailExtra {
   };
 }
 
-const PROFESSOR_DETAIL_EXTRA: Record<string, ProfessorDetailExtra> = {
-  'prof-1': {
-    dataNascimento: '12/04/1991',
-    sexo: 'Feminino',
-    endereco: {
-      cep: '60150-160',
-      logradouro: 'Av. Santos Dumont',
-      numero: '1500',
-      bairro: 'Aldeota',
-      cidade: 'Fortaleza',
-      uf: 'CE',
-    },
-    profissional: {
-      registroProfissional: 'CREF 012345-G/CE',
-      observacoes: 'Responsável por turmas de musculação e acompanhamento inicial.',
-      ativo: true,
-    },
-    atuacao: {
-      codigoInterno: 'PROF-001',
-      ativo: true,
-    },
-  },
-  'prof-2': {
-    dataNascimento: '08/09/1987',
-    sexo: 'Masculino',
-    endereco: {
-      cep: '60175-047',
-      logradouro: 'Rua Silva Jatahy',
-      numero: '850',
-      complemento: 'Sala 02',
-      bairro: 'Meireles',
-      cidade: 'Fortaleza',
-      uf: 'CE',
-    },
-    profissional: {
-      registroProfissional: 'CREF 023456-G/CE',
-      observacoes: 'Atuação focada em pilates, mobilidade e recuperação funcional.',
-      ativo: true,
-    },
-    atuacao: {
-      codigoInterno: 'PROF-002',
-      ativo: true,
-    },
-  },
-};
-
 @Component({
   selector: 'app-detail',
   imports: [Breadcrumb, RouterLink],
   templateUrl: './detail.html',
   styleUrl: './detail.scss',
 })
-export class Detail {
+export class Detail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly professoresService = inject(ProfessoresService);
   private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly idUnidade = this.getRouteParam('idUnidade');
   private readonly idProfessor = this.getRouteParam('idProfessor');
 
-  protected readonly professor = computed<Professor | null>(() => (
-    PROFESSORES_MOCK.find((item) => item.id === this.idProfessor) ?? null
-  ));
+  protected readonly professor = signal<Professor | null>(null);
+  protected readonly details = signal<ProfessorDetailExtra | null>(null);
+
   protected readonly backLink = computed(() => (
     this.idEstabelecimento && this.idUnidade
       ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
       : ['/professores']
   ));
-
-  protected readonly details = computed<ProfessorDetailExtra | null>(() => {
-    const professor = this.professor();
-
-    if (!professor) {
-      return null;
-    }
-
-    return PROFESSOR_DETAIL_EXTRA[professor.id] ?? this.buildDefaultDetails(professor);
-  });
 
   protected readonly initials = computed(() => {
     const professor = this.professor();
@@ -116,6 +60,17 @@ export class Detail {
   });
 
   protected readonly primaryUnit = computed(() => this.professor()?.unidades[0] ?? null);
+
+  ngOnInit(): void {
+    if (!this.idProfessor) {
+      return;
+    }
+
+    this.professoresService.getProfessorById(this.idProfessor).subscribe((dto) => {
+      this.professor.set(this.toProfessor(dto));
+      this.details.set(this.toDetails(dto));
+    });
+  }
 
   protected formatStatus(status: ProfessorStatus): string {
     return status
@@ -149,28 +104,54 @@ export class Detail {
     return `${firstWord.charAt(0)}${secondWord.charAt(0) || firstWord.charAt(1) || ''}`.toUpperCase();
   }
 
-  private buildDefaultDetails(professor: Professor): ProfessorDetailExtra {
+  private toProfessor(dto: ProfessorDetalheDto): Professor {
     return {
-      dataNascimento: '-',
-      sexo: '-',
+      id: String(dto.idProfessor),
+      nome: dto.nome,
+      cpf: dto.cpf,
+      email: dto.email,
+      contato: dto.contato,
+      status: dto.status,
+      unidades: dto.unidades.map((unidade) => ({
+        estabelecimento: unidade.estabelecimento ?? '-',
+        unidade: unidade.unidade,
+      })),
+      modalidades: dto.modalidades,
+    };
+  }
+
+  private toDetails(dto: ProfessorDetalheDto): ProfessorDetailExtra {
+    return {
+      dataNascimento: this.formatDate(dto.dataNascimento),
+      sexo: this.displayValue(dto.sexo ?? undefined),
       endereco: {
-        cep: '60833-540',
-        logradouro: 'Av. Oliveira Paiva',
-        numero: '2222',
-        bairro: 'Cidade dos Funcionários',
-        cidade: 'Fortaleza',
-        uf: 'CE',
+        cep: this.displayValue(dto.endereco?.cep),
+        logradouro: this.displayValue(dto.endereco?.logradouro),
+        numero: this.displayValue(dto.endereco?.numero),
+        complemento: dto.endereco?.complemento,
+        bairro: this.displayValue(dto.endereco?.bairro),
+        cidade: this.displayValue(dto.endereco?.cidade),
+        uf: this.displayValue(dto.endereco?.uf),
       },
       profissional: {
-        registroProfissional: `CREF ${professor.id.replace(/\D/g, '').padStart(6, '0')}-G/CE`,
-        observacoes: 'Cadastro complementar pendente de revisão.',
-        ativo: professor.status === 'ATIVO',
+        registroProfissional: this.displayValue(dto.registroProfissional ?? undefined),
+        observacoes: this.displayValue(dto.observacoes ?? undefined),
       },
       atuacao: {
-        codigoInterno: professor.id.toUpperCase(),
-        ativo: professor.status === 'ATIVO',
+        codigoInterno: this.displayValue(dto.codigoInterno ?? undefined),
+        ativo: dto.ativoAtuacao ?? false,
       },
     };
+  }
+
+  private formatDate(value: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    const [ano, mes, dia] = value.split('-');
+
+    return ano && mes && dia ? `${dia}/${mes}/${ano}` : value;
   }
 
   private getRouteParam(paramName: string): string {

@@ -1,9 +1,18 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
-import { ALUNOS_MOCK } from '../mocks';
-import { Aluno, AlunoStatus, MatriculaStatus } from '../types';
+import { AlunosService } from '../alunos.service';
+import {
+  Aluno,
+  AlunoDetalheDto,
+  AlunoStatus,
+  FrequenciaListagemDto,
+  MatriculaStatus,
+  MensalidadeListagemDto,
+  MensalidadeStatus,
+} from '../types';
 
 interface AlunoDetailExtra {
   dataNascimento: string;
@@ -41,96 +50,27 @@ interface AlunoDetailExtra {
   turmas: string[];
 }
 
-const ALUNO_DETAIL_EXTRA: Record<string, AlunoDetailExtra> = {
-  'aluno-1': {
-    dataNascimento: '18/08/1998',
-    sexo: 'Masculino',
-    endereco: {
-      cep: '60150-160',
-      logradouro: 'Rua Joaquim Nabuco',
-      numero: '420',
-      bairro: 'Aldeota',
-      cidade: 'Fortaleza',
-      uf: 'CE',
-    },
-    matricula: {
-      unidade: 'PowerFit Aldeota',
-      plano: 'Mensal Full',
-      codigo: 'MAT-001',
-      dataInicio: '10/01/2026',
-      diaVencimento: 10,
-      status: 'ATIVA',
-    },
-    mensalidades: [
-      { competencia: '08/2026', vencimento: '10/08/2026', valorTotal: 'R$ 149,90', status: 'Paga' },
-      { competencia: '09/2026', vencimento: '10/09/2026', valorTotal: 'R$ 149,90', status: 'Aberta' },
-    ],
-    frequencias: [
-      { unidade: 'PowerFit Aldeota', entrada: '25/08/2026 07:12', saida: '25/08/2026 08:24' },
-      { unidade: 'PowerFit Aldeota', entrada: '23/08/2026 07:18', saida: '23/08/2026 08:15' },
-    ],
-    turmas: ['Funcional 07h', 'Alongamento iniciante'],
-  },
-  'aluno-2': {
-    dataNascimento: '04/11/1995',
-    sexo: 'Feminino',
-    endereco: {
-      cep: '60175-047',
-      logradouro: 'Rua Silva Jatahy',
-      numero: '810',
-      complemento: 'Apto 703',
-      bairro: 'Meireles',
-      cidade: 'Fortaleza',
-      uf: 'CE',
-    },
-    matricula: {
-      unidade: 'Move Studio Meireles',
-      plano: 'Trimestral Performance',
-      codigo: 'MAT-002',
-      dataInicio: '05/03/2026',
-      diaVencimento: 15,
-      status: 'PENDENTE',
-    },
-    mensalidades: [
-      { competencia: '08/2026', vencimento: '15/08/2026', valorTotal: 'R$ 399,90', status: 'Pendente' },
-    ],
-    frequencias: [
-      { unidade: 'Move Studio Meireles', entrada: '24/08/2026 18:02', saida: '24/08/2026 19:10' },
-    ],
-    turmas: ['Pilates solo', 'Mobilidade'],
-  },
-};
-
 @Component({
   selector: 'app-aluno-detail',
   imports: [Breadcrumb, RouterLink],
   templateUrl: './detail.html',
   styleUrl: './detail.scss',
 })
-export class AlunoDetail {
+export class AlunoDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly alunosService = inject(AlunosService);
   private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly idUnidade = this.getRouteParam('idUnidade');
   private readonly idAluno = this.getRouteParam('idAluno');
 
-  protected readonly aluno = computed<Aluno | null>(() => (
-    ALUNOS_MOCK.find((item) => item.id === this.idAluno) ?? null
-  ));
+  protected readonly aluno = signal<Aluno | null>(null);
+  protected readonly details = signal<AlunoDetailExtra | null>(null);
+
   protected readonly backLink = computed(() => (
     this.idEstabelecimento && this.idUnidade
       ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
       : ['/alunos']
   ));
-
-  protected readonly details = computed<AlunoDetailExtra | null>(() => {
-    const aluno = this.aluno();
-
-    if (!aluno) {
-      return null;
-    }
-
-    return ALUNO_DETAIL_EXTRA[aluno.id] ?? this.buildDefaultDetails(aluno);
-  });
 
   protected readonly initials = computed(() => {
     const aluno = this.aluno();
@@ -143,6 +83,21 @@ export class AlunoDetail {
   });
 
   protected readonly primaryUnit = computed(() => this.aluno()?.unidades[0] ?? null);
+
+  ngOnInit(): void {
+    if (!this.idAluno) {
+      return;
+    }
+
+    forkJoin({
+      aluno: this.alunosService.getAlunoById(this.idAluno),
+      mensalidades: this.alunosService.getMensalidades(this.idAluno),
+      frequencias: this.alunosService.getFrequencias(this.idAluno),
+    }).subscribe(({ aluno, mensalidades, frequencias }) => {
+      this.aluno.set(this.toAluno(aluno));
+      this.details.set(this.toDetails(aluno, mensalidades, frequencias));
+    });
+  }
 
   protected formatStatus(status: AlunoStatus): string {
     return status
@@ -178,32 +133,111 @@ export class AlunoDetail {
     return `${firstWord.charAt(0)}${secondWord.charAt(0) || firstWord.charAt(1) || ''}`.toUpperCase();
   }
 
-  private buildDefaultDetails(aluno: Aluno): AlunoDetailExtra {
+  private toAluno(dto: AlunoDetalheDto): Aluno {
     return {
-      dataNascimento: '-',
-      sexo: '-',
+      id: String(dto.idAluno),
+      nome: dto.nome,
+      cpf: dto.cpf,
+      email: dto.email,
+      contato: dto.contato,
+      status: dto.ativo ? 'ATIVO' : 'INATIVO',
+      unidades: dto.unidades.map((unidade) => ({
+        estabelecimento: unidade.estabelecimento ?? '-',
+        unidade: unidade.unidade,
+      })),
+      planoAtual: dto.matricula?.plano ?? '-',
+      modalidades: dto.modalidades,
+      matricula: {
+        codigo: dto.matricula ? String(dto.matricula.idMatricula) : '-',
+        dataInicio: dto.matricula?.dataInicio ?? '',
+        vencimento: dto.matricula?.diaVencimento ?? 0,
+        status: dto.matricula?.status ?? 'PENDENTE',
+      },
+    };
+  }
+
+  private toDetails(
+    dto: AlunoDetalheDto,
+    mensalidades: MensalidadeListagemDto[],
+    frequencias: FrequenciaListagemDto[],
+  ): AlunoDetailExtra {
+    return {
+      dataNascimento: this.formatDate(dto.dataNascimento),
+      sexo: this.displayValue(dto.sexo ?? undefined),
       endereco: {
-        cep: '60833-540',
-        logradouro: 'Av. Oliveira Paiva',
-        numero: '2222',
-        bairro: 'Cidade dos Funcionários',
-        cidade: 'Fortaleza',
-        uf: 'CE',
+        cep: this.displayValue(dto.endereco?.cep),
+        logradouro: this.displayValue(dto.endereco?.logradouro),
+        numero: this.displayValue(dto.endereco?.numero),
+        complemento: dto.endereco?.complemento,
+        bairro: this.displayValue(dto.endereco?.bairro),
+        cidade: this.displayValue(dto.endereco?.cidade),
+        uf: this.displayValue(dto.endereco?.uf),
       },
       matricula: {
-        unidade: aluno.unidades[0]?.unidade ?? '-',
-        plano: aluno.planoAtual,
-        codigo: aluno.matricula.codigo,
-        dataInicio: aluno.matricula.dataInicio,
-        diaVencimento: aluno.matricula.vencimento,
-        status: aluno.matricula.status,
+        unidade: this.displayValue(dto.matricula?.unidade),
+        plano: this.displayValue(dto.matricula?.plano),
+        codigo: dto.matricula ? String(dto.matricula.idMatricula) : '-',
+        dataInicio: this.formatDate(dto.matricula?.dataInicio ?? null),
+        dataFim: dto.matricula?.dataFim ? this.formatDate(dto.matricula.dataFim) : undefined,
+        diaVencimento: dto.matricula?.diaVencimento ?? 0,
+        status: dto.matricula?.status ?? 'PENDENTE',
+        motivoCancelamento: dto.matricula?.motivoCancelamento ?? undefined,
       },
-      mensalidades: [
-        { competencia: '08/2026', vencimento: '10/08/2026', valorTotal: 'R$ 129,90', status: 'Aberta' },
-      ],
-      frequencias: [],
-      turmas: aluno.modalidades,
+      mensalidades: mensalidades.map((item) => this.toMensalidade(item)),
+      frequencias: frequencias.map((item) => this.toFrequencia(item)),
+      turmas: [],
     };
+  }
+
+  private toMensalidade(dto: MensalidadeListagemDto): AlunoDetailExtra['mensalidades'][number] {
+    return {
+      competencia: this.formatCompetencia(dto.competencia),
+      vencimento: this.formatDate(dto.dataVencimento),
+      valorTotal: this.formatCurrency(dto.valorTotal),
+      status: this.formatMensalidadeStatus(dto.status),
+    };
+  }
+
+  private toFrequencia(dto: FrequenciaListagemDto): AlunoDetailExtra['frequencias'][number] {
+    return {
+      unidade: dto.unidade ?? '-',
+      entrada: this.formatDateTime(dto.dataHoraEntrada),
+      saida: dto.dataHoraSaida ? this.formatDateTime(dto.dataHoraSaida) : undefined,
+    };
+  }
+
+  private formatDate(value: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    const [ano, mes, dia] = value.split('-');
+
+    return ano && mes && dia ? `${dia}/${mes}/${ano}` : value;
+  }
+
+  private formatCompetencia(value: string): string {
+    const [ano, mes] = value.split('-');
+
+    return ano && mes ? `${mes}/${ano}` : value;
+  }
+
+  private formatDateTime(value: string): string {
+    const [datePart, timePart] = value.split('T');
+    const [ano, mes, dia] = (datePart ?? '').split('-');
+    const [hora = '00', minuto = '00'] = (timePart ?? '').split(':');
+
+    return ano && mes && dia ? `${dia}/${mes}/${ano} ${hora}:${minuto}` : value;
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  private formatMensalidadeStatus(status: MensalidadeStatus): string {
+    return status
+      .toLowerCase()
+      .replace(/^\w/, (char) => char.toUpperCase());
   }
 
   private getRouteParam(paramName: string): string {

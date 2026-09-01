@@ -266,7 +266,11 @@
 
                 @if (estabelecimentoDropdownOpen()) {
                   <div class="autocomplete-dropdown">
-                    @if (filteredEstabelecimentos().length) {
+                    @if (estabelecimentosLoading()) {
+                      <span class="autocomplete-empty">Buscando estabelecimentos...</span>
+                    } @else if (estabelecimentosSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
+                    } @else if (filteredEstabelecimentos().length) {
                       @for (estabelecimento of filteredEstabelecimentos(); track estabelecimento.id) {
                         <button
                           class="autocomplete-option"
@@ -330,7 +334,11 @@
 
                 @if (unidadeDropdownOpen()) {
                   <div class="autocomplete-dropdown">
-                    @if (filteredUnidades().length) {
+                    @if (unidadesLoading()) {
+                      <span class="autocomplete-empty">Buscando unidades...</span>
+                    } @else if (unidadesSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar as unidades.</span>
+                    } @else if (filteredUnidades().length) {
                       @for (unidade of filteredUnidades(); track unidade.id) {
                         <button
                           class="autocomplete-option"
@@ -378,17 +386,6 @@
                 [control]="alunoForm.controls.matricula.controls.planoId"
                 [messages]="{
                   required: '* Plano obrigatório'
-                }"
-              ></app-error-message-control>
-            </div>
-
-            <div class="form-field">
-              <span>Código da matrícula <span class="required-mark">*</span></span>
-              <input type="text" formControlName="codigoMatricula" autocomplete="off" placeholder="Ex.: MAT-001">
-              <app-error-message-control
-                [control]="alunoForm.controls.matricula.controls.codigoMatricula"
-                [messages]="{
-                  required: '* Código da matrícula obrigatório'
                 }"
               ></app-error-message-control>
             </div>
@@ -520,10 +517,6 @@
                   <dd>{{ displayPlano() }}</dd>
                 </div>
                 <div>
-                  <dt>Código</dt>
-                  <dd>{{ displayValue(alunoForm.controls.matricula.controls.codigoMatricula.value) }}</dd>
-                </div>
-                <div>
                   <dt>Vencimento</dt>
                   <dd>{{ displayValue(alunoForm.controls.matricula.controls.diaVencimento.value) }}</dd>
                 </div>
@@ -535,10 +528,14 @@
             </div>
           </div>
 
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
           <div class="submit-area">
-            <button class="submit-button" type="submit" [disabled]="alunoForm.invalid">
+            <button class="submit-button" type="submit" [disabled]="alunoForm.invalid || submitLoading()">
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>Cadastrar aluno</span>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar aluno' }}</span>
             </button>
           </div>
         </section>

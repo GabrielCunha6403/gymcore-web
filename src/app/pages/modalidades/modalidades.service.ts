@@ -2,31 +2,27 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { environment } from '../../../environments/environments';
-import {Estabelecimento, Unidade, UnidadeForm} from '../estabelecimentos/types/types';
+import { Estabelecimento, Modalidade, ModalidadeForm } from '../estabelecimentos/types/types';
 
 @Injectable({
   providedIn: 'root',
 })
-export class UnidadesService {
+export class ModalidadesService {
   constructor(private readonly http: HttpClient) {}
 
-  getUnidades(idEstabelecimento: string, busca = '') {
+  getModalidades(idEstabelecimento: string, busca = '') {
     const params = new HttpParams()
       .set('idEstabelecimento', idEstabelecimento)
       .set('busca', busca);
 
-    return this.http.get<Unidade[]>(`${environment.apiUrl}/unidade`, { params });
+    return this.http.get<Modalidade[]>(`${environment.apiUrl}/modalidade`, { params });
   }
 
-  registerUnidade(req: UnidadeForm) {
-    return this.http.post(`${environment.apiUrl}/unidade`, req);
+  registerModalidade(req: ModalidadeForm) {
+    return this.http.post(`${environment.apiUrl}/modalidade`, req);
   }
 
   getEstabelecimento(idEstabelecimento: string) {
     return this.http.get<Estabelecimento>(`${environment.apiUrl}/estabelecimento/getEstabelecimentoById?idEstabelecimento=${idEstabelecimento}`);
-  }
-
-  getUnidadeById(idUnidade: string) {
-    return this.http.get<Unidade>(`${environment.apiUrl}/unidade/getUnidadeById?idUnidade=${idUnidade}`);
   }
 }

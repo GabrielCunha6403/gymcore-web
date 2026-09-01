@@ -1,9 +1,9 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
-import { ALUNOS_MOCK } from './mocks';
-import { Aluno, AlunoStatus, AlunoUnidade, MatriculaStatus } from './types';
+import { AlunosService } from './alunos.service';
+import { Aluno, AlunoListagemDto, AlunoStatus, AlunoUnidade, MatriculaStatus } from './types';
 
 @Component({
   selector: 'app-alunos',
@@ -11,40 +11,30 @@ import { Aluno, AlunoStatus, AlunoUnidade, MatriculaStatus } from './types';
   templateUrl: './alunos.html',
   styleUrl: './alunos.scss',
 })
-export class Alunos {
-  readonly alunos = signal<Aluno[]>(ALUNOS_MOCK);
+export class Alunos implements OnInit {
+  private readonly alunosService = inject(AlunosService);
+
+  readonly filteredAlunos = signal<Aluno[]>([]);
   readonly filterValue = signal('');
-  readonly filteredAlunos = computed(() => {
-    const normalizedFilter = this.normalizeValue(this.filterValue());
 
-    if (!normalizedFilter) {
-      return this.alunos();
-    }
+  ngOnInit(): void {
+    this.getAlunos('');
+  }
 
-    return this.alunos().filter((aluno) => {
-      const searchableValues = [
-        aluno.nome,
-        aluno.cpf,
-        aluno.email,
-        aluno.contato,
-        aluno.planoAtual,
-        aluno.matricula.codigo,
-        this.formatStatus(aluno.status),
-        this.formatMatriculaStatus(aluno.matricula.status),
-        ...aluno.unidades.flatMap((item) => [item.estabelecimento, item.unidade]),
-        ...aluno.modalidades,
-      ];
-
-      return searchableValues.some((value) => this.normalizeValue(value).includes(normalizedFilter));
+  getAlunos(busca: string): void {
+    this.alunosService.getAlunos(busca).subscribe((res) => {
+      this.filteredAlunos.set(res.content.map((item) => this.toAluno(item)));
     });
-  });
+  }
 
   updateFilter(value: string): void {
     this.filterValue.set(value);
+    this.getAlunos(value);
   }
 
   clearFilter(): void {
     this.filterValue.set('');
+    this.getAlunos('');
   }
 
   initials(aluno: Aluno): string {
@@ -66,18 +56,32 @@ export class Alunos {
   }
 
   unitLabel(unidade: AlunoUnidade): string {
-    return `${unidade.unidade} - ${unidade.estabelecimento}`;
+    return unidade.estabelecimento ? `${unidade.unidade} - ${unidade.estabelecimento}` : unidade.unidade;
   }
 
   hiddenCount(values: unknown[]): number {
     return Math.max(values.length - 1, 0);
   }
 
-  private normalizeValue(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private toAluno(dto: AlunoListagemDto): Aluno {
+    const matricula = dto.matricula;
+
+    return {
+      id: String(dto.idAluno),
+      nome: dto.nome,
+      cpf: dto.cpf,
+      email: dto.email,
+      contato: dto.contato,
+      status: dto.ativo ? 'ATIVO' : 'INATIVO',
+      unidades: dto.unidades.map((unidade) => ({ estabelecimento: '', unidade })),
+      planoAtual: dto.planoAtual ?? '-',
+      modalidades: dto.modalidades,
+      matricula: {
+        codigo: matricula ? String(matricula.idMatricula) : '-',
+        dataInicio: matricula?.dataInicio ?? '',
+        vencimento: matricula?.diaVencimento ?? 0,
+        status: matricula?.status ?? 'PENDENTE',
+      },
+    };
   }
 }

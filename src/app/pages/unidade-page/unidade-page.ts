@@ -1,9 +1,35 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
 import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from '../estabelecimentos/mocks/mocks';
-import { Estabelecimento, StatusEstabelecimento, TipoEstabelecimento, Unidade } from '../estabelecimentos/types/types';
+import {
+  Estabelecimento,
+  StatusEstabelecimento,
+  TipoCobranca,
+  TipoEstabelecimento,
+  Unidade,
+  UnidadeHorarioFuncionamento,
+  UnidadeModalidade,
+  PlanoUnidade,
+} from '../estabelecimentos/types/types';
+import { UnidadeHorarioFuncionamentoService } from '../unidade-horario-funcionamento/unidade-horario-funcionamento.service';
+import { UnidadeModalidadesService } from '../unidade-modalidades/unidade-modalidades.service';
+import { UnidadePlanosService } from '../unidade-planos/unidade-planos.service';
+import {UnidadesService} from '../unidades/unidades.service';
+
+const DIAS_ORDENADOS = [1, 2, 3, 4, 5, 6, 7];
+
+const DIA_SEMANA_LABELS: Record<number, string> = {
+  1: 'Segunda-feira',
+  2: 'Terça-feira',
+  3: 'Quarta-feira',
+  4: 'Quinta-feira',
+  5: 'Sexta-feira',
+  6: 'Sábado',
+  7: 'Domingo',
+};
 
 type UnidadeTabId = 'professores' | 'alunos' | 'modalidades' | 'planos';
 
@@ -41,12 +67,18 @@ interface TabContent {
   imports: [
     Breadcrumb,
     RouterLink,
+    ReactiveFormsModule,
   ],
   templateUrl: './unidade-page.html',
   styleUrl: './unidade-page.scss',
 })
-export class UnidadePage {
+export class UnidadePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
+  private readonly unidadesService = inject(UnidadesService);
+  private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
+  private readonly unidadePlanosService = inject(UnidadePlanosService);
+  private readonly unidadeHorarioFuncionamentoService = inject(UnidadeHorarioFuncionamentoService);
   readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   readonly idUnidade = this.getRouteParam('idUnidade');
 
@@ -58,12 +90,8 @@ export class UnidadePage {
     { id: 'planos', label: 'Planos', icon: 'pi-credit-card' },
   ];
 
-  readonly estabelecimento = computed<Estabelecimento | null>(() => (
-    ESTABELECIMENTOS_MOCK.find((item) => item.id === this.idEstabelecimento) ?? null
-  ));
-  readonly unidade = computed<Unidade | null>(() => (
-    UNIDADES_MOCK.find((item) => item.id === this.idUnidade && item.estabelecimentoId === this.idEstabelecimento) ?? null
-  ));
+  readonly estabelecimento = signal<Estabelecimento | null>(null)
+  readonly unidade = signal<Unidade | null>(null)
   readonly unidadeInitials = computed(() => {
     const unidade = this.unidade();
 
@@ -86,12 +114,90 @@ export class UnidadePage {
 
     return `${unidade.endereco.logradouro}, ${unidade.endereco.numero}${complemento} - ${unidade.endereco.bairro}, ${unidade.endereco.cidade} - ${unidade.endereco.uf}`;
   });
-  readonly activeContent = computed(() => this.tabContents[this.activeTab()]);
+  readonly unidadeModalidades = signal<UnidadeModalidade[]>([]);
+  readonly modalidadesLoading = signal(true);
+  readonly modalidadesContent = computed<TabContent>(() => {
+    const vinculos = this.unidadeModalidades();
+    const ativas = vinculos.filter((vinculo) => vinculo.ativo).length;
+    const comCapacidade = vinculos.filter((vinculo) => vinculo.capacidadePadrao != null).length;
+
+    return {
+      title: 'Modalidades ofertadas',
+      createLabel: 'Vincular modalidade',
+      entityLabel: 'modalidade',
+      metrics: [
+        { label: 'Vinculadas', value: String(vinculos.length), icon: 'pi-tags' },
+        { label: 'Ativas', value: String(ativas), icon: 'pi-check' },
+        { label: 'Com capacidade definida', value: String(comCapacidade), icon: 'pi-ticket' },
+      ],
+      items: vinculos.map((vinculo) => ({
+        id: vinculo.id,
+        title: vinculo.modalidadeNome,
+        subtitle: vinculo.descricao || vinculo.modalidadeDescricao || 'Sem descrição',
+        meta: vinculo.capacidadePadrao != null
+          ? `Capacidade padrão: ${vinculo.capacidadePadrao} alunos`
+          : 'Capacidade não definida',
+        status: vinculo.ativo ? 'Ativa' : 'Inativa',
+      })),
+    };
+  });
+  readonly planoUnidades = signal<PlanoUnidade[]>([]);
+  readonly planosLoading = signal(true);
+  readonly planosContent = computed<TabContent>(() => {
+    const vinculos = this.planoUnidades();
+    const ativos = vinculos.filter((vinculo) => vinculo.ativo).length;
+    const ticketMedio = vinculos.length
+      ? vinculos.reduce((total, vinculo) => total + vinculo.valor, 0) / vinculos.length
+      : 0;
+
+    return {
+      title: 'Planos disponíveis',
+      createLabel: 'Cadastrar plano',
+      entityLabel: 'plano',
+      metrics: [
+        { label: 'Vinculados', value: String(vinculos.length), icon: 'pi-wallet' },
+        { label: 'Ativos', value: String(ativos), icon: 'pi-check-circle' },
+        { label: 'Ticket médio', value: this.formatCurrency(ticketMedio), icon: 'pi-dollar' },
+      ],
+      items: vinculos.map((vinculo) => ({
+        title: vinculo.nomeExibicao || vinculo.planoNome,
+        subtitle: vinculo.descricao || vinculo.planoDescricao || 'Sem descrição',
+        meta: vinculo.tipoCobranca
+          ? `${this.formatCurrency(vinculo.valor)} · ${this.formatTipoCobranca(vinculo.tipoCobranca)}`
+          : this.formatCurrency(vinculo.valor),
+        status: vinculo.ativo ? 'Ativo' : 'Inativo',
+      })),
+    };
+  });
+  readonly horarios = signal<UnidadeHorarioFuncionamento[]>([]);
+  readonly horariosLoading = signal(true);
+  readonly horariosEditMode = signal(false);
+  readonly horariosSubmitLoading = signal(false);
+  readonly horariosSubmitError = signal('');
+  readonly horariosSemana = computed(() => this.buildSemana(this.horarios()));
+  readonly diasOrdenados = DIAS_ORDENADOS;
+  horarioForm = this.fb.group({
+    dias: this.fb.array<FormGroup>([]),
+  });
+
+  readonly activeContent = computed(() => {
+    const tab = this.activeTab();
+
+    if (tab === 'modalidades') {
+      return this.modalidadesContent();
+    }
+
+    if (tab === 'planos') {
+      return this.planosContent();
+    }
+
+    return this.tabContents[tab];
+  });
   readonly shouldShowRecordAvatar = computed(() => (
     this.activeTab() === 'professores' || this.activeTab() === 'alunos'
   ));
 
-  private readonly tabContents: Record<UnidadeTabId, TabContent> = {
+  private readonly tabContents: Record<Exclude<UnidadeTabId, 'modalidades' | 'planos'>, TabContent> = {
     professores: {
       title: 'Professores vinculados',
       createLabel: 'Cadastrar professor',
@@ -160,67 +266,141 @@ export class UnidadePage {
         },
       ],
     },
-    modalidades: {
-      title: 'Modalidades ofertadas',
-      createLabel: 'Cadastrar modalidade',
-      entityLabel: 'modalidade',
-      metrics: [
-        { label: 'Ativas', value: '5', icon: 'pi-check' },
-        { label: 'Com turmas', value: '4', icon: 'pi-calendar-plus' },
-        { label: 'Vagas abertas', value: '36', icon: 'pi-ticket' },
-      ],
-      items: [
-        {
-          title: 'Musculação',
-          subtitle: 'Acesso livre por faixa de horário',
-          meta: 'Capacidade operacional: 80 alunos por turno',
-          status: 'Ativa',
-        },
-        {
-          title: 'Funcional',
-          subtitle: 'Turmas coletivas',
-          meta: '12 vagas por turma',
-          status: 'Ativa',
-        },
-        {
-          title: 'Pilates',
-          subtitle: 'Agenda com professor responsável',
-          meta: 'Cadastro de horários em revisão',
-          status: 'Pendente',
-        },
-      ],
-    },
-    planos: {
-      title: 'Planos disponíveis',
-      createLabel: 'Cadastrar plano',
-      entityLabel: 'plano',
-      metrics: [
-        { label: 'Ativos', value: '4', icon: 'pi-wallet' },
-        { label: 'Mais vendido', value: 'Mensal', icon: 'pi-star' },
-        { label: 'Ticket médio', value: 'R$ 129', icon: 'pi-dollar' },
-      ],
-      items: [
-        {
-          title: 'Mensal Basic',
-          subtitle: 'Acesso à musculação',
-          meta: 'R$ 99,90 por mês',
-          status: 'Ativo',
-        },
-        {
-          title: 'Mensal Full',
-          subtitle: 'Musculação e aulas coletivas',
-          meta: 'R$ 149,90 por mês',
-          status: 'Ativo',
-        },
-        {
-          title: 'Trimestral Performance',
-          subtitle: 'Todas as modalidades da unidade',
-          meta: 'R$ 399,90 por trimestre',
-          status: 'Ativo',
-        },
-      ],
-    },
   };
+
+  ngOnInit(): void {
+    this.unidadesService.getUnidadeById(this.route.snapshot.params['idUnidade']).subscribe(res => {
+      this.unidade.set(res);
+    });
+    this.unidadesService.getEstabelecimento(this.route.snapshot.params['idEstabelecimento']).subscribe(res => {
+      this.estabelecimento.set(res);
+    });
+    this.loadUnidadeModalidades();
+    this.loadPlanos();
+    this.loadHorarios();
+  }
+
+  private loadUnidadeModalidades(): void {
+    this.modalidadesLoading.set(true);
+
+    this.unidadeModalidadesService.getModalidadesVinculadas(this.idUnidade).subscribe({
+      next: (res) => {
+        this.unidadeModalidades.set(res);
+        this.modalidadesLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar modalidades da unidade', error);
+        this.modalidadesLoading.set(false);
+      },
+    });
+  }
+
+  private loadPlanos(): void {
+    this.planosLoading.set(true);
+
+    this.unidadePlanosService.getPlanosVinculados(this.idUnidade).subscribe({
+      next: (res) => {
+        this.planoUnidades.set(res);
+        this.planosLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar planos da unidade', error);
+        this.planosLoading.set(false);
+      },
+    });
+  }
+
+  private loadHorarios(): void {
+    this.horariosLoading.set(true);
+
+    this.unidadeHorarioFuncionamentoService.getHorarios(this.idUnidade).subscribe({
+      next: (res) => {
+        this.horarios.set(res);
+        this.horariosLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar horários de funcionamento da unidade', error);
+        this.horariosLoading.set(false);
+      },
+    });
+  }
+
+  diaSemanaLabel(diaSemana: number): string {
+    return DIA_SEMANA_LABELS[diaSemana] ?? `Dia ${diaSemana}`;
+  }
+
+  startEditHorarios(): void {
+    this.horariosSubmitError.set('');
+
+    const dias = this.horarioForm.controls.dias;
+    dias.clear();
+
+    this.horariosSemana().forEach((dia) => {
+      dias.push(this.fb.group({
+        fechado: [!dia.horaAbertura],
+        horaAbertura: [dia.horaAbertura],
+        horaFechamento: [dia.horaFechamento],
+      }));
+    });
+
+    this.horariosEditMode.set(true);
+  }
+
+  cancelEditHorarios(): void {
+    this.horariosEditMode.set(false);
+    this.horariosSubmitError.set('');
+  }
+
+  submitHorarios(): void {
+    const linhas = this.horarioForm.controls.dias.controls.map((grupo, index) => ({
+      diaSemana: this.diasOrdenados[index],
+      ...grupo.getRawValue(),
+    }));
+
+    const invalida = linhas.some((linha) => (
+      !linha.fechado && (!linha.horaAbertura || !linha.horaFechamento || linha.horaAbertura >= linha.horaFechamento)
+    ));
+
+    if (invalida) {
+      this.horariosSubmitError.set(
+        'Informe abertura e fechamento válidos (abertura antes do fechamento) ou marque o dia como fechado.',
+      );
+      return;
+    }
+
+    this.horariosSubmitLoading.set(true);
+    this.horariosSubmitError.set('');
+
+    this.unidadeHorarioFuncionamentoService.salvar({
+      idUnidade: this.idUnidade,
+      horarios: linhas.map((linha) => ({
+        diaSemana: linha.diaSemana,
+        horaAbertura: linha.fechado ? undefined : (linha.horaAbertura ?? undefined),
+        horaFechamento: linha.fechado ? undefined : (linha.horaFechamento ?? undefined),
+      })),
+    }).subscribe({
+      next: () => {
+        this.horariosSubmitLoading.set(false);
+        this.horariosEditMode.set(false);
+        this.loadHorarios();
+      },
+      error: (error) => {
+        console.error('Erro ao salvar horários de funcionamento da unidade', error);
+        this.horariosSubmitError.set('Não foi possível salvar os horários de funcionamento.');
+        this.horariosSubmitLoading.set(false);
+      },
+    });
+  }
+
+  private buildSemana(horarios: UnidadeHorarioFuncionamento[]): UnidadeHorarioFuncionamento[] {
+    return DIAS_ORDENADOS.map((diaSemana) => (
+      horarios.find((item) => item.diaSemana === diaSemana) ?? {
+        diaSemana,
+        horaAbertura: null,
+        horaFechamento: null,
+      }
+    ));
+  }
 
   setActiveTab(tabId: UnidadeTabId): void {
     this.activeTab.set(tabId);
@@ -228,6 +408,16 @@ export class UnidadePage {
 
   formatStatus(status: StatusEstabelecimento): string {
     return status.charAt(0) + status.slice(1).toLowerCase();
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  formatTipoCobranca(tipo: TipoCobranca): string {
+    return tipo
+      .toLowerCase()
+      .replace(/^\w/, (char) => char.toUpperCase());
   }
 
   formatType(tipo: TipoEstabelecimento): string {

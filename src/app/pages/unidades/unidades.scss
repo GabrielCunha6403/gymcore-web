@@ -54,6 +54,34 @@
     }
   }
 
+  .establishment-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .establishment-tabs-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &.is-active {
+      background: var(--primaryColor, var(--primary-color));
+      color: white;
+    }
+  }
+
   .establishment-toolbar {
     display: flex;
     justify-content: space-between;
@@ -233,6 +261,15 @@
     .establishment-toolbar {
       flex-direction: column;
       align-items: stretch;
+    }
+
+    .establishment-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .establishment-tabs-button {
+      width: 100%;
     }
 
     .detail-header-media {
