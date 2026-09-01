@@ -69,10 +69,20 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/unidade-page/unidade-page').then((m) => m.UnidadePage),
               },
               {
+                path: 'professor/register',
+                data: { breadcrumb: 'Cadastrar professor' },
+                loadComponent: () => import('./pages/professores/register/register').then((m) => m.Register),
+              },
+              {
                 path: 'professor/:idProfessor',
                 data: { breadcrumb: 'Detalhes' },
                 resolve: { breadcrumb: professorBreadcrumbResolver },
                 loadComponent: () => import('./pages/professores/detail/detail').then((m) => m.Detail),
+              },
+              {
+                path: 'aluno/register',
+                data: { breadcrumb: 'Cadastrar aluno' },
+                loadComponent: () => import('./pages/alunos/register/register').then((m) => m.AlunoRegister),
               },
               {
                 path: 'aluno/:idAluno',

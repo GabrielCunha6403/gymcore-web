@@ -39,4 +39,10 @@ export class ProfessoresService {
   getProfessorById(idProfessor: string) {
     return this.http.get<ProfessorDetalheDto>(`${environment.apiUrl}/professor/getProfessorById?idProfessor=${idProfessor}`);
   }
+
+  getProfessoresPorUnidade(idUnidade: string) {
+    const params = new HttpParams().set('idUnidade', idUnidade);
+
+    return this.http.get<ProfessorListagemDto[]>(`${environment.apiUrl}/professor/porUnidade`, { params });
+  }
 }

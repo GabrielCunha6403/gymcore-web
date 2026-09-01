@@ -239,140 +239,152 @@
           [formGroup]="alunoForm.controls.matricula"
         >
           <div class="form-grid">
-            <div class="form-field autocomplete-field">
-              <span>Estabelecimento <span class="required-mark">*</span></span>
-              <div class="autocomplete-control">
-                <input
-                  type="text"
-                  [value]="estabelecimentoSearch()"
-                  autocomplete="off"
-                  placeholder="Digite para buscar um estabelecimento"
-                  (focus)="estabelecimentoDropdownOpen.set(true)"
-                  (input)="updateEstabelecimentoSearch($any($event.target).value)"
-                  (blur)="closeEstabelecimentoDropdown()"
-                >
-
-                @if (estabelecimentoSearch()) {
-                  <button
-                    class="autocomplete-clear"
-                    type="button"
-                    aria-label="Limpar estabelecimento"
-                    (mousedown)="$event.preventDefault()"
-                    (click)="clearEstabelecimentoSelection()"
-                  >
-                    <i class="pi pi-times" aria-hidden="true"></i>
-                  </button>
-                }
-
-                @if (estabelecimentoDropdownOpen()) {
-                  <div class="autocomplete-dropdown">
-                    @if (estabelecimentosLoading()) {
-                      <span class="autocomplete-empty">Buscando estabelecimentos...</span>
-                    } @else if (estabelecimentosSearchError()) {
-                      <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
-                    } @else if (filteredEstabelecimentos().length) {
-                      @for (estabelecimento of filteredEstabelecimentos(); track estabelecimento.id) {
-                        <button
-                          class="autocomplete-option"
-                          type="button"
-                          (mousedown)="$event.preventDefault()"
-                          (click)="selectEstabelecimento(estabelecimento)"
-                        >
-                          <span class="autocomplete-avatar">
-                            @if (estabelecimento.imagemUrl) {
-                              <img [src]="estabelecimento.imagemUrl" [alt]="'Foto de ' + estabelecimento.nomeFantasia">
-                            } @else {
-                              <span>{{ initials(estabelecimento.nomeFantasia) }}</span>
-                            }
-                          </span>
-
-                          <span class="autocomplete-option-text">
-                            <strong>{{ estabelecimento.nomeFantasia }}</strong>
-                            <small>{{ estabelecimento.cnpj }} · {{ estabelecimento.status }}</small>
-                          </span>
-                        </button>
-                      }
-                    } @else {
-                      <span class="autocomplete-empty">Nenhum estabelecimento encontrado.</span>
-                    }
-                  </div>
-                }
+            @if (unitScoped) {
+              <div class="form-field">
+                <span>Estabelecimento</span>
+                <input type="text" [value]="displayEstabelecimento()" disabled>
               </div>
-              <app-error-message-control
-                [control]="alunoForm.controls.matricula.controls.estabelecimentoId"
-                [messages]="{
-                  required: '* Estabelecimento obrigatório'
-                }"
-              ></app-error-message-control>
-            </div>
 
-            <div class="form-field autocomplete-field">
-              <span>Unidade <span class="required-mark">*</span></span>
-              <div class="autocomplete-control">
-                <input
-                  type="text"
-                  [value]="unidadeSearch()"
-                  autocomplete="off"
-                  [disabled]="!selectedEstabelecimento()"
-                  placeholder="Digite para buscar uma unidade"
-                  (focus)="unidadeDropdownOpen.set(!!selectedEstabelecimento())"
-                  (input)="updateUnidadeSearch($any($event.target).value)"
-                  (blur)="closeUnidadeDropdown()"
-                >
-
-                @if (unidadeSearch()) {
-                  <button
-                    class="autocomplete-clear"
-                    type="button"
-                    aria-label="Limpar unidade"
-                    (mousedown)="$event.preventDefault()"
-                    (click)="clearUnidadeSelection()"
-                  >
-                    <i class="pi pi-times" aria-hidden="true"></i>
-                  </button>
-                }
-
-                @if (unidadeDropdownOpen()) {
-                  <div class="autocomplete-dropdown">
-                    @if (unidadesLoading()) {
-                      <span class="autocomplete-empty">Buscando unidades...</span>
-                    } @else if (unidadesSearchError()) {
-                      <span class="autocomplete-empty">Não foi possível buscar as unidades.</span>
-                    } @else if (filteredUnidades().length) {
-                      @for (unidade of filteredUnidades(); track unidade.id) {
-                        <button
-                          class="autocomplete-option"
-                          type="button"
-                          (mousedown)="$event.preventDefault()"
-                          (click)="selectUnidade(unidade)"
-                        >
-                          <span class="autocomplete-avatar">
-                            @if (unidade.imagemUrl) {
-                              <img [src]="unidade.imagemUrl" [alt]="'Foto de ' + unidade.nome">
-                            } @else {
-                              <span>{{ initials(unidade.nome) }}</span>
-                            }
-                          </span>
-
-                          <span class="autocomplete-option-text">
-                            <strong>{{ unidade.nome }}</strong>
-                            <small>{{ unidade.endereco.bairro }} · {{ unidade.endereco.cidade }} - {{ unidade.endereco.uf }}</small>
-                          </span>
-                        </button>
-                      }
-                    } @else {
-                      <span class="autocomplete-empty">Nenhuma unidade encontrada.</span>
-                    }
-                  </div>
-                }
+              <div class="form-field">
+                <span>Unidade</span>
+                <input type="text" [value]="displayUnidade()" disabled>
               </div>
-              <app-error-message-control
-                [control]="alunoForm.controls.matricula.controls.unidadeId"
-                [messages]="{
-                  required: '* Unidade obrigatória'
-                }"
-              ></app-error-message-control>
-            </div>
+            } @else {
+              <div class="form-field autocomplete-field">
+                <span>Estabelecimento <span class="required-mark">*</span></span>
+                <div class="autocomplete-control">
+                  <input
+                    type="text"
+                    [value]="estabelecimentoSearch()"
+                    autocomplete="off"
+                    placeholder="Digite para buscar um estabelecimento"
+                    (focus)="estabelecimentoDropdownOpen.set(true)"
+                    (input)="updateEstabelecimentoSearch($any($event.target).value)"
+                    (blur)="closeEstabelecimentoDropdown()"
+                  >
+
+                  @if (estabelecimentoSearch()) {
+                    <button
+                      class="autocomplete-clear"
+                      type="button"
+                      aria-label="Limpar estabelecimento"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="clearEstabelecimentoSelection()"
+                    >
+                      <i class="pi pi-times" aria-hidden="true"></i>
+                    </button>
+                  }
+
+                  @if (estabelecimentoDropdownOpen()) {
+                    <div class="autocomplete-dropdown">
+                      @if (estabelecimentosLoading()) {
+                        <span class="autocomplete-empty">Buscando estabelecimentos...</span>
+                      } @else if (estabelecimentosSearchError()) {
+                        <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
+                      } @else if (filteredEstabelecimentos().length) {
+                        @for (estabelecimento of filteredEstabelecimentos(); track estabelecimento.id) {
+                          <button
+                            class="autocomplete-option"
+                            type="button"
+                            (mousedown)="$event.preventDefault()"
+                            (click)="selectEstabelecimento(estabelecimento)"
+                          >
+                            <span class="autocomplete-avatar">
+                              @if (estabelecimento.imagemUrl) {
+                                <img [src]="estabelecimento.imagemUrl" [alt]="'Foto de ' + estabelecimento.nomeFantasia">
+                              } @else {
+                                <span>{{ initials(estabelecimento.nomeFantasia) }}</span>
+                              }
+                            </span>
+
+                            <span class="autocomplete-option-text">
+                              <strong>{{ estabelecimento.nomeFantasia }}</strong>
+                              <small>{{ estabelecimento.cnpj }} · {{ estabelecimento.status }}</small>
+                            </span>
+                          </button>
+                        }
+                      } @else {
+                        <span class="autocomplete-empty">Nenhum estabelecimento encontrado.</span>
+                      }
+                    </div>
+                  }
+                </div>
+                <app-error-message-control
+                  [control]="alunoForm.controls.matricula.controls.estabelecimentoId"
+                  [messages]="{
+                    required: '* Estabelecimento obrigatório'
+                  }"
+                ></app-error-message-control>
+              </div>
+
+              <div class="form-field autocomplete-field">
+                <span>Unidade <span class="required-mark">*</span></span>
+                <div class="autocomplete-control">
+                  <input
+                    type="text"
+                    [value]="unidadeSearch()"
+                    autocomplete="off"
+                    [disabled]="!selectedEstabelecimento()"
+                    placeholder="Digite para buscar uma unidade"
+                    (focus)="unidadeDropdownOpen.set(!!selectedEstabelecimento())"
+                    (input)="updateUnidadeSearch($any($event.target).value)"
+                    (blur)="closeUnidadeDropdown()"
+                  >
+
+                  @if (unidadeSearch()) {
+                    <button
+                      class="autocomplete-clear"
+                      type="button"
+                      aria-label="Limpar unidade"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="clearUnidadeSelection()"
+                    >
+                      <i class="pi pi-times" aria-hidden="true"></i>
+                    </button>
+                  }
+
+                  @if (unidadeDropdownOpen()) {
+                    <div class="autocomplete-dropdown">
+                      @if (unidadesLoading()) {
+                        <span class="autocomplete-empty">Buscando unidades...</span>
+                      } @else if (unidadesSearchError()) {
+                        <span class="autocomplete-empty">Não foi possível buscar as unidades.</span>
+                      } @else if (filteredUnidades().length) {
+                        @for (unidade of filteredUnidades(); track unidade.id) {
+                          <button
+                            class="autocomplete-option"
+                            type="button"
+                            (mousedown)="$event.preventDefault()"
+                            (click)="selectUnidade(unidade)"
+                          >
+                            <span class="autocomplete-avatar">
+                              @if (unidade.imagemUrl) {
+                                <img [src]="unidade.imagemUrl" [alt]="'Foto de ' + unidade.nome">
+                              } @else {
+                                <span>{{ initials(unidade.nome) }}</span>
+                              }
+                            </span>
+
+                            <span class="autocomplete-option-text">
+                              <strong>{{ unidade.nome }}</strong>
+                              <small>{{ unidade.endereco.bairro }} · {{ unidade.endereco.cidade }} - {{ unidade.endereco.uf }}</small>
+                            </span>
+                          </button>
+                        }
+                      } @else {
+                        <span class="autocomplete-empty">Nenhuma unidade encontrada.</span>
+                      }
+                    </div>
+                  }
+                </div>
+                <app-error-message-control
+                  [control]="alunoForm.controls.matricula.controls.unidadeId"
+                  [messages]="{
+                    required: '* Unidade obrigatória'
+                  }"
+                ></app-error-message-control>
+              </div>
+            }
 
             <div class="form-field">
               <span>Plano <span class="required-mark">*</span></span>

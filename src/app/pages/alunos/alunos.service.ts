@@ -27,6 +27,12 @@ export class AlunosService {
     return this.http.get<AlunoDetalheDto>(`${environment.apiUrl}/aluno/getAlunoById?idAluno=${idAluno}`);
   }
 
+  getAlunosPorUnidade(idUnidade: string) {
+    const params = new HttpParams().set('idUnidade', idUnidade);
+
+    return this.http.get<AlunoListagemDto[]>(`${environment.apiUrl}/aluno/porUnidade`, { params });
+  }
+
   registerAluno(req: AlunoForm) {
     return this.http.post<{ message: string; alunoId: string }>(`${environment.apiUrl}/aluno`, req);
   }

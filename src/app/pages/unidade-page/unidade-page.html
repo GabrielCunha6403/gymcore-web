@@ -190,7 +190,23 @@
         <div class="unit-tab-panel-header">
           <h3>{{ activeContent().title }}</h3>
 
-          @if (activeTab() === 'modalidades') {
+          @if (activeTab() === 'professores') {
+            <a
+              class="entity-action entity-action--primary"
+              [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'professor', 'register']"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </a>
+          } @else if (activeTab() === 'alunos') {
+            <a
+              class="entity-action entity-action--primary"
+              [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'aluno', 'register']"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </a>
+          } @else if (activeTab() === 'modalidades') {
             <a
               class="entity-action entity-action--primary"
               [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'modalidades', 'vincular']"
@@ -198,7 +214,7 @@
               <i class="pi pi-plus" aria-hidden="true"></i>
               <span>{{ activeContent().createLabel }}</span>
             </a>
-          } @else if (activeTab() === 'planos') {
+          } @else {
             <a
               class="entity-action entity-action--primary"
               [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'planos', 'register']"
@@ -206,11 +222,6 @@
               <i class="pi pi-plus" aria-hidden="true"></i>
               <span>{{ activeContent().createLabel }}</span>
             </a>
-          } @else {
-            <button class="entity-action entity-action--primary" type="button">
-              <i class="pi pi-plus" aria-hidden="true"></i>
-              <span>{{ activeContent().createLabel }}</span>
-            </button>
           }
         </div>
 
@@ -225,7 +236,15 @@
         </div>
 
         <div class="unit-records">
-          @if (activeTab() === 'modalidades' && modalidadesLoading()) {
+          @if (activeTab() === 'professores' && professoresLoading()) {
+            <span class="unit-records-empty">Carregando professores da unidade...</span>
+          } @else if (activeTab() === 'professores' && !activeContent().items.length) {
+            <span class="unit-records-empty">Nenhum professor vinculado a esta unidade.</span>
+          } @else if (activeTab() === 'alunos' && alunosLoading()) {
+            <span class="unit-records-empty">Carregando alunos da unidade...</span>
+          } @else if (activeTab() === 'alunos' && !activeContent().items.length) {
+            <span class="unit-records-empty">Nenhum aluno matriculado nesta unidade.</span>
+          } @else if (activeTab() === 'modalidades' && modalidadesLoading()) {
             <span class="unit-records-empty">Carregando modalidades da unidade...</span>
           } @else if (activeTab() === 'modalidades' && !activeContent().items.length) {
             <span class="unit-records-empty">Nenhuma modalidade vinculada a esta unidade.</span>

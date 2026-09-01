@@ -18,6 +18,10 @@ import { UnidadeHorarioFuncionamentoService } from '../unidade-horario-funcionam
 import { UnidadeModalidadesService } from '../unidade-modalidades/unidade-modalidades.service';
 import { UnidadePlanosService } from '../unidade-planos/unidade-planos.service';
 import {UnidadesService} from '../unidades/unidades.service';
+import { ProfessoresService } from '../professores/professores.service';
+import { ProfessorListagemDto } from '../professores/types/types';
+import { AlunosService } from '../alunos/alunos.service';
+import { AlunoListagemDto } from '../alunos/types';
 
 const DIAS_ORDENADOS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -79,6 +83,8 @@ export class UnidadePage implements OnInit {
   private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
   private readonly unidadePlanosService = inject(UnidadePlanosService);
   private readonly unidadeHorarioFuncionamentoService = inject(UnidadeHorarioFuncionamentoService);
+  private readonly professoresService = inject(ProfessoresService);
+  private readonly alunosService = inject(AlunosService);
   readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   readonly idUnidade = this.getRouteParam('idUnidade');
 
@@ -113,6 +119,58 @@ export class UnidadePage implements OnInit {
     const complemento = unidade.endereco.complemento ? `, ${unidade.endereco.complemento}` : '';
 
     return `${unidade.endereco.logradouro}, ${unidade.endereco.numero}${complemento} - ${unidade.endereco.bairro}, ${unidade.endereco.cidade} - ${unidade.endereco.uf}`;
+  });
+  readonly professores = signal<ProfessorListagemDto[]>([]);
+  readonly professoresLoading = signal(true);
+  readonly professoresContent = computed<TabContent>(() => {
+    const professores = this.professores();
+    const ativos = professores.filter((professor) => professor.status === 'ATIVO').length;
+    const comModalidades = professores.filter((professor) => professor.modalidades.length > 0).length;
+
+    return {
+      title: 'Professores vinculados',
+      createLabel: 'Cadastrar professor',
+      entityLabel: 'professor',
+      metrics: [
+        { label: 'Vinculados', value: String(professores.length), icon: 'pi-users' },
+        { label: 'Ativos', value: String(ativos), icon: 'pi-check-circle' },
+        { label: 'Com modalidades', value: String(comModalidades), icon: 'pi-tags' },
+      ],
+      items: professores.map((professor) => ({
+        id: String(professor.idProfessor),
+        title: professor.nome,
+        subtitle: professor.modalidades.length ? professor.modalidades.join(', ') : 'Sem modalidades vinculadas',
+        meta: professor.contato || professor.email || 'Sem contato cadastrado',
+        status: this.formatStatus(professor.status),
+      })),
+    };
+  });
+  readonly alunos = signal<AlunoListagemDto[]>([]);
+  readonly alunosLoading = signal(true);
+  readonly alunosContent = computed<TabContent>(() => {
+    const alunos = this.alunos();
+    const ativos = alunos.filter((aluno) => aluno.ativo).length;
+    const matriculasAtivas = alunos.filter((aluno) => aluno.matricula?.status === 'ATIVA').length;
+
+    return {
+      title: 'Alunos matriculados',
+      createLabel: 'Cadastrar aluno',
+      entityLabel: 'aluno',
+      metrics: [
+        { label: 'Vinculados', value: String(alunos.length), icon: 'pi-user-plus' },
+        { label: 'Ativos', value: String(ativos), icon: 'pi-check-circle' },
+        { label: 'Matrículas ativas', value: String(matriculasAtivas), icon: 'pi-id-card' },
+      ],
+      items: alunos.map((aluno) => ({
+        id: String(aluno.idAluno),
+        title: aluno.nome,
+        subtitle: aluno.planoAtual ?? 'Sem plano vinculado',
+        meta: aluno.matricula
+          ? `Vencimento dia ${aluno.matricula.diaVencimento} · ${this.formatStatus(aluno.matricula.status)}`
+          : 'Sem matrícula ativa',
+        status: aluno.ativo ? 'Ativo' : 'Inativo',
+      })),
+    };
   });
   readonly unidadeModalidades = signal<UnidadeModalidade[]>([]);
   readonly modalidadesLoading = signal(true);
@@ -183,90 +241,23 @@ export class UnidadePage implements OnInit {
   readonly activeContent = computed(() => {
     const tab = this.activeTab();
 
+    if (tab === 'professores') {
+      return this.professoresContent();
+    }
+
+    if (tab === 'alunos') {
+      return this.alunosContent();
+    }
+
     if (tab === 'modalidades') {
       return this.modalidadesContent();
     }
 
-    if (tab === 'planos') {
-      return this.planosContent();
-    }
-
-    return this.tabContents[tab];
+    return this.planosContent();
   });
   readonly shouldShowRecordAvatar = computed(() => (
     this.activeTab() === 'professores' || this.activeTab() === 'alunos'
   ));
-
-  private readonly tabContents: Record<Exclude<UnidadeTabId, 'modalidades' | 'planos'>, TabContent> = {
-    professores: {
-      title: 'Professores vinculados',
-      createLabel: 'Cadastrar professor',
-      entityLabel: 'professor',
-      metrics: [
-        { label: 'Ativos', value: '8', icon: 'pi-check-circle' },
-        { label: 'Com turmas', value: '6', icon: 'pi-calendar' },
-        { label: 'Sem agenda', value: '2', icon: 'pi-clock' },
-      ],
-      items: [
-        {
-          id: 'prof-1',
-          title: 'Ana Beatriz Costa',
-          photoUrl: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&w=120&q=80',
-          subtitle: 'Musculação e funcional',
-          meta: 'Segunda a sexta, 06:00 às 12:00',
-          status: 'Ativo',
-        },
-        {
-          id: 'prof-2',
-          title: 'Carlos Henrique Lima',
-          subtitle: 'Cross training',
-          meta: 'Terça e quinta, 18:00 às 22:00',
-          status: 'Ativo',
-        },
-        {
-          id: 'prof-3',
-          title: 'Mariana Torres Nunes',
-          subtitle: 'Pilates e mobilidade',
-          meta: 'Agenda pendente para esta unidade',
-          status: 'Pendente',
-        },
-      ],
-    },
-    alunos: {
-      title: 'Alunos matriculados',
-      createLabel: 'Cadastrar aluno',
-      entityLabel: 'aluno',
-      metrics: [
-        { label: 'Ativos', value: '214', icon: 'pi-user-plus' },
-        { label: 'Novos no mês', value: '18', icon: 'pi-chart-line' },
-        { label: 'Pendências', value: '7', icon: 'pi-exclamation-circle' },
-      ],
-      items: [
-        {
-          id: 'aluno-1',
-          title: 'Bruno Nogueira',
-          photoUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=120&q=80',
-          subtitle: 'Plano mensal',
-          meta: 'Último acesso em 21/08/2026',
-          status: 'Ativo',
-        },
-        {
-          id: 'aluno-2',
-          title: 'Larissa Moura',
-          subtitle: 'Plano trimestral',
-          meta: 'Pagamento vence em 25/08/2026',
-          status: 'Atenção',
-        },
-        {
-          id: 'aluno-3',
-          title: 'Rafael Martins',
-          subtitle: 'Plano anual',
-          meta: 'Check-in recorrente no turno da noite',
-          status: 'Ativo',
-        },
-      ],
-    },
-  };
 
   ngOnInit(): void {
     this.unidadesService.getUnidadeById(this.route.snapshot.params['idUnidade']).subscribe(res => {
@@ -275,9 +266,41 @@ export class UnidadePage implements OnInit {
     this.unidadesService.getEstabelecimento(this.route.snapshot.params['idEstabelecimento']).subscribe(res => {
       this.estabelecimento.set(res);
     });
+    this.loadProfessores();
+    this.loadAlunos();
     this.loadUnidadeModalidades();
     this.loadPlanos();
     this.loadHorarios();
+  }
+
+  private loadProfessores(): void {
+    this.professoresLoading.set(true);
+
+    this.professoresService.getProfessoresPorUnidade(this.idUnidade).subscribe({
+      next: (res) => {
+        this.professores.set(res);
+        this.professoresLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar professores da unidade', error);
+        this.professoresLoading.set(false);
+      },
+    });
+  }
+
+  private loadAlunos(): void {
+    this.alunosLoading.set(true);
+
+    this.alunosService.getAlunosPorUnidade(this.idUnidade).subscribe({
+      next: (res) => {
+        this.alunos.set(res);
+        this.alunosLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar alunos da unidade', error);
+        this.alunosLoading.set(false);
+      },
+    });
   }
 
   private loadUnidadeModalidades(): void {
@@ -406,7 +429,7 @@ export class UnidadePage implements OnInit {
     this.activeTab.set(tabId);
   }
 
-  formatStatus(status: StatusEstabelecimento): string {
+  formatStatus(status: string): string {
     return status.charAt(0) + status.slice(1).toLowerCase();
   }
 

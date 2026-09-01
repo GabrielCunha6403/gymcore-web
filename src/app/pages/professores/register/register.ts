@@ -7,29 +7,24 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
-import { Estabelecimento, Unidade } from '../../estabelecimentos/types/types';
+import { Estabelecimento, Unidade, UnidadeModalidade } from '../../estabelecimentos/types/types';
 import {ProfessorForm, ProfessorStatus} from '../types/types';
 import {ProfessoresService} from '../professores.service';
 import {ToastService} from '../../../components/toast/toast.service';
+import { UnidadesService } from '../../unidades/unidades.service';
+import { UnidadeModalidadesService } from '../../unidade-modalidades/unidade-modalidades.service';
 
 interface UnidadeSearchParams {
   idEstabelecimento: string;
   busca: string;
 }
-
-const UNIDADE_MODALIDADES: Record<string, string[]> = {
-  '1-1': ['Musculação', 'Funcional', 'Pilates'],
-  '1-2': ['Musculação', 'Lutas', 'Dança'],
-  '2-1': ['Pilates', 'Funcional', 'Dança'],
-  '3-1': ['Funcional', 'Lutas'],
-};
 
 @Component({
   selector: 'app-professor-register',
@@ -40,11 +35,18 @@ const UNIDADE_MODALIDADES: Record<string, string[]> = {
 export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly professorService = inject(ProfessoresService);
+  private readonly unidadesService = inject(UnidadesService);
+  private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
   private readonly estabelecimentoSearchTerms = new Subject<string>();
   private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
+  private readonly routeIdEstabelecimento = this.getRouteParam('idEstabelecimento');
+  private readonly routeIdUnidade = this.getRouteParam('idUnidade');
+
+  protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -58,6 +60,8 @@ export class Register {
   protected readonly unidades = signal<Unidade[]>([]);
   protected readonly unidadesLoading = signal(false);
   protected readonly unidadesSearchError = signal(false);
+  protected readonly modalidadesDaUnidade = signal<UnidadeModalidade[]>([]);
+  protected readonly modalidadesLoading = signal(false);
 
   public readonly sexoOptions = ['Feminino', 'Masculino', 'Outro'];
   public readonly statusOptions: { value: ProfessorStatus; label: string }[] = [
@@ -223,18 +227,16 @@ export class Register {
         this.unidadesLoading.set(false);
       });
 
-    this.searchEstabelecimentos('');
+    if (this.unitScoped) {
+      this.prefillUnidade();
+    } else {
+      this.searchEstabelecimentos('');
+    }
   }
 
   protected readonly filteredEstabelecimentos = computed(() => this.estabelecimentos());
 
   protected readonly filteredUnidades = computed(() => this.unidades());
-
-  protected readonly modalidadesOptions = computed(() => {
-    const unidadeId = this.selectedUnidadeId();
-
-    return unidadeId ? UNIDADE_MODALIDADES[unidadeId] ?? [] : [];
-  });
 
   protected readonly selectedEstabelecimento = computed(() =>
     this.findEstabelecimentoById(this.selectedEstabelecimentoId()),
@@ -304,6 +306,7 @@ export class Register {
       this.professorForm.controls.atuacao.controls.unidadeId.reset('');
       this.professorForm.controls.atuacao.controls.modalidades.setValue([]);
       this.selectedUnidadeId.set('');
+      this.modalidadesDaUnidade.set([]);
     }
 
     this.searchUnidades(value);
@@ -318,6 +321,7 @@ export class Register {
     this.selectedUnidadeId.set(unidade.id);
     this.unidadeSearch.set(unidade.nome);
     this.unidadeDropdownOpen.set(false);
+    this.loadModalidades(unidade.id);
   }
 
   protected clearEstabelecimentoSelection(): void {
@@ -335,6 +339,7 @@ export class Register {
     this.selectedUnidadeId.set('');
     this.unidadeSearch.set('');
     this.unidadeDropdownOpen.set(false);
+    this.modalidadesDaUnidade.set([]);
     this.searchUnidades('');
   }
 
@@ -384,8 +389,13 @@ export class Register {
 
     this.professorService.registerProfessor(professor).subscribe(res => {
       console.log(res);
-      this.router.navigate(['/professores']);
       this.toastService.success("Professor cadastrado com sucesso!");
+
+      if (this.unitScoped) {
+        this.router.navigate(['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade]);
+      } else {
+        this.router.navigate(['/professores']);
+      }
     });
   }
 
@@ -405,16 +415,21 @@ export class Register {
     return this.statusOptions.find((option) => option.value === value)?.label ?? '-';
   }
 
-  public displayList(values: string[] | null | undefined): string {
-    return values?.length ? values.join(', ') : '-';
-  }
-
   public displayEstabelecimento(): string {
     return this.selectedEstabelecimento()?.nomeFantasia ?? '-';
   }
 
   public displayUnidade(): string {
     return this.selectedUnidade()?.nome ?? '-';
+  }
+
+  public displaySelectedModalidades(): string {
+    const selecionadas = this.professorForm.controls.atuacao.controls.modalidades.value;
+    const nomes = this.modalidadesDaUnidade()
+      .filter((modalidade) => selecionadas.includes(modalidade.id))
+      .map((modalidade) => modalidade.modalidadeNome);
+
+    return nomes.length ? nomes.join(', ') : '-';
   }
 
   protected initials(value: string): string {
@@ -486,6 +501,7 @@ export class Register {
     this.selectedEstabelecimentoId.set('');
     this.selectedUnidadeId.set('');
     this.unidades.set([]);
+    this.modalidadesDaUnidade.set([]);
     if (clearEstabelecimentoSearch) {
       this.estabelecimentoSearch.set('');
     }
@@ -518,6 +534,55 @@ export class Register {
       idEstabelecimento,
       busca: value.trim(),
     });
+  }
+
+  private prefillUnidade(): void {
+    const atuacao = this.professorForm.controls.atuacao.controls;
+
+    atuacao.estabelecimentoId.setValue(this.routeIdEstabelecimento);
+    atuacao.unidadeId.setValue(this.routeIdUnidade);
+    this.selectedEstabelecimentoId.set(this.routeIdEstabelecimento);
+    this.selectedUnidadeId.set(this.routeIdUnidade);
+
+    this.unidadesService.getEstabelecimento(this.routeIdEstabelecimento).subscribe((estabelecimento) => {
+      this.estabelecimentos.set([estabelecimento]);
+      this.estabelecimentoSearch.set(estabelecimento.nomeFantasia);
+    });
+
+    this.unidadesService.getUnidadeById(this.routeIdUnidade).subscribe((unidade) => {
+      this.unidades.set([unidade]);
+      this.unidadeSearch.set(unidade.nome);
+    });
+
+    this.loadModalidades(this.routeIdUnidade);
+  }
+
+  private loadModalidades(idUnidade: string): void {
+    this.modalidadesLoading.set(true);
+
+    this.unidadeModalidadesService.getModalidadesVinculadas(idUnidade).subscribe({
+      next: (res) => {
+        this.modalidadesDaUnidade.set(res);
+        this.modalidadesLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar modalidades da unidade', error);
+        this.modalidadesDaUnidade.set([]);
+        this.modalidadesLoading.set(false);
+      },
+    });
+  }
+
+  private getRouteParam(paramName: string): string {
+    for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
+      const value = routeSnapshot.paramMap.get(paramName);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
   }
 
   private normalizeSearch(value: string): string {

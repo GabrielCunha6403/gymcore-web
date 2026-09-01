@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
@@ -43,6 +43,7 @@ interface UnidadeSearchParams {
 export class AlunoRegister {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly estabelecimentosService = inject(EstabelecimentosService);
@@ -51,6 +52,10 @@ export class AlunoRegister {
   private readonly alunosService = inject(AlunosService);
   private readonly estabelecimentoSearchTerms = new Subject<string>();
   private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
+  private readonly routeIdEstabelecimento = this.getRouteParam('idEstabelecimento');
+  private readonly routeIdUnidade = this.getRouteParam('idUnidade');
+
+  protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -219,7 +224,11 @@ export class AlunoRegister {
         this.unidadesLoading.set(false);
       });
 
-    this.searchEstabelecimentos('');
+    if (this.unitScoped) {
+      this.prefillUnidade();
+    } else {
+      this.searchEstabelecimentos('');
+    }
   }
 
   protected readonly filteredEstabelecimentos = computed(() => this.estabelecimentos());
@@ -360,7 +369,12 @@ export class AlunoRegister {
     this.alunosService.registerAluno(this.toRequest()).subscribe({
       next: () => {
         this.toastService.success('Aluno cadastrado com sucesso!');
-        this.router.navigate(['/alunos']);
+
+        if (this.unitScoped) {
+          this.router.navigate(['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade]);
+        } else {
+          this.router.navigate(['/alunos']);
+        }
       },
       error: (error) => {
         console.error('Erro ao cadastrar aluno', error);
@@ -479,6 +493,39 @@ export class AlunoRegister {
       idEstabelecimento,
       busca: value.trim(),
     });
+  }
+
+  private prefillUnidade(): void {
+    const matricula = this.alunoForm.controls.matricula.controls;
+
+    matricula.estabelecimentoId.setValue(this.routeIdEstabelecimento);
+    matricula.unidadeId.setValue(this.routeIdUnidade);
+    this.selectedEstabelecimentoId.set(this.routeIdEstabelecimento);
+    this.selectedUnidadeId.set(this.routeIdUnidade);
+
+    this.unidadesService.getEstabelecimento(this.routeIdEstabelecimento).subscribe((estabelecimento) => {
+      this.estabelecimentos.set([estabelecimento]);
+      this.estabelecimentoSearch.set(estabelecimento.nomeFantasia);
+    });
+
+    this.unidadesService.getUnidadeById(this.routeIdUnidade).subscribe((unidade) => {
+      this.unidades.set([unidade]);
+      this.unidadeSearch.set(unidade.nome);
+    });
+
+    this.loadPlanos(this.routeIdUnidade);
+  }
+
+  private getRouteParam(paramName: string): string {
+    for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
+      const value = routeSnapshot.paramMap.get(paramName);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
   }
 
   private formatCpf(value: string | null): string {
