@@ -66,8 +66,9 @@ export class Unidades implements OnInit{
     }
 
     this.getEstabelecimento(this.idEstabelecimento);
-    this.getUnidades(this.idEstabelecimento);
+    this.getUnidades('');
     this.getModalidades('');
+    `$`
   }
 
   getUnidades(busca: string) {
