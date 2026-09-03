@@ -1,21 +1,44 @@
+import { inject } from '@angular/core';
 import { ResolveFn, Routes } from '@angular/router';
-import { ESTABELECIMENTOS_MOCK, UNIDADES_MOCK } from './pages/estabelecimentos/mocks/mocks';
-import { PROFESSORES_MOCK } from './pages/professores/mocks';
+import { catchError, map, of } from 'rxjs';
+import { UnidadesService } from './pages/unidades/unidades.service';
+import { ProfessoresService } from './pages/professores/professores.service';
+import { AlunosService } from './pages/alunos/alunos.service';
 
 export const estabelecimentoBreadcrumbResolver: ResolveFn<string> = (route) => {
-  return `Estabelecimento ${route.paramMap.get('idEstabelecimento')}`;
+  const idEstabelecimento = route.paramMap.get('idEstabelecimento') ?? '';
+
+  return inject(UnidadesService).getEstabelecimento(idEstabelecimento).pipe(
+    map((estabelecimento) => estabelecimento.nomeFantasia),
+    catchError(() => of(`Estabelecimento ${idEstabelecimento}`)),
+  );
 };
 
 export const unidadeBreadcrumbResolver: ResolveFn<string> = (route) => {
-  return `Unidade ${route.paramMap.get('idUnidade')}`;
+  const idUnidade = route.paramMap.get('idUnidade') ?? '';
+
+  return inject(UnidadesService).getUnidadeById(idUnidade).pipe(
+    map((unidade) => unidade.nome),
+    catchError(() => of(`Unidade ${idUnidade}`)),
+  );
 };
 
 export const professorBreadcrumbResolver: ResolveFn<string> = (route) => {
-  return `Professor ${route.paramMap.get('idProfessor')}`;
+  const idProfessor = route.paramMap.get('idProfessor') ?? '';
+
+  return inject(ProfessoresService).getProfessorById(idProfessor).pipe(
+    map((professor) => professor.nome),
+    catchError(() => of(`Professor ${idProfessor}`)),
+  );
 };
 
 export const alunoBreadcrumbResolver: ResolveFn<string> = (route) => {
-  return `Aluno ${route.paramMap.get('idAluno')}`;
+  const idAluno = route.paramMap.get('idAluno') ?? '';
+
+  return inject(AlunosService).getAlunoById(idAluno).pipe(
+    map((aluno) => aluno.nome),
+    catchError(() => of(`Aluno ${idAluno}`)),
+  );
 };
 
 export const routes: Routes = [

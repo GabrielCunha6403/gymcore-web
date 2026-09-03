@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -13,8 +13,7 @@ import { ErrorMessageControl } from '../../../components/error-message-control/e
 import { ToastService } from '../../../components/toast/toast.service';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
-import { ESTABELECIMENTOS_MOCK } from '../../estabelecimentos/mocks/mocks';
-import { UnidadeForm } from '../../estabelecimentos/types/types';
+import { Estabelecimento, UnidadeForm } from '../../estabelecimentos/types/types';
 import { UnidadesService } from '../unidades.service';
 
 @Component({
@@ -23,13 +22,15 @@ import { UnidadesService } from '../unidades.service';
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
-export class UnidadeRegister {
+export class UnidadeRegister implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly unidadesService = inject(UnidadesService);
   private readonly idEstabelecimento = this.readEstabelecimentoId();
+
+  protected readonly estabelecimento = signal<Estabelecimento | null>(null);
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
@@ -106,13 +107,19 @@ export class UnidadeRegister {
     },
   ]);
 
-  protected readonly estabelecimentoNome = computed(() => {
-    const estabelecimento = ESTABELECIMENTOS_MOCK.find(
-      (item) => Number(item.id) === this.idEstabelecimento,
-    );
+  protected readonly estabelecimentoNome = computed(() => (
+    this.estabelecimento()?.nomeFantasia ?? `Estabelecimento ${this.idEstabelecimento ?? ''}`.trim()
+  ));
 
-    return estabelecimento?.nomeFantasia ?? `Estabelecimento ${this.idEstabelecimento ?? ''}`.trim();
-  });
+  ngOnInit(): void {
+    if (!this.idEstabelecimento) {
+      return;
+    }
+
+    this.unidadesService.getEstabelecimento(String(this.idEstabelecimento)).subscribe((res) => {
+      this.estabelecimento.set(res);
+    });
+  }
 
   public applyCnpjMask(): void {
     const control = this.unidadeForm.controls.dadosGerais.controls.cnpj;

@@ -3,7 +3,6 @@ import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
 import { EstabelecimentoItem } from './components/estabelecimento-item/estabelecimento-item';
-import { ESTABELECIMENTOS_MOCK } from './mocks/mocks';
 import { Estabelecimento, EstabelecimentoViewMode } from './types/types';
 import {EstabelecimentosService} from './estabelecimentos.service';
 
