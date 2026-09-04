@@ -1,4 +1,5 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -7,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -14,6 +16,7 @@ import { ToastService } from '../../../components/toast/toast.service';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
 import { Estabelecimento, ModalidadeForm } from '../../estabelecimentos/types/types';
+import { EstabelecimentosService } from '../../estabelecimentos/estabelecimentos.service';
 import { ModalidadesService } from '../modalidades.service';
 
 @Component({
@@ -26,17 +29,30 @@ export class ModalidadeRegister implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
   private readonly modalidadesService = inject(ModalidadesService);
+  private readonly estabelecimentosService = inject(EstabelecimentosService);
+  private readonly estabelecimentoSearchTerms = new Subject<string>();
   private readonly idEstabelecimento = this.readEstabelecimentoId();
+
+  protected readonly isEstabelecimentoContext = !!this.idEstabelecimento;
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
   protected readonly estabelecimento = signal<Estabelecimento | null>(null);
+  protected readonly estabelecimentos = signal<Estabelecimento[]>([]);
+  protected readonly estabelecimentosLoading = signal(false);
+  protected readonly estabelecimentosSearchError = signal(false);
+  protected readonly estabelecimentoSearch = signal('');
+  protected readonly estabelecimentoDropdownOpen = signal(false);
 
-  protected readonly estabelecimentoNome = computed(() => (
-    this.estabelecimento()?.nomeFantasia ?? `Estabelecimento ${this.idEstabelecimento}`.trim()
-  ));
+  protected estabelecimentoNome(): string {
+    return (
+      this.estabelecimento()?.nomeFantasia
+      ?? (this.isEstabelecimentoContext ? `Estabelecimento ${this.idEstabelecimento}`.trim() : '-')
+    );
+  }
 
   public readonly modalidadeForm = this.fb.group({
     dadosGerais: this.fb.group({
@@ -62,14 +78,91 @@ export class ModalidadeRegister implements OnInit {
     },
   ]);
 
+  constructor() {
+    this.estabelecimentoSearchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap(() => {
+          this.estabelecimentosLoading.set(true);
+          this.estabelecimentosSearchError.set(false);
+        }),
+        switchMap((busca) =>
+          this.estabelecimentosService.getEstabelecimentos(busca).pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar estabelecimentos', error);
+              this.estabelecimentosSearchError.set(true);
+              return of([]);
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((estabelecimentos) => {
+        this.estabelecimentos.set(estabelecimentos);
+        this.estabelecimentosLoading.set(false);
+      });
+
+    if (!this.isEstabelecimentoContext) {
+      this.searchEstabelecimentos('');
+    }
+  }
+
   ngOnInit(): void {
-    if (!this.idEstabelecimento) {
+    if (!this.isEstabelecimentoContext) {
       return;
     }
 
     this.modalidadesService.getEstabelecimento(this.idEstabelecimento).subscribe((res) => {
       this.estabelecimento.set(res);
     });
+  }
+
+  protected updateEstabelecimentoSearch(value: string): void {
+    this.estabelecimentoSearch.set(value);
+    this.estabelecimentoDropdownOpen.set(true);
+    this.searchEstabelecimentos(value);
+
+    if (value !== this.estabelecimento()?.nomeFantasia) {
+      this.modalidadeForm.controls.dadosGerais.controls.idEstabelecimento.reset('');
+      this.estabelecimento.set(null);
+    }
+  }
+
+  protected selectEstabelecimento(estabelecimento: Estabelecimento): void {
+    const control = this.modalidadeForm.controls.dadosGerais.controls.idEstabelecimento;
+
+    control.setValue(estabelecimento.id);
+    control.markAsTouched();
+    this.estabelecimento.set(estabelecimento);
+    this.estabelecimentoSearch.set(estabelecimento.nomeFantasia);
+    this.estabelecimentoDropdownOpen.set(false);
+  }
+
+  protected clearEstabelecimentoSelection(): void {
+    const control = this.modalidadeForm.controls.dadosGerais.controls.idEstabelecimento;
+
+    control.reset('');
+    control.markAsTouched();
+    this.estabelecimento.set(null);
+    this.estabelecimentoSearch.set('');
+    this.estabelecimentoDropdownOpen.set(false);
+    this.searchEstabelecimentos('');
+  }
+
+  protected closeEstabelecimentoDropdown(): void {
+    this.modalidadeForm.controls.dadosGerais.controls.idEstabelecimento.markAsTouched();
+    this.estabelecimentoDropdownOpen.set(false);
+  }
+
+  protected initials(value: string): string {
+    return value
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase();
   }
 
   public submitModalidade(): void {
@@ -84,9 +177,14 @@ export class ModalidadeRegister implements OnInit {
     this.modalidadesService.registerModalidade(this.toRequest()).subscribe({
       next: () => {
         this.toastService.success('Modalidade cadastrada com sucesso!');
-        this.router.navigate(['/estabelecimentos', this.idEstabelecimento], {
-          queryParams: { tab: 'modalidades' },
-        });
+
+        if (this.isEstabelecimentoContext) {
+          this.router.navigate(['/estabelecimentos', this.idEstabelecimento], {
+            queryParams: { tab: 'modalidades' },
+          });
+        } else {
+          this.router.navigate(['/modalidades']);
+        }
       },
       error: (error) => {
         console.error('Erro ao cadastrar modalidade', error);
@@ -117,6 +215,10 @@ export class ModalidadeRegister implements OnInit {
       descricao: dadosGerais.descricao || undefined,
       ativo: dadosGerais.ativo ?? true,
     };
+  }
+
+  private searchEstabelecimentos(value: string): void {
+    this.estabelecimentoSearchTerms.next(value.trim());
   }
 
   private readEstabelecimentoId(): string {

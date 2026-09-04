@@ -203,6 +203,29 @@
                 }"
               ></app-error-message-control>
             </div>
+
+            <fieldset class="form-fieldset form-field--full">
+              <legend>Modalidades contempladas</legend>
+
+              @if (modalidadesLoading()) {
+                <span class="form-helper">Carregando modalidades da unidade...</span>
+              } @else if (modalidadesDaUnidade().length) {
+                <div class="checkbox-grid">
+                  @for (modalidade of modalidadesDaUnidade(); track modalidade.id) {
+                    <label class="checkbox-option">
+                      <input
+                        type="checkbox"
+                        [checked]="isModalidadeSelected(modalidade.id)"
+                        (change)="toggleModalidade(modalidade.id, $any($event.target).checked)"
+                      >
+                      <span>{{ modalidade.modalidadeNome }}</span>
+                    </label>
+                  }
+                </div>
+              } @else {
+                <span class="form-helper">Nenhuma modalidade vinculada a esta unidade. Vincule modalidades à unidade para poder incluí-las no plano.</span>
+              }
+            </fieldset>
           </div>
         </section>
 
@@ -260,6 +283,10 @@
                 <div>
                   <dt>Descrição</dt>
                   <dd>{{ displayValue(planoForm.controls.oferta.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Modalidades</dt>
+                  <dd>{{ displaySelectedModalidades() }}</dd>
                 </div>
                 <div>
                   <dt>Status</dt>

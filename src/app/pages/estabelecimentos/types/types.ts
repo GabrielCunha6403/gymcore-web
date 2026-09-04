@@ -87,6 +87,24 @@ export interface ModalidadeForm {
   ativo?: boolean;
 }
 
+export interface ModalidadeGeralListagemDto {
+  idModalidade: number;
+  nome: string;
+  descricao?: string;
+  ativo: boolean;
+  estabelecimentoNome: string;
+  unidades: string[];
+  professores: string[];
+}
+
+export interface PageDto<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  empty: boolean;
+}
+
 export interface UnidadeModalidade {
   id: string;
   unidadeId: string;
@@ -142,6 +160,7 @@ export interface PlanoUnidade {
   taxaAdesao?: number;
   diaVencimentoPadrao?: number;
   ativo: boolean;
+  modalidades?: string[];
 }
 
 export interface PlanoUnidadeForm {
@@ -155,6 +174,7 @@ export interface PlanoUnidadeForm {
   taxaAdesao?: number;
   diaVencimentoPadrao?: number;
   ativo?: boolean;
+  modalidades?: string[];
 }
 
 export interface UnidadeHorarioFuncionamento {

@@ -152,6 +152,22 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'modalidades',
+    data: { breadcrumb: 'Modalidades' },
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./pages/modalidades/modalidades').then((m) => m.Modalidades),
+      },
+      {
+        path: 'register',
+        data: { breadcrumb: 'Cadastrar modalidade' },
+        loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
+      },
+    ],
+  },
+  {
     path: 'alunos',
     data: { breadcrumb: 'Alunos' },
     children: [

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { environment } from '../../../environments/environments';
-import { Estabelecimento, Modalidade, ModalidadeForm } from '../estabelecimentos/types/types';
+import { Estabelecimento, Modalidade, ModalidadeForm, ModalidadeGeralListagemDto, PageDto } from '../estabelecimentos/types/types';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +20,12 @@ export class ModalidadesService {
 
   registerModalidade(req: ModalidadeForm) {
     return this.http.post(`${environment.apiUrl}/modalidade`, req);
+  }
+
+  getModalidadesGeral(busca = '') {
+    const params = new HttpParams().set('busca', busca);
+
+    return this.http.get<PageDto<ModalidadeGeralListagemDto>>(`${environment.apiUrl}/modalidade/geral`, { params });
   }
 
   getEstabelecimento(idEstabelecimento: string) {

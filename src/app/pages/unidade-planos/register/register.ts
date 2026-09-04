@@ -13,9 +13,10 @@ import { ErrorMessageControl } from '../../../components/error-message-control/e
 import { ToastService } from '../../../components/toast/toast.service';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
-import { PlanoForm, PlanoUnidadeForm, TipoCobranca, Unidade } from '../../estabelecimentos/types/types';
+import { PlanoForm, PlanoUnidadeForm, TipoCobranca, Unidade, UnidadeModalidade } from '../../estabelecimentos/types/types';
 import { PlanosService } from '../../planos/planos.service';
 import { UnidadesService } from '../../unidades/unidades.service';
+import { UnidadeModalidadesService } from '../../unidade-modalidades/unidade-modalidades.service';
 import { UnidadePlanosService } from '../unidade-planos.service';
 
 @Component({
@@ -32,6 +33,7 @@ export class PlanoRegister implements OnInit {
   private readonly unidadesService = inject(UnidadesService);
   private readonly planosService = inject(PlanosService);
   private readonly unidadePlanosService = inject(UnidadePlanosService);
+  private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
 
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
   private readonly idUnidade = this.readRouteParam('idUnidade');
@@ -39,6 +41,8 @@ export class PlanoRegister implements OnInit {
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
   protected readonly unidade = signal<Unidade | null>(null);
+  protected readonly modalidadesDaUnidade = signal<UnidadeModalidade[]>([]);
+  protected readonly modalidadesLoading = signal(false);
 
   protected readonly unidadeNome = computed(() => this.unidade()?.nome ?? `Unidade ${this.idUnidade}`.trim());
 
@@ -64,6 +68,7 @@ export class PlanoRegister implements OnInit {
       taxaAdesao: [null as number | null, [Validators.min(0)]],
       diaVencimentoPadrao: [null as number | null, [Validators.required, Validators.min(1), Validators.max(31)]],
       ativo: [true, [PlanoRegister.booleanRequiredValidator]],
+      modalidades: this.fb.control<string[]>([], { nonNullable: true }),
     }),
   });
 
@@ -96,6 +101,45 @@ export class PlanoRegister implements OnInit {
     this.unidadesService.getUnidadeById(this.idUnidade).subscribe((res) => {
       this.unidade.set(res);
     });
+
+    this.modalidadesLoading.set(true);
+
+    this.unidadeModalidadesService.getModalidadesVinculadas(this.idUnidade).subscribe({
+      next: (res) => {
+        this.modalidadesDaUnidade.set(res);
+        this.modalidadesLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar modalidades da unidade', error);
+        this.modalidadesDaUnidade.set([]);
+        this.modalidadesLoading.set(false);
+      },
+    });
+  }
+
+  public toggleModalidade(idVinculo: string, checked: boolean): void {
+    const control = this.planoForm.controls.oferta.controls.modalidades;
+    const modalidades = control.value;
+
+    control.setValue(
+      checked
+        ? Array.from(new Set([...modalidades, idVinculo]))
+        : modalidades.filter((item) => item !== idVinculo),
+    );
+    control.markAsTouched();
+  }
+
+  public isModalidadeSelected(idVinculo: string): boolean {
+    return this.planoForm.controls.oferta.controls.modalidades.value.includes(idVinculo);
+  }
+
+  public displaySelectedModalidades(): string {
+    const selecionadas = this.planoForm.controls.oferta.controls.modalidades.value;
+    const nomes = this.modalidadesDaUnidade()
+      .filter((modalidade) => selecionadas.includes(modalidade.id))
+      .map((modalidade) => modalidade.modalidadeNome);
+
+    return nomes.length ? nomes.join(', ') : '-';
   }
 
   public submitPlano(): void {
@@ -184,6 +228,7 @@ export class PlanoRegister implements OnInit {
       taxaAdesao: oferta.taxaAdesao ?? undefined,
       diaVencimentoPadrao: oferta.diaVencimentoPadrao ?? undefined,
       ativo: oferta.ativo ?? true,
+      modalidades: oferta.modalidades?.length ? oferta.modalidades : undefined,
     };
   }
 

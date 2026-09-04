@@ -29,7 +29,7 @@ export class TopMenu {
         { label: 'Estabelecimentos', icon: 'pi pi-shop', route: '/estabelecimentos' },
         { label: 'Professores', icon: 'pi pi-user', route: '/professores' },
         { label: 'Alunos', icon: 'pi pi-users', route: '/alunos' },
-        { label: 'Modalidades', icon: 'pi pi-tags', route: '/workouts' },
+        { label: 'Modalidades', icon: 'pi pi-tags', route: '/modalidades' },
         { label: 'Planos', icon: 'pi pi-id-card', route: '/workouts' },
         { label: 'Matrículas', icon: 'pi pi-file-edit', route: '/workouts' },
       ],

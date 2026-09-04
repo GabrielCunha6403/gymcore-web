@@ -1,0 +1,25 @@
+@use '../professores/professores.scss';
+
+.teachers-table-col-name {
+  width: 26%;
+}
+
+.teachers-table-col-contact {
+  width: 22%;
+}
+
+.teachers-table-col-units {
+  width: 20%;
+}
+
+.teachers-table-col-modalities {
+  width: 20%;
+}
+
+.teachers-table-col-status {
+  width: 120px;
+}
+
+.teachers-table-col-actions {
+  width: 80px;
+}

@@ -111,6 +111,73 @@
   border-color: var(--primary-color);
 }
 
+.form-helper {
+  display: block;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.form-fieldset {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 16px;
+  color: white;
+}
+
+.form-fieldset legend {
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 0 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.checkbox-option input[type='checkbox'] {
+  width: 18px;
+  min-height: 18px;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.checkbox-option input[type='checkbox']:checked {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.checkbox-option input[type='checkbox']:checked::before {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border: solid white;
+  border-width: 0 0 2px 2px;
+  transform: rotate(-45deg);
+}
+
 .confirmation-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -200,6 +267,7 @@
 
 @media (max-width: 720px) {
   .form-grid,
+  .checkbox-grid,
   .confirmation-grid {
     grid-template-columns: 1fr;
   }

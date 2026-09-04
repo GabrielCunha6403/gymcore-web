@@ -3,7 +3,11 @@
 
   <div class="title-area">
     <h1>Cadastrar modalidade</h1>
-    <span>Preencha os dados da modalidade para vinculá-la ao estabelecimento {{ estabelecimentoNome() }}.</span>
+    @if (isEstabelecimentoContext) {
+      <span>Preencha os dados da modalidade para vinculá-la ao estabelecimento {{ estabelecimentoNome() }}.</span>
+    } @else {
+      <span>Selecione o estabelecimento e preencha os dados da modalidade a ser cadastrada.</span>
+    }
   </div>
 
   <div class="register-container">
@@ -15,16 +19,85 @@
           [formGroup]="modalidadeForm.controls.dadosGerais"
         >
           <div class="form-grid">
-            <div class="form-field form-field--full">
-              <span>Estabelecimento</span>
-              <input type="text" [value]="estabelecimentoNome()" disabled>
-              <app-error-message-control
-                [control]="modalidadeForm.controls.dadosGerais.controls.idEstabelecimento"
-                [messages]="{
-                  required: '* Estabelecimento obrigatório'
-                }"
-              ></app-error-message-control>
-            </div>
+            @if (isEstabelecimentoContext) {
+              <div class="form-field form-field--full">
+                <span>Estabelecimento</span>
+                <input type="text" [value]="estabelecimentoNome()" disabled>
+                <app-error-message-control
+                  [control]="modalidadeForm.controls.dadosGerais.controls.idEstabelecimento"
+                  [messages]="{
+                    required: '* Estabelecimento obrigatório'
+                  }"
+                ></app-error-message-control>
+              </div>
+            } @else {
+              <div class="form-field form-field--full autocomplete-field">
+                <span>Estabelecimento <span class="required-mark">*</span></span>
+                <div class="autocomplete-control">
+                  <input
+                    type="text"
+                    [value]="estabelecimentoSearch()"
+                    autocomplete="off"
+                    placeholder="Digite para buscar um estabelecimento"
+                    (focus)="estabelecimentoDropdownOpen.set(true)"
+                    (input)="updateEstabelecimentoSearch($any($event.target).value)"
+                    (blur)="closeEstabelecimentoDropdown()"
+                  >
+
+                  @if (estabelecimentoSearch()) {
+                    <button
+                      class="autocomplete-clear"
+                      type="button"
+                      aria-label="Limpar estabelecimento"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="clearEstabelecimentoSelection()"
+                    >
+                      <i class="pi pi-times" aria-hidden="true"></i>
+                    </button>
+                  }
+
+                  @if (estabelecimentoDropdownOpen()) {
+                    <div class="autocomplete-dropdown">
+                      @if (estabelecimentosLoading()) {
+                        <span class="autocomplete-empty">Buscando estabelecimentos...</span>
+                      } @else if (estabelecimentosSearchError()) {
+                        <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
+                      } @else if (estabelecimentos().length) {
+                        @for (item of estabelecimentos(); track item.id) {
+                          <button
+                            class="autocomplete-option"
+                            type="button"
+                            (mousedown)="$event.preventDefault()"
+                            (click)="selectEstabelecimento(item)"
+                          >
+                            <span class="autocomplete-avatar">
+                              @if (item.imagemUrl) {
+                                <img [src]="item.imagemUrl" [alt]="'Foto de ' + item.nomeFantasia">
+                              } @else {
+                                <span>{{ initials(item.nomeFantasia) }}</span>
+                              }
+                            </span>
+
+                            <span class="autocomplete-option-text">
+                              <strong>{{ item.nomeFantasia }}</strong>
+                              <small>{{ item.cnpj }} · {{ item.status }}</small>
+                            </span>
+                          </button>
+                        }
+                      } @else {
+                        <span class="autocomplete-empty">Nenhum estabelecimento encontrado.</span>
+                      }
+                    </div>
+                  }
+                </div>
+                <app-error-message-control
+                  [control]="modalidadeForm.controls.dadosGerais.controls.idEstabelecimento"
+                  [messages]="{
+                    required: '* Estabelecimento obrigatório'
+                  }"
+                ></app-error-message-control>
+              </div>
+            }
 
             <div class="form-field form-field--full">
               <span>Nome da modalidade <span class="required-mark">*</span></span>

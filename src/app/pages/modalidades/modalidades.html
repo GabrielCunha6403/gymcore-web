@@ -1,0 +1,161 @@
+<div class="teachers-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Modalidades</h1>
+    <span>Consulte todas as modalidades cadastradas, seus estabelecimentos, unidades e professores vinculados.</span>
+  </div>
+
+  <div class="teachers-toolbar">
+    <div class="teachers-toolbar-filters">
+      <div class="teachers-toolbar-input-wrapper">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          class="teachers-toolbar-input"
+          type="text"
+          placeholder="Pesquise por nome da modalidade ou estabelecimento"
+          [value]="filterValue()"
+          (input)="updateFilter($any($event.target).value)"
+          aria-label="Pesquisar modalidades por nome ou estabelecimento"
+        >
+
+        @if (filterValue()) {
+          <button
+            class="teachers-toolbar-clear"
+            type="button"
+            (click)="clearFilter()"
+            aria-label="Limpar filtro de modalidades"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="teachers-toolbar-actions">
+      <button class="entity-action entity-action--primary" type="button" routerLink="register">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>Cadastrar modalidade</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="teachers-table">
+    <table class="teachers-table-element" aria-label="Listagem de modalidades">
+      <colgroup>
+        <col class="teachers-table-col-name">
+        <col class="teachers-table-col-contact">
+        <col class="teachers-table-col-units">
+        <col class="teachers-table-col-modalities">
+        <col class="teachers-table-col-status">
+        <col class="teachers-table-col-actions">
+      </colgroup>
+
+      <thead>
+        <tr class="teachers-table-header">
+          <th scope="col">Nome / Descrição</th>
+          <th scope="col">Estabelecimento</th>
+          <th scope="col">Unidades</th>
+          <th scope="col">Professores</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (filteredModalidades().length) {
+          @for (modalidade of filteredModalidades(); track modalidade.idModalidade) {
+            <tr class="teachers-table-row">
+              <td class="teachers-table-cell" data-label="Nome / Descrição">
+                <div class="teachers-table-cell-content">
+                  <strong>{{ modalidade.nome }}</strong>
+                  <span>{{ modalidade.descricao || 'Sem descrição' }}</span>
+                </div>
+              </td>
+
+              <td class="teachers-table-cell" data-label="Estabelecimento">
+                <div class="teachers-table-cell-content">
+                  <strong>{{ modalidade.estabelecimentoNome }}</strong>
+                </div>
+              </td>
+
+              <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Unidades">
+                <div class="teachers-table-cell-content">
+                  @if (modalidade.unidades.length) {
+                    <span>{{ modalidade.unidades[0] }}</span>
+
+                    @if (hiddenCount(modalidade.unidades)) {
+                      <button
+                        class="teacher-more"
+                        type="button"
+                        [attr.aria-label]="'Ver outras unidades de ' + modalidade.nome"
+                      >
+                        +{{ hiddenCount(modalidade.unidades) }}
+
+                        <span class="teacher-more-popover" role="tooltip">
+                          @for (unidade of modalidade.unidades.slice(1); track unidade) {
+                            <span>{{ unidade }}</span>
+                          }
+                        </span>
+                      </button>
+                    }
+                  } @else {
+                    <span>Sem unidades vinculadas</span>
+                  }
+                </div>
+              </td>
+
+              <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Professores">
+                <div class="teachers-table-cell-content">
+                  @if (modalidade.professores.length) {
+                    <span>{{ modalidade.professores[0] }}</span>
+
+                    @if (hiddenCount(modalidade.professores)) {
+                      <button
+                        class="teacher-more"
+                        type="button"
+                        [attr.aria-label]="'Ver outros professores de ' + modalidade.nome"
+                      >
+                        +{{ hiddenCount(modalidade.professores) }}
+
+                        <span class="teacher-more-popover" role="tooltip">
+                          @for (professor of modalidade.professores.slice(1); track professor) {
+                            <span>{{ professor }}</span>
+                          }
+                        </span>
+                      </button>
+                    }
+                  } @else {
+                    <span>Sem professores vinculados</span>
+                  }
+                </div>
+              </td>
+
+              <td class="teachers-table-cell" data-label="Status">
+                <div class="teachers-table-cell-content">
+                  <span
+                    class="teacher-status"
+                    [class.teacher-status--active]="modalidade.ativo"
+                    [class.teacher-status--inactive]="!modalidade.ativo"
+                  >{{ formatStatus(modalidade.ativo) }}</span>
+                </div>
+              </td>
+
+              <td class="teachers-table-cell teachers-table-cell--actions" data-label="Ações">
+                <div class="teachers-table-cell-content">
+                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar modalidade ' + modalidade.nome">
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        } @else {
+          <tr>
+            <td class="teachers-table-empty" colspan="6">Nenhuma modalidade encontrada para o filtro informado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
