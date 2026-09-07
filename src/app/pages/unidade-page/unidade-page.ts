@@ -8,6 +8,8 @@ import {
   StatusEstabelecimento,
   TipoCobranca,
   TipoEstabelecimento,
+  Turma,
+  TurmaHorario,
   Unidade,
   UnidadeHorarioFuncionamento,
   UnidadeModalidade,
@@ -16,6 +18,7 @@ import {
 import { UnidadeHorarioFuncionamentoService } from '../unidade-horario-funcionamento/unidade-horario-funcionamento.service';
 import { UnidadeModalidadesService } from '../unidade-modalidades/unidade-modalidades.service';
 import { UnidadePlanosService } from '../unidade-planos/unidade-planos.service';
+import { UnidadeTurmasService } from '../unidade-turmas/unidade-turmas.service';
 import {UnidadesService} from '../unidades/unidades.service';
 import { ProfessoresService } from '../professores/professores.service';
 import { ProfessorListagemDto } from '../professores/types/types';
@@ -34,7 +37,7 @@ const DIA_SEMANA_LABELS: Record<number, string> = {
   7: 'Domingo',
 };
 
-type UnidadeTabId = 'professores' | 'alunos' | 'modalidades' | 'planos';
+type UnidadeTabId = 'professores' | 'alunos' | 'modalidades' | 'planos' | 'turmas';
 
 interface UnidadeTab {
   id: UnidadeTabId;
@@ -81,6 +84,7 @@ export class UnidadePage implements OnInit {
   private readonly unidadesService = inject(UnidadesService);
   private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
   private readonly unidadePlanosService = inject(UnidadePlanosService);
+  private readonly unidadeTurmasService = inject(UnidadeTurmasService);
   private readonly unidadeHorarioFuncionamentoService = inject(UnidadeHorarioFuncionamentoService);
   private readonly professoresService = inject(ProfessoresService);
   private readonly alunosService = inject(AlunosService);
@@ -93,6 +97,7 @@ export class UnidadePage implements OnInit {
     { id: 'alunos', label: 'Alunos', icon: 'pi-user' },
     { id: 'modalidades', label: 'Modalidades', icon: 'pi-tags' },
     { id: 'planos', label: 'Planos', icon: 'pi-credit-card' },
+    { id: 'turmas', label: 'Turmas', icon: 'pi-calendar' },
   ];
 
   readonly estabelecimento = signal<Estabelecimento | null>(null)
@@ -188,7 +193,7 @@ export class UnidadePage implements OnInit {
         { label: 'Com capacidade definida', value: String(comCapacidade), icon: 'pi-ticket' },
       ],
       items: vinculos.map((vinculo) => ({
-        id: vinculo.id,
+        id: vinculo.modalidadeId,
         title: vinculo.modalidadeNome,
         subtitle: vinculo.descricao || vinculo.modalidadeDescricao || 'Sem descrição',
         meta: vinculo.capacidadePadrao != null
@@ -217,12 +222,39 @@ export class UnidadePage implements OnInit {
         { label: 'Ticket médio', value: this.formatCurrency(ticketMedio), icon: 'pi-dollar' },
       ],
       items: vinculos.map((vinculo) => ({
+        id: vinculo.id,
         title: vinculo.nomeExibicao || vinculo.planoNome,
         subtitle: vinculo.descricao || vinculo.planoDescricao || 'Sem descrição',
         meta: vinculo.tipoCobranca
           ? `${this.formatCurrency(vinculo.valor)} · ${this.formatTipoCobranca(vinculo.tipoCobranca)}`
           : this.formatCurrency(vinculo.valor),
         status: vinculo.ativo ? 'Ativo' : 'Inativo',
+      })),
+    };
+  });
+  readonly turmas = signal<Turma[]>([]);
+  readonly turmasLoading = signal(true);
+  readonly turmasContent = computed<TabContent>(() => {
+    const turmas = this.turmas();
+    const ativas = turmas.filter((turma) => turma.ativo).length;
+    const vagasOcupadas = turmas.reduce((total, turma) => total + turma.matriculados, 0);
+    const vagasTotais = turmas.reduce((total, turma) => total + (turma.capacidade ?? 0), 0);
+
+    return {
+      title: 'Turmas da unidade',
+      createLabel: 'Cadastrar turma',
+      entityLabel: 'turma',
+      metrics: [
+        { label: 'Turmas', value: String(turmas.length), icon: 'pi-calendar' },
+        { label: 'Ativas', value: String(ativas), icon: 'pi-check-circle' },
+        { label: 'Vagas ocupadas', value: `${vagasOcupadas}/${vagasTotais}`, icon: 'pi-users' },
+      ],
+      items: turmas.map((turma) => ({
+        id: turma.id,
+        title: turma.nome,
+        subtitle: `${turma.modalidadeNome} · Prof. ${turma.professorNome}`,
+        meta: `${this.formatHorariosResumo(turma.horarios)} · ${turma.matriculados}/${turma.capacidade ?? '-'} vagas`,
+        status: turma.ativo ? 'Ativa' : 'Inativa',
       })),
     };
   });
@@ -252,6 +284,10 @@ export class UnidadePage implements OnInit {
       return this.modalidadesContent();
     }
 
+    if (tab === 'turmas') {
+      return this.turmasContent();
+    }
+
     return this.planosContent();
   });
   readonly shouldShowRecordAvatar = computed(() => (
@@ -259,6 +295,12 @@ export class UnidadePage implements OnInit {
   ));
 
   ngOnInit(): void {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab') as UnidadeTabId | null;
+
+    if (tabParam && this.tabs.some((tab) => tab.id === tabParam)) {
+      this.activeTab.set(tabParam);
+    }
+
     this.unidadesService.getUnidadeById(this.route.snapshot.params['idUnidade']).subscribe(res => {
       this.unidade.set(res);
     });
@@ -269,6 +311,7 @@ export class UnidadePage implements OnInit {
     this.loadAlunos();
     this.loadUnidadeModalidades();
     this.loadPlanos();
+    this.loadTurmas();
     this.loadHorarios();
   }
 
@@ -328,6 +371,21 @@ export class UnidadePage implements OnInit {
       error: (error) => {
         console.error('Erro ao buscar planos da unidade', error);
         this.planosLoading.set(false);
+      },
+    });
+  }
+
+  private loadTurmas(): void {
+    this.turmasLoading.set(true);
+
+    this.unidadeTurmasService.getTurmas(this.idUnidade).subscribe({
+      next: (res) => {
+        this.turmas.set(res);
+        this.turmasLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar turmas da unidade', error);
+        this.turmasLoading.set(false);
       },
     });
   }
@@ -440,6 +498,18 @@ export class UnidadePage implements OnInit {
     return tipo
       .toLowerCase()
       .replace(/^\w/, (char) => char.toUpperCase());
+  }
+
+  formatHorariosResumo(horarios: TurmaHorario[]): string {
+    if (!horarios.length) {
+      return 'Sem horários';
+    }
+
+    const abreviacoes: Record<number, string> = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 7: 'Dom' };
+
+    return horarios
+      .map((horario) => `${abreviacoes[horario.diaSemana] ?? horario.diaSemana} ${horario.horaInicio}-${horario.horaFim}`)
+      .join(', ');
   }
 
   formatType(tipo: TipoEstabelecimento): string {

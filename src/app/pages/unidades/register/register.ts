@@ -29,7 +29,9 @@ export class UnidadeRegister implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly unidadesService = inject(UnidadesService);
   private readonly idEstabelecimento = this.readEstabelecimentoId();
+  private readonly idUnidade = this.readRouteParam('idUnidade');
 
+  protected readonly isEditMode = !!this.idUnidade;
   protected readonly estabelecimento = signal<Estabelecimento | null>(null);
 
   protected readonly submitLoading = signal(false);
@@ -119,6 +121,29 @@ export class UnidadeRegister implements OnInit {
     this.unidadesService.getEstabelecimento(String(this.idEstabelecimento)).subscribe((res) => {
       this.estabelecimento.set(res);
     });
+
+    if (this.isEditMode) {
+      this.unidadesService.getUnidadeById(this.idUnidade).subscribe((res) => {
+        this.unidadeForm.patchValue({
+          dadosGerais: {
+            nome: res.nome,
+            cnpj: this.formatCnpj(res.cnpj),
+            email: res.email,
+            telefone: res.telefone,
+            ativo: res.ativo ?? true,
+          },
+          endereco: {
+            cep: this.formatCep(res.endereco.cep),
+            logradouro: res.endereco.logradouro,
+            numero: res.endereco.numero,
+            complemento: res.endereco.complemento ?? '',
+            bairro: res.endereco.bairro,
+            cidade: res.endereco.cidade,
+            uf: res.endereco.uf,
+          },
+        });
+      });
+    }
   }
 
   public applyCnpjMask(): void {
@@ -148,14 +173,18 @@ export class UnidadeRegister implements OnInit {
     this.submitLoading.set(true);
     this.submitError.set('');
 
-    this.unidadesService.registerUnidade(this.toRequest()).subscribe({
+    const request$ = this.isEditMode
+      ? this.unidadesService.updateUnidade(this.idUnidade, this.toRequest())
+      : this.unidadesService.registerUnidade(this.toRequest());
+
+    request$.subscribe({
       next: () => {
-        this.toastService.success('Unidade cadastrada com sucesso!');
+        this.toastService.success(this.isEditMode ? 'Unidade atualizada com sucesso!' : 'Unidade cadastrada com sucesso!');
         this.router.navigate(['/estabelecimentos', String(this.idEstabelecimento)]);
       },
       error: (error) => {
-        console.error('Erro ao cadastrar unidade', error);
-        this.submitError.set('Nao foi possivel cadastrar a unidade.');
+        console.error('Erro ao salvar unidade', error);
+        this.submitError.set(this.isEditMode ? 'Nao foi possivel atualizar a unidade.' : 'Nao foi possivel cadastrar a unidade.');
         this.submitLoading.set(false);
       },
     });
@@ -267,6 +296,18 @@ export class UnidadeRegister implements OnInit {
     }
 
     return null;
+  }
+
+  private readRouteParam(paramName: string): string {
+    for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
+      const value = routeSnapshot.paramMap.get(paramName);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
   }
 
   private static booleanRequiredValidator(

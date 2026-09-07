@@ -1,0 +1,150 @@
+<div class="plans-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Planos</h1>
+    <span>Consulte os planos comerciais cadastrados no sistema, independente do estabelecimento ou unidade vinculada.</span>
+  </div>
+
+  <div class="plans-toolbar">
+    <div class="plans-toolbar-filters">
+      <div class="plans-toolbar-input-wrapper">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          class="plans-toolbar-input"
+          type="text"
+          placeholder="Pesquise por nome, estabelecimento, unidade ou modalidade"
+          [value]="filterValue()"
+          (input)="updateFilter($any($event.target).value)"
+          aria-label="Pesquisar planos por nome, estabelecimento, unidade ou modalidade"
+        >
+
+        @if (filterValue()) {
+          <button
+            class="plans-toolbar-clear"
+            type="button"
+            (click)="clearFilter()"
+            aria-label="Limpar filtro de planos"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="plans-toolbar-actions">
+      <button class="entity-action entity-action--primary" type="button" routerLink="register">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        <span>Cadastrar plano</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="plans-table">
+    <table class="plans-table-element" aria-label="Listagem de planos">
+      <colgroup>
+        <col class="plans-table-col-name">
+        <col class="plans-table-col-unit">
+        <col class="plans-table-col-value">
+        <col class="plans-table-col-billing">
+        <col class="plans-table-col-modalities">
+        <col class="plans-table-col-status">
+        <col class="plans-table-col-actions">
+      </colgroup>
+
+      <thead>
+        <tr class="plans-table-header">
+          <th scope="col">Nome</th>
+          <th scope="col">Estabelecimento / Unidade</th>
+          <th scope="col">Valor</th>
+          <th scope="col">Tipo de cobrança</th>
+          <th scope="col">Modalidades</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (filteredPlanos().length) {
+          @for (plano of filteredPlanos(); track plano.id) {
+            <tr class="plans-table-row">
+              <td class="plans-table-cell" data-label="Nome">
+                <div class="plans-table-cell-content">
+                  <strong>{{ plano.nomeExibicao }}</strong>
+                  <span>{{ plano.planoNome }}</span>
+                </div>
+              </td>
+
+              <td class="plans-table-cell" data-label="Estabelecimento / Unidade">
+                <div class="plans-table-cell-content">
+                  <strong>{{ plano.estabelecimentoNome }}</strong>
+                  <span>{{ plano.unidadeNome }}</span>
+                </div>
+              </td>
+
+              <td class="plans-table-cell" data-label="Valor">
+                <div class="plans-table-cell-content">
+                  <span>{{ formatCurrency(plano.valor) }}</span>
+                </div>
+              </td>
+
+              <td class="plans-table-cell" data-label="Tipo de cobrança">
+                <div class="plans-table-cell-content">
+                  <span>{{ formatTipoCobranca(plano.tipoCobranca) }}</span>
+                </div>
+              </td>
+
+              <td class="plans-table-cell plans-table-cell--stacked" data-label="Modalidades">
+                <div class="plans-table-cell-content">
+                  <span>{{ plano.modalidades | firstOrDefault:'-' }}</span>
+
+                  @if (hiddenCount(plano.modalidades)) {
+                    <button
+                      class="plan-more"
+                      type="button"
+                      [attr.aria-label]="'Ver outras modalidades de ' + plano.nomeExibicao"
+                    >
+                      +{{ hiddenCount(plano.modalidades) }}
+
+                      <span class="plan-more-popover" role="tooltip">
+                        @for (modalidade of plano.modalidades?.slice(1); track modalidade) {
+                          <span>{{ modalidade }}</span>
+                        }
+                      </span>
+                    </button>
+                  }
+                </div>
+              </td>
+
+              <td class="plans-table-cell" data-label="Status">
+                <div class="plans-table-cell-content">
+                  <span
+                    class="plan-status"
+                    [class.plan-status--active]="plano.ativo"
+                    [class.plan-status--inactive]="!plano.ativo"
+                  >{{ plano.ativo ? 'Ativo' : 'Inativo' }}</span>
+                </div>
+              </td>
+
+              <td class="plans-table-cell plans-table-cell--actions" data-label="Ações">
+                <div class="plans-table-cell-content">
+                  <a
+                    class="plan-action"
+                    [routerLink]="['/planos', 'edit', plano.id]"
+                    [attr.aria-label]="'Editar plano ' + plano.nomeExibicao"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        } @else {
+          <tr>
+            <td class="plans-table-empty" colspan="7">Nenhum plano encontrado para o filtro informado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

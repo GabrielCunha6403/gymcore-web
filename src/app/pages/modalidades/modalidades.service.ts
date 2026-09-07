@@ -22,6 +22,14 @@ export class ModalidadesService {
     return this.http.post(`${environment.apiUrl}/modalidade`, req);
   }
 
+  getModalidadeById(idModalidade: string) {
+    return this.http.get<Modalidade>(`${environment.apiUrl}/modalidade/getModalidadeById?idModalidade=${idModalidade}`);
+  }
+
+  updateModalidade(idModalidade: string, req: ModalidadeForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/modalidade?idModalidade=${idModalidade}`, req);
+  }
+
   getModalidadesGeral(busca = '') {
     const params = new HttpParams().set('busca', busca);
 

@@ -22,6 +22,10 @@ export class UnidadesService {
     return this.http.post(`${environment.apiUrl}/unidade`, req);
   }
 
+  updateUnidade(idUnidade: string, req: UnidadeForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/unidade?idUnidade=${idUnidade}`, req);
+  }
+
   getEstabelecimento(idEstabelecimento: string) {
     return this.http.get<Estabelecimento>(`${environment.apiUrl}/estabelecimento/getEstabelecimentoById?idEstabelecimento=${idEstabelecimento}`);
   }

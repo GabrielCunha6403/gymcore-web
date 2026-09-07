@@ -2,7 +2,7 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Cadastrar aluno</h1>
+    <h1>{{ isEditMode ? 'Editar aluno' : 'Cadastrar aluno' }}</h1>
     <span>Preencha os dados do aluno para criar sua matrícula em uma unidade do sistema.</span>
   </div>
 
@@ -239,7 +239,7 @@
           [formGroup]="alunoForm.controls.matricula"
         >
           <div class="form-grid">
-            @if (unitScoped) {
+            @if (unitScoped || isEditMode) {
               <div class="form-field">
                 <span>Estabelecimento</span>
                 <input type="text" [value]="displayEstabelecimento()" disabled>
@@ -299,7 +299,7 @@
 
                             <span class="autocomplete-option-text">
                               <strong>{{ estabelecimento.nomeFantasia }}</strong>
-                              <small>{{ estabelecimento.cnpj }} · {{ estabelecimento.status }}</small>
+                              <small>{{ estabelecimento.status }}</small>
                             </span>
                           </button>
                         }
@@ -386,21 +386,29 @@
               </div>
             }
 
-            <div class="form-field">
-              <span>Plano <span class="required-mark">*</span></span>
-              <select formControlName="planoId" [disabled]="!selectedUnidade()">
-                <option value="">Selecione</option>
-                @for (plano of planosDaUnidade(); track plano.id) {
-                  <option [value]="plano.id">{{ plano.nome }} · {{ plano.valor }}</option>
-                }
-              </select>
-              <app-error-message-control
-                [control]="alunoForm.controls.matricula.controls.planoId"
-                [messages]="{
-                  required: '* Plano obrigatório'
-                }"
-              ></app-error-message-control>
-            </div>
+            @if (isEditMode) {
+              <div class="form-field">
+                <span>Plano</span>
+                <input type="text" [value]="displayPlano()" disabled>
+                <span class="form-helper">A matrícula não é editável por aqui.</span>
+              </div>
+            } @else {
+              <div class="form-field">
+                <span>Plano <span class="required-mark">*</span></span>
+                <select formControlName="planoId" [disabled]="!selectedUnidade()">
+                  <option value="">Selecione</option>
+                  @for (plano of planosDaUnidade(); track plano.id) {
+                    <option [value]="plano.id">{{ plano.nome }} · {{ plano.valor }}</option>
+                  }
+                </select>
+                <app-error-message-control
+                  [control]="alunoForm.controls.matricula.controls.planoId"
+                  [messages]="{
+                    required: '* Plano obrigatório'
+                  }"
+                ></app-error-message-control>
+              </div>
+            }
 
             <div class="form-field">
               <span>Data de início <span class="required-mark">*</span></span>
@@ -547,7 +555,7 @@
           <div class="submit-area">
             <button class="submit-button" type="submit" [disabled]="alunoForm.invalid || submitLoading()">
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar aluno' }}</span>
+              <span>{{ submitLoading() ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar aluno') }}</span>
             </button>
           </div>
         </section>

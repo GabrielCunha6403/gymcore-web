@@ -35,8 +35,10 @@ export class ModalidadeRegister implements OnInit {
   private readonly estabelecimentosService = inject(EstabelecimentosService);
   private readonly estabelecimentoSearchTerms = new Subject<string>();
   private readonly idEstabelecimento = this.readEstabelecimentoId();
+  private readonly idModalidade = this.readRouteParam('idModalidade');
 
-  protected readonly isEstabelecimentoContext = !!this.idEstabelecimento;
+  protected readonly isEditMode = !!this.idModalidade;
+  protected readonly isEstabelecimentoContext = !!this.idEstabelecimento || this.isEditMode;
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
@@ -109,12 +111,34 @@ export class ModalidadeRegister implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.isEditMode) {
+      this.loadModalidadeParaEdicao();
+      return;
+    }
+
     if (!this.isEstabelecimentoContext) {
       return;
     }
 
     this.modalidadesService.getEstabelecimento(this.idEstabelecimento).subscribe((res) => {
       this.estabelecimento.set(res);
+    });
+  }
+
+  private loadModalidadeParaEdicao(): void {
+    this.modalidadesService.getModalidadeById(this.idModalidade).subscribe((res) => {
+      this.modalidadeForm.patchValue({
+        dadosGerais: {
+          idEstabelecimento: res.estabelecimentoId,
+          nome: res.nome,
+          descricao: res.descricao ?? '',
+          ativo: res.ativo,
+        },
+      });
+
+      this.modalidadesService.getEstabelecimento(res.estabelecimentoId).subscribe((estabelecimento) => {
+        this.estabelecimento.set(estabelecimento);
+      });
     });
   }
 
@@ -174,11 +198,15 @@ export class ModalidadeRegister implements OnInit {
     this.submitLoading.set(true);
     this.submitError.set('');
 
-    this.modalidadesService.registerModalidade(this.toRequest()).subscribe({
-      next: () => {
-        this.toastService.success('Modalidade cadastrada com sucesso!');
+    const request$ = this.isEditMode
+      ? this.modalidadesService.updateModalidade(this.idModalidade, this.toRequest())
+      : this.modalidadesService.registerModalidade(this.toRequest());
 
-        if (this.isEstabelecimentoContext) {
+    request$.subscribe({
+      next: () => {
+        this.toastService.success(this.isEditMode ? 'Modalidade atualizada com sucesso!' : 'Modalidade cadastrada com sucesso!');
+
+        if (this.idEstabelecimento) {
           this.router.navigate(['/estabelecimentos', this.idEstabelecimento], {
             queryParams: { tab: 'modalidades' },
           });
@@ -187,8 +215,8 @@ export class ModalidadeRegister implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Erro ao cadastrar modalidade', error);
-        this.submitError.set('Não foi possível cadastrar a modalidade.');
+        console.error('Erro ao salvar modalidade', error);
+        this.submitError.set(this.isEditMode ? 'Não foi possível atualizar a modalidade.' : 'Não foi possível cadastrar a modalidade.');
         this.submitLoading.set(false);
       },
     });
@@ -222,8 +250,12 @@ export class ModalidadeRegister implements OnInit {
   }
 
   private readEstabelecimentoId(): string {
+    return this.readRouteParam('idEstabelecimento');
+  }
+
+  private readRouteParam(paramName: string): string {
     for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
-      const value = routeSnapshot.paramMap.get('idEstabelecimento');
+      const value = routeSnapshot.paramMap.get(paramName);
 
       if (value) {
         return value;

@@ -45,8 +45,12 @@ export class Register {
   private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
   private readonly routeIdEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly routeIdUnidade = this.getRouteParam('idUnidade');
+  private readonly idProfessorEdit = this.getRouteParam('idProfessor');
 
   protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
+  protected readonly isEditMode = !!this.idProfessorEdit;
+  protected readonly professorEstabelecimentoNome = signal('-');
+  protected readonly professorUnidadeNome = signal('-');
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -229,8 +233,12 @@ export class Register {
 
     if (this.unitScoped) {
       this.prefillUnidade();
-    } else {
+    } else if (!this.isEditMode) {
       this.searchEstabelecimentos('');
+    }
+
+    if (this.isEditMode) {
+      this.loadProfessorParaEdicao();
     }
   }
 
@@ -383,9 +391,25 @@ export class Register {
       return;
     }
 
-    console.log('Professor cadastrado', this.professorForm.getRawValue());
-
     const professor: ProfessorForm = this.professorForm.getRawValue() as unknown as ProfessorForm;
+
+    if (this.isEditMode) {
+      this.professorService.updateProfessor(this.idProfessorEdit, professor).subscribe({
+        next: () => {
+          this.toastService.success('Professor atualizado com sucesso!');
+
+          if (this.unitScoped) {
+            this.router.navigate(['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade]);
+          } else {
+            this.router.navigate(['/professores', this.idProfessorEdit]);
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar professor', error);
+        },
+      });
+      return;
+    }
 
     this.professorService.registerProfessor(professor).subscribe(res => {
       console.log(res);
@@ -416,11 +440,11 @@ export class Register {
   }
 
   public displayEstabelecimento(): string {
-    return this.selectedEstabelecimento()?.nomeFantasia ?? '-';
+    return this.selectedEstabelecimento()?.nomeFantasia ?? this.professorEstabelecimentoNome();
   }
 
   public displayUnidade(): string {
-    return this.selectedUnidade()?.nome ?? '-';
+    return this.selectedUnidade()?.nome ?? this.professorUnidadeNome();
   }
 
   public displaySelectedModalidades(): string {
@@ -555,6 +579,49 @@ export class Register {
     });
 
     this.loadModalidades(this.routeIdUnidade);
+  }
+
+  private loadProfessorParaEdicao(): void {
+    this.professorService.getProfessorById(this.idProfessorEdit).subscribe((dto) => {
+      this.professorForm.patchValue({
+        dadosPessoais: {
+          nome: dto.nome,
+          cpf: this.formatCpf(dto.cpf),
+          dataNascimento: dto.dataNascimento as unknown as Date,
+          sexo: dto.sexo,
+          email: dto.email,
+          telefone: dto.contato,
+        },
+        endereco: {
+          cep: this.formatCep(dto.endereco?.cep ?? ''),
+          logradouro: dto.endereco?.logradouro ?? '',
+          numero: dto.endereco?.numero ?? '',
+          complemento: dto.endereco?.complemento ?? '',
+          bairro: dto.endereco?.bairro ?? '',
+          cidade: dto.endereco?.cidade ?? '',
+          uf: dto.endereco?.uf ?? null,
+        },
+        profissional: {
+          registroProfissional: dto.registroProfissional ?? '',
+          observacoes: dto.observacoes ?? '',
+          status: dto.status,
+        },
+        atuacao: {
+          codigoInterno: dto.codigoInterno ?? '',
+          ativo: dto.ativoAtuacao ?? true,
+        },
+      });
+
+      const primeiraUnidade = dto.unidades[0];
+      this.professorEstabelecimentoNome.set(primeiraUnidade?.estabelecimento ?? '-');
+      this.professorUnidadeNome.set(primeiraUnidade?.unidade ?? '-');
+
+      if (!this.unitScoped) {
+        const atuacao = this.professorForm.controls.atuacao.controls;
+        atuacao.estabelecimentoId.setValue('0');
+        atuacao.unidadeId.setValue('0');
+      }
+    });
   }
 
   private loadModalidades(idUnidade: string): void {

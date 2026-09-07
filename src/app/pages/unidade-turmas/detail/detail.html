@@ -1,0 +1,73 @@
+<div class="turma-detail-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  @if (turma(); as turma) {
+    <div class="turma-header">
+      <div class="title-area">
+        <h1>{{ turma.nome }}</h1>
+        <span>{{ turma.modalidadeNome }} · Professor: {{ turma.professorNome }}</span>
+      </div>
+
+      <span class="turma-status" [class.turma-status--inactive]="!turma.ativo">
+        {{ turma.ativo ? 'Ativa' : 'Inativa' }}
+      </span>
+    </div>
+
+    <div class="turma-details">
+      <span class="turma-detail">
+        <i class="pi pi-users" aria-hidden="true"></i>
+        <span>{{ turma.matriculados }}/{{ turma.capacidade ?? '-' }} vagas</span>
+      </span>
+
+      <span class="turma-detail">
+        <i class="pi pi-clock" aria-hidden="true"></i>
+        <span>{{ displayHorarios(turma) }}</span>
+      </span>
+    </div>
+
+    <section class="turma-section" aria-labelledby="turma-alunos-title">
+      <div class="turma-section-header">
+        <h2 id="turma-alunos-title">Alunos matriculados</h2>
+      </div>
+
+      @if (alunosLoading()) {
+        <span class="turma-empty">Carregando alunos da turma...</span>
+      } @else if (alunos().length) {
+        <div class="turma-table-wrapper">
+          <table class="turma-table" aria-label="Alunos matriculados na turma">
+            <thead>
+              <tr>
+                <th scope="col">Aluno</th>
+                <th scope="col">Início</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (aluno of alunos(); track aluno.idAlunoTurma) {
+                <tr>
+                  <td>{{ aluno.alunoNome }}</td>
+                  <td>{{ formatDate(aluno.dataInicio) }}</td>
+                  <td>{{ aluno.ativo ? 'Ativo' : 'Inativo' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <span class="turma-empty">Nenhum aluno matriculado nesta turma.</span>
+      }
+    </section>
+  } @else {
+    <div class="turma-header turma-header--missing">
+      <div class="title-area">
+        <h1>Turma não encontrada</h1>
+        <span>Verifique o identificador informado para carregar os detalhes da turma.</span>
+      </div>
+
+      <a class="turma-back-link" [routerLink]="backLink()">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <span>Voltar</span>
+      </a>
+    </div>
+  }
+</div>

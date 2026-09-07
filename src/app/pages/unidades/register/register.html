@@ -2,7 +2,7 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Cadastrar unidade</h1>
+    <h1>{{ isEditMode ? 'Editar unidade' : 'Cadastrar unidade' }}</h1>
     <span>Preencha os dados da unidade para vinculá-la ao estabelecimento selecionado.</span>
   </div>
 
@@ -321,7 +321,7 @@
               [disabled]="unidadeForm.invalid || submitLoading()"
             >
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar unidade' }}</span>
+              <span>{{ submitLoading() ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar unidade') }}</span>
             </button>
           </div>
         </section>

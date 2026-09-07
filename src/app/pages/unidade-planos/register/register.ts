@@ -36,8 +36,12 @@ export class PlanoRegister implements OnInit {
   private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
 
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
-  private readonly idUnidade = this.readRouteParam('idUnidade');
+  private idUnidade = this.readRouteParam('idUnidade');
+  private readonly idPlanoUnidade = this.readRouteParam('idPlanoUnidade');
+  private idPlano = '';
 
+  protected readonly isEditMode = !!this.idPlanoUnidade;
+  protected readonly planoNomeExistente = signal('');
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
   protected readonly unidade = signal<Unidade | null>(null);
@@ -94,6 +98,11 @@ export class PlanoRegister implements OnInit {
   ]);
 
   ngOnInit(): void {
+    if (this.isEditMode) {
+      this.loadPlanoUnidadeParaEdicao();
+      return;
+    }
+
     if (!this.idUnidade) {
       return;
     }
@@ -102,9 +111,44 @@ export class PlanoRegister implements OnInit {
       this.unidade.set(res);
     });
 
+    this.loadModalidadesDaUnidade(this.idUnidade);
+  }
+
+  private loadPlanoUnidadeParaEdicao(): void {
+    this.planoForm.controls.dadosPlano.disable();
+
+    this.unidadePlanosService.getPlanoUnidadeById(this.idPlanoUnidade).subscribe((res) => {
+      this.idPlano = res.planoId;
+      this.planoNomeExistente.set(res.planoNome);
+
+      if (!this.idUnidade) {
+        this.idUnidade = res.unidadeId;
+      }
+
+      this.unidadesService.getUnidadeById(this.idUnidade).subscribe((unidade) => {
+        this.unidade.set(unidade);
+      });
+
+      this.loadModalidadesDaUnidade(this.idUnidade);
+
+      this.planoForm.controls.oferta.patchValue({
+        nomeExibicao: res.nomeExibicao,
+        descricao: res.descricao ?? '',
+        valor: res.valor,
+        duracaoMeses: res.duracaoMeses ?? null,
+        tipoCobranca: res.tipoCobranca ?? null,
+        taxaAdesao: res.taxaAdesao ?? null,
+        diaVencimentoPadrao: res.diaVencimentoPadrao ?? null,
+        ativo: res.ativo,
+        modalidades: res.modalidadesIds,
+      });
+    });
+  }
+
+  private loadModalidadesDaUnidade(idUnidade: string): void {
     this.modalidadesLoading.set(true);
 
-    this.unidadeModalidadesService.getModalidadesVinculadas(this.idUnidade).subscribe({
+    this.unidadeModalidadesService.getModalidadesVinculadas(idUnidade).subscribe({
       next: (res) => {
         this.modalidadesDaUnidade.set(res);
         this.modalidadesLoading.set(false);
@@ -150,6 +194,28 @@ export class PlanoRegister implements OnInit {
 
     this.submitLoading.set(true);
     this.submitError.set('');
+
+    if (this.isEditMode) {
+      this.unidadePlanosService.updatePlanoUnidade(this.idPlanoUnidade, this.toOfertaRequest(this.idPlano)).subscribe({
+        next: () => {
+          this.toastService.success('Oferta do plano atualizada com sucesso!');
+
+          if (this.idEstabelecimento && this.idUnidade) {
+            this.router.navigate(['/estabelecimentos', this.idEstabelecimento, this.idUnidade], {
+              queryParams: { tab: 'planos' },
+            });
+          } else {
+            this.router.navigate(['/planos']);
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar oferta do plano', error);
+          this.submitError.set(error?.error?.message ?? 'Não foi possível atualizar a oferta do plano.');
+          this.submitLoading.set(false);
+        },
+      });
+      return;
+    }
 
     this.planosService.registerPlano(this.toPlanoRequest()).subscribe({
       next: (res) => {

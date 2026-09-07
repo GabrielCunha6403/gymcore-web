@@ -2,7 +2,7 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Cadastrar modalidade</h1>
+    <h1>{{ isEditMode ? 'Editar modalidade' : 'Cadastrar modalidade' }}</h1>
     @if (isEstabelecimentoContext) {
       <span>Preencha os dados da modalidade para vinculá-la ao estabelecimento {{ estabelecimentoNome() }}.</span>
     } @else {
@@ -80,7 +80,7 @@
 
                             <span class="autocomplete-option-text">
                               <strong>{{ item.nomeFantasia }}</strong>
-                              <small>{{ item.cnpj }} · {{ item.status }}</small>
+                              <small>{{ item.status }}</small>
                             </span>
                           </button>
                         }
@@ -180,7 +180,7 @@
               [disabled]="modalidadeForm.invalid || submitLoading()"
             >
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar modalidade' }}</span>
+              <span>{{ submitLoading() ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar modalidade') }}</span>
             </button>
           </div>
         </section>

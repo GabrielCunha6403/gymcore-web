@@ -23,6 +23,11 @@
               <span [class]="'teacher-status ' + statusClass(professor.status)">
                 {{ formatStatus(professor.status) }}
               </span>
+
+              <a class="entity-action" [routerLink]="['edit']">
+                <i class="pi pi-pencil" aria-hidden="true"></i>
+                <span>Editar</span>
+              </a>
             </div>
           </div>
 

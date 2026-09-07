@@ -54,8 +54,13 @@ export class AlunoRegister {
   private readonly unidadeSearchTerms = new Subject<UnidadeSearchParams>();
   private readonly routeIdEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly routeIdUnidade = this.getRouteParam('idUnidade');
+  private readonly idAlunoEdit = this.getRouteParam('idAluno');
 
   protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
+  protected readonly isEditMode = !!this.idAlunoEdit;
+  protected readonly alunoEstabelecimentoNome = signal('-');
+  protected readonly alunoUnidadeNome = signal('-');
+  protected readonly alunoPlanoNome = signal('-');
 
   protected readonly estabelecimentoSearch = signal('');
   protected readonly unidadeSearch = signal('');
@@ -226,8 +231,12 @@ export class AlunoRegister {
 
     if (this.unitScoped) {
       this.prefillUnidade();
-    } else {
+    } else if (!this.isEditMode) {
       this.searchEstabelecimentos('');
+    }
+
+    if (this.isEditMode) {
+      this.loadAlunoParaEdicao();
     }
   }
 
@@ -366,6 +375,26 @@ export class AlunoRegister {
     this.submitLoading.set(true);
     this.submitError.set('');
 
+    if (this.isEditMode) {
+      this.alunosService.updateAluno(this.idAlunoEdit, this.toRequest()).subscribe({
+        next: () => {
+          this.toastService.success('Aluno atualizado com sucesso!');
+
+          if (this.unitScoped) {
+            this.router.navigate(['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade]);
+          } else {
+            this.router.navigate(['/alunos', this.idAlunoEdit]);
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar aluno', error);
+          this.submitError.set('Não foi possível atualizar o aluno.');
+          this.submitLoading.set(false);
+        },
+      });
+      return;
+    }
+
     this.alunosService.registerAluno(this.toRequest()).subscribe({
       next: () => {
         this.toastService.success('Aluno cadastrado com sucesso!');
@@ -397,17 +426,17 @@ export class AlunoRegister {
   }
 
   public displayEstabelecimento(): string {
-    return this.selectedEstabelecimento()?.nomeFantasia ?? '-';
+    return this.selectedEstabelecimento()?.nomeFantasia ?? this.alunoEstabelecimentoNome();
   }
 
   public displayUnidade(): string {
-    return this.selectedUnidade()?.nome ?? '-';
+    return this.selectedUnidade()?.nome ?? this.alunoUnidadeNome();
   }
 
   public displayPlano(): string {
     const plano = this.findPlanoById(this.alunoForm.controls.matricula.controls.planoId.value);
 
-    return plano ? `${plano.nome} · ${plano.valor}` : '-';
+    return plano ? `${plano.nome} · ${plano.valor}` : this.alunoPlanoNome();
   }
 
   protected initials(value: string): string {
@@ -514,6 +543,49 @@ export class AlunoRegister {
     });
 
     this.loadPlanos(this.routeIdUnidade);
+  }
+
+  private loadAlunoParaEdicao(): void {
+    this.alunosService.getAlunoById(this.idAlunoEdit).subscribe((dto) => {
+      this.alunoForm.patchValue({
+        dadosPessoais: {
+          nome: dto.nome,
+          cpf: this.formatCpf(dto.cpf),
+          dataNascimento: dto.dataNascimento as unknown as Date,
+          sexo: dto.sexo,
+          email: dto.email,
+          telefone: dto.contato,
+          ativo: dto.ativo,
+        },
+        endereco: {
+          cep: this.formatCep(dto.endereco?.cep ?? ''),
+          logradouro: dto.endereco?.logradouro ?? '',
+          numero: dto.endereco?.numero ?? '',
+          complemento: dto.endereco?.complemento ?? '',
+          bairro: dto.endereco?.bairro ?? '',
+          cidade: dto.endereco?.cidade ?? '',
+          uf: dto.endereco?.uf ?? null,
+        },
+      });
+
+      this.alunoForm.controls.matricula.disable();
+
+      if (dto.matricula) {
+        this.alunoForm.controls.matricula.patchValue({
+          planoId: String(dto.matricula.planoUnidadeId),
+          dataInicio: dto.matricula.dataInicio as unknown as Date,
+          dataFim: (dto.matricula.dataFim as unknown as Date) ?? null,
+          diaVencimento: String(dto.matricula.diaVencimento),
+          status: dto.matricula.status,
+          motivoCancelamento: dto.matricula.motivoCancelamento ?? '',
+        });
+        this.alunoPlanoNome.set(dto.matricula.plano ?? '-');
+      }
+
+      const primeiraUnidade = dto.unidades[0];
+      this.alunoEstabelecimentoNome.set(primeiraUnidade?.estabelecimento ?? '-');
+      this.alunoUnidadeNome.set(primeiraUnidade?.unidade ?? dto.matricula?.unidade ?? '-');
+    });
   }
 
   private getRouteParam(paramName: string): string {

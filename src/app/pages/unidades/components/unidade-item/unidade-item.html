@@ -65,14 +65,15 @@
     </div>
 
     <div class="unidade-item-actions" aria-label="Ações da unidade">
-      <button
+      <a
         class="entity-action"
-        type="button"
+        [routerLink]="['/estabelecimentos', unidade().estabelecimentoId, unidade().id, 'edit']"
+        (click)="$event.stopPropagation()"
         [attr.aria-label]="'Editar unidade ' + unidade().nome"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
         <span>Editar</span>
-      </button>
+      </a>
 
       <button
         class="entity-action entity-action--danger"

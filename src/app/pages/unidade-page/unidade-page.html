@@ -28,6 +28,11 @@
             <span [class]="'unit-status ' + statusClass(unidade.status)">
               {{ formatStatus(unidade.status) }}
             </span>
+
+            <a class="entity-action" [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'edit']">
+              <i class="pi pi-pencil" aria-hidden="true"></i>
+              <span>Editar unidade</span>
+            </a>
           </div>
         </div>
 
@@ -214,6 +219,14 @@
               <i class="pi pi-plus" aria-hidden="true"></i>
               <span>{{ activeContent().createLabel }}</span>
             </a>
+          } @else if (activeTab() === 'turmas') {
+            <a
+              class="entity-action entity-action--primary"
+              [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'turmas', 'register']"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              <span>{{ activeContent().createLabel }}</span>
+            </a>
           } @else {
             <a
               class="entity-action entity-action--primary"
@@ -252,6 +265,10 @@
             <span class="unit-records-empty">Carregando planos da unidade...</span>
           } @else if (activeTab() === 'planos' && !activeContent().items.length) {
             <span class="unit-records-empty">Nenhum plano vinculado a esta unidade.</span>
+          } @else if (activeTab() === 'turmas' && turmasLoading()) {
+            <span class="unit-records-empty">Carregando turmas da unidade...</span>
+          } @else if (activeTab() === 'turmas' && !activeContent().items.length) {
+            <span class="unit-records-empty">Nenhuma turma cadastrada nesta unidade.</span>
           }
           @for (item of activeContent().items; track item.id ?? item.title) {
             <article class="unit-record">
@@ -295,6 +312,15 @@
                       <i class="pi pi-eye" aria-hidden="true"></i>
                       <span>Visualizar</span>
                     </a>
+                  } @else if (activeTab() === 'turmas' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'turma', item.id]"
+                      [attr.aria-label]="'Visualizar turma ' + item.title"
+                    >
+                      <i class="pi pi-eye" aria-hidden="true"></i>
+                      <span>Visualizar</span>
+                    </a>
                   } @else {
                     <button
                       class="entity-action"
@@ -306,14 +332,52 @@
                     </button>
                   }
 
-                  <button
-                    class="entity-action"
-                    type="button"
-                    [attr.aria-label]="'Editar ' + activeContent().entityLabel + ' ' + item.title"
-                  >
-                    <i class="pi pi-pencil" aria-hidden="true"></i>
-                    <span>Editar</span>
-                  </button>
+                  @if (activeTab() === 'professores' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'professor', item.id, 'edit']"
+                      [attr.aria-label]="'Editar professor ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </a>
+                  } @else if (activeTab() === 'alunos' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'aluno', item.id, 'edit']"
+                      [attr.aria-label]="'Editar aluno ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </a>
+                  } @else if (activeTab() === 'modalidades' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/modalidades', 'edit', item.id]"
+                      [attr.aria-label]="'Editar modalidade ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </a>
+                  } @else if (activeTab() === 'planos' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'planos', 'edit', item.id]"
+                      [attr.aria-label]="'Editar plano ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </a>
+                  } @else {
+                    <button
+                      class="entity-action"
+                      type="button"
+                      [attr.aria-label]="'Editar ' + activeContent().entityLabel + ' ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </button>
+                  }
 
                   <button
                     class="entity-action entity-action--danger"

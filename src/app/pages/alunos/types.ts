@@ -131,6 +131,7 @@ export interface AlunoDetalheUnidadeDto {
 
 export interface AlunoDetalheMatriculaDto {
   idMatricula: number;
+  planoUnidadeId: number;
   unidade: string;
   plano: string;
   dataInicio: string;

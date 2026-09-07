@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -6,7 +6,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -30,11 +30,14 @@ interface SelectOption<TValue extends string> {
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
-export class EstabelecimentoRegister {
+export class EstabelecimentoRegister implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly estabelecimentoService = inject(EstabelecimentosService);
+  private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
 
+  protected readonly isEditMode = !!this.idEstabelecimento;
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
 
@@ -91,6 +94,30 @@ export class EstabelecimentoRegister {
     },
   ]);
 
+  ngOnInit(): void {
+    if (!this.isEditMode) {
+      return;
+    }
+
+    this.estabelecimentoService.getEstabelecimentoById(this.idEstabelecimento).subscribe((res) => {
+      this.estabelecimentoForm.patchValue({
+        dadosGerais: {
+          nome: res.nomeFantasia,
+          razaoSocial: res.razaoSocial,
+          tipo: res.tipo ?? null,
+          status: res.status,
+          ativo: res.ativo ?? true,
+        },
+        contato: {
+          email: res.email,
+          telefone: res.telefone,
+          site: res.site ?? '',
+          logoUrl: res.imagemUrl ?? '',
+        },
+      });
+    });
+  }
+
   public applyTelefoneMask(): void {
     const control = this.estabelecimentoForm.controls.contato.controls.telefone;
 
@@ -106,13 +133,17 @@ export class EstabelecimentoRegister {
     this.submitLoading.set(true);
     this.submitError.set('');
 
-    this.estabelecimentoService.registerEstabelecimento(this.toRequest()).subscribe({
+    const request$ = this.isEditMode
+      ? this.estabelecimentoService.updateEstabelecimento(this.idEstabelecimento, this.toRequest())
+      : this.estabelecimentoService.registerEstabelecimento(this.toRequest());
+
+    request$.subscribe({
       next: () => {
         this.router.navigate(['/estabelecimentos']);
       },
       error: (error) => {
-        console.error('Erro ao cadastrar estabelecimento', error);
-        this.submitError.set('Não foi possível cadastrar o estabelecimento.');
+        console.error('Erro ao salvar estabelecimento', error);
+        this.submitError.set(this.isEditMode ? 'Não foi possível atualizar o estabelecimento.' : 'Não foi possível cadastrar o estabelecimento.');
         this.submitLoading.set(false);
       },
     });
@@ -178,6 +209,18 @@ export class EstabelecimentoRegister {
 
   private onlyDigits(value: string | null): string {
     return value?.replace(/\D/g, '') ?? '';
+  }
+
+  private readRouteParam(paramName: string): string {
+    for (const routeSnapshot of this.route.snapshot.pathFromRoot) {
+      const value = routeSnapshot.paramMap.get(paramName);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
   }
 
   private static booleanRequiredValidator(

@@ -36,6 +36,10 @@ export class ProfessoresService {
     return this.http.post(`${environment.apiUrl}/professor`, req);
   }
 
+  updateProfessor(idProfessor: string, req: ProfessorForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/professor?idProfessor=${idProfessor}`, req);
+  }
+
   getProfessorById(idProfessor: string) {
     return this.http.get<ProfessorDetalheDto>(`${environment.apiUrl}/professor/getProfessorById?idProfessor=${idProfessor}`);
   }

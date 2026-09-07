@@ -143,9 +143,13 @@
 
               <td class="teachers-table-cell teachers-table-cell--actions" data-label="Ações">
                 <div class="teachers-table-cell-content">
-                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar modalidade ' + modalidade.nome">
+                  <a
+                    class="teacher-action"
+                    [routerLink]="['/modalidades', 'edit', modalidade.idModalidade]"
+                    [attr.aria-label]="'Editar modalidade ' + modalidade.nome"
+                  >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
-                  </button>
+                  </a>
                 </div>
               </td>
             </tr>

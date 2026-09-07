@@ -2,12 +2,8 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>{{ isEditMode ? 'Editar oferta do plano' : 'Cadastrar plano' }}</h1>
-    @if (isEditMode) {
-      <span>Edite as condições comerciais do plano {{ planoNomeExistente() }} na unidade {{ unidadeNome() }}.</span>
-    } @else {
-      <span>Cadastre um plano e defina a oferta comercial dele para a unidade {{ unidadeNome() }}.</span>
-    }
+    <h1>Cadastrar plano</h1>
+    <span>Cadastre um plano comercial e defina a oferta dele para uma unidade do sistema.</span>
   </div>
 
   <div class="register-container">
@@ -16,73 +12,191 @@
         <section
           appWizardStep
           class="plano-register-step"
-          [formGroup]="planoForm.controls.dadosPlano"
+          [formGroup]="planoForm.controls.vinculo"
         >
-          @if (isEditMode) {
-            <div class="form-grid">
-              <div class="form-field form-field--full">
-                <span>Unidade</span>
-                <input type="text" [value]="unidadeNome()" disabled>
-              </div>
-
-              <div class="form-field form-field--full">
-                <span>Plano</span>
-                <input type="text" [value]="planoNomeExistente()" disabled>
-              </div>
-
-              <span class="form-helper">O plano base não pode ser alterado após a criação — apenas a oferta desta unidade (próxima etapa).</span>
-            </div>
-          } @else {
-            <div class="form-grid">
-              <div class="form-field form-field--full">
-                <span>Unidade</span>
-                <input type="text" [value]="unidadeNome()" disabled>
-              </div>
-
-              <div class="form-field form-field--full">
-                <span>Nome do plano <span class="required-mark">*</span></span>
+          <div class="form-grid">
+            <div class="form-field autocomplete-field">
+              <span>Estabelecimento <span class="required-mark">*</span></span>
+              <div class="autocomplete-control">
                 <input
                   type="text"
-                  formControlName="nome"
-                  maxlength="120"
+                  [value]="estabelecimentoSearch()"
                   autocomplete="off"
-                  placeholder="Ex.: Mensal Full"
+                  placeholder="Digite para buscar um estabelecimento"
+                  (focus)="estabelecimentoDropdownOpen.set(true)"
+                  (input)="updateEstabelecimentoSearch($any($event.target).value)"
+                  (blur)="closeEstabelecimentoDropdown()"
                 >
-                <app-error-message-control
-                  [control]="planoForm.controls.dadosPlano.controls.nome"
-                  [messages]="{
-                    required: '* Nome do plano obrigatório',
-                    maxlength: '* Nome deve ter no máximo 120 caracteres'
-                  }"
-                ></app-error-message-control>
-              </div>
 
-              <div class="form-field form-field--full">
-                <span>Descrição</span>
-                <textarea
-                  formControlName="descricao"
-                  maxlength="1000"
-                  rows="4"
-                  placeholder="Descreva brevemente o plano, benefícios ou observações gerais"
-                ></textarea>
-                <app-error-message-control
-                  [control]="planoForm.controls.dadosPlano.controls.descricao"
-                  [messages]="{
-                    maxlength: '* Descrição deve ter no máximo 1000 caracteres'
-                  }"
-                ></app-error-message-control>
-              </div>
+                @if (estabelecimentoSearch()) {
+                  <button
+                    class="autocomplete-clear"
+                    type="button"
+                    aria-label="Limpar estabelecimento"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="clearEstabelecimentoSelection()"
+                  >
+                    <i class="pi pi-times" aria-hidden="true"></i>
+                  </button>
+                }
 
-              <div class="form-field form-field--inline">
-                <input type="checkbox" formControlName="ativo">
-                <span>Cadastro ativo</span>
-                <app-error-message-control
-                  [control]="planoForm.controls.dadosPlano.controls.ativo"
-                  [message]="'* Status de cadastro inválido'"
-                ></app-error-message-control>
+                @if (estabelecimentoDropdownOpen()) {
+                  <div class="autocomplete-dropdown">
+                    @if (estabelecimentosLoading()) {
+                      <span class="autocomplete-empty">Buscando estabelecimentos...</span>
+                    } @else if (estabelecimentosSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar os estabelecimentos.</span>
+                    } @else if (filteredEstabelecimentos().length) {
+                      @for (estabelecimento of filteredEstabelecimentos(); track estabelecimento.id) {
+                        <button
+                          class="autocomplete-option"
+                          type="button"
+                          (mousedown)="$event.preventDefault()"
+                          (click)="selectEstabelecimento(estabelecimento)"
+                        >
+                          <span class="autocomplete-avatar">
+                            @if (estabelecimento.imagemUrl) {
+                              <img [src]="estabelecimento.imagemUrl" [alt]="'Foto de ' + estabelecimento.nomeFantasia">
+                            } @else {
+                              <span>{{ initials(estabelecimento.nomeFantasia) }}</span>
+                            }
+                          </span>
+
+                          <span class="autocomplete-option-text">
+                            <strong>{{ estabelecimento.nomeFantasia }}</strong>
+                            <small>{{ estabelecimento.status }}</small>
+                          </span>
+                        </button>
+                      }
+                    } @else {
+                      <span class="autocomplete-empty">Nenhum estabelecimento encontrado.</span>
+                    }
+                  </div>
+                }
               </div>
+              <app-error-message-control
+                [control]="planoForm.controls.vinculo.controls.estabelecimentoId"
+                [messages]="{
+                  required: '* Estabelecimento obrigatório'
+                }"
+              ></app-error-message-control>
             </div>
-          }
+
+            <div class="form-field autocomplete-field">
+              <span>Unidade <span class="required-mark">*</span></span>
+              <div class="autocomplete-control">
+                <input
+                  type="text"
+                  [value]="unidadeSearch()"
+                  autocomplete="off"
+                  [disabled]="!selectedEstabelecimento()"
+                  placeholder="Digite para buscar uma unidade"
+                  (focus)="unidadeDropdownOpen.set(!!selectedEstabelecimento())"
+                  (input)="updateUnidadeSearch($any($event.target).value)"
+                  (blur)="closeUnidadeDropdown()"
+                >
+
+                @if (unidadeSearch()) {
+                  <button
+                    class="autocomplete-clear"
+                    type="button"
+                    aria-label="Limpar unidade"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="clearUnidadeSelection()"
+                  >
+                    <i class="pi pi-times" aria-hidden="true"></i>
+                  </button>
+                }
+
+                @if (unidadeDropdownOpen()) {
+                  <div class="autocomplete-dropdown">
+                    @if (unidadesLoading()) {
+                      <span class="autocomplete-empty">Buscando unidades...</span>
+                    } @else if (unidadesSearchError()) {
+                      <span class="autocomplete-empty">Não foi possível buscar as unidades.</span>
+                    } @else if (filteredUnidades().length) {
+                      @for (unidade of filteredUnidades(); track unidade.id) {
+                        <button
+                          class="autocomplete-option"
+                          type="button"
+                          (mousedown)="$event.preventDefault()"
+                          (click)="selectUnidade(unidade)"
+                        >
+                          <span class="autocomplete-avatar">
+                            <span>{{ initials(unidade.nome) }}</span>
+                          </span>
+
+                          <span class="autocomplete-option-text">
+                            <strong>{{ unidade.nome }}</strong>
+                            <small>{{ unidade.endereco.bairro }} · {{ unidade.endereco.cidade }} - {{ unidade.endereco.uf }}</small>
+                          </span>
+                        </button>
+                      }
+                    } @else {
+                      <span class="autocomplete-empty">Nenhuma unidade encontrada.</span>
+                    }
+                  </div>
+                }
+              </div>
+              <app-error-message-control
+                [control]="planoForm.controls.vinculo.controls.unidadeId"
+                [messages]="{
+                  required: '* Unidade obrigatória'
+                }"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section
+          appWizardStep
+          class="plano-register-step"
+          [formGroup]="planoForm.controls.dadosPlano"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Nome do plano <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Ex.: Mensal Full"
+              >
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.nome"
+                [messages]="{
+                  required: '* Nome do plano obrigatório',
+                  maxlength: '* Nome deve ter no máximo 120 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Descrição</span>
+              <textarea
+                formControlName="descricao"
+                maxlength="1000"
+                rows="4"
+                placeholder="Descreva brevemente o plano, benefícios ou observações gerais"
+              ></textarea>
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.descricao"
+                [messages]="{
+                  maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Cadastro ativo</span>
+              <app-error-message-control
+                [control]="planoForm.controls.dadosPlano.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+          </div>
         </section>
 
         <section
@@ -227,7 +341,9 @@
             <fieldset class="form-fieldset form-field--full">
               <legend>Modalidades contempladas</legend>
 
-              @if (modalidadesLoading()) {
+              @if (!selectedUnidade()) {
+                <span class="form-helper">Selecione uma unidade para ver as modalidades disponíveis.</span>
+              } @else if (modalidadesLoading()) {
                 <span class="form-helper">Carregando modalidades da unidade...</span>
               } @else if (modalidadesDaUnidade().length) {
                 <div class="checkbox-grid">
@@ -252,31 +368,34 @@
         <section appWizardStep class="plano-register-step">
           <div class="confirmation-grid">
             <div class="confirmation-group">
+              <h3>Vínculo</h3>
+              <dl>
+                <div>
+                  <dt>Estabelecimento</dt>
+                  <dd>{{ displayEstabelecimento() }}</dd>
+                </div>
+                <div>
+                  <dt>Unidade</dt>
+                  <dd>{{ displayUnidade() }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="confirmation-group">
               <h3>Dados do plano</h3>
               <dl>
                 <div>
-                  <dt>Unidade</dt>
-                  <dd>{{ unidadeNome() }}</dd>
+                  <dt>Nome</dt>
+                  <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.nome.value) }}</dd>
                 </div>
-                @if (isEditMode) {
-                  <div>
-                    <dt>Plano</dt>
-                    <dd>{{ planoNomeExistente() }}</dd>
-                  </div>
-                } @else {
-                  <div>
-                    <dt>Nome</dt>
-                    <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.nome.value) }}</dd>
-                  </div>
-                  <div>
-                    <dt>Descrição</dt>
-                    <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.descricao.value) }}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{{ displayBoolean(planoForm.controls.dadosPlano.controls.ativo.value) }}</dd>
-                  </div>
-                }
+                <div>
+                  <dt>Descrição</dt>
+                  <dd>{{ displayValue(planoForm.controls.dadosPlano.controls.descricao.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(planoForm.controls.dadosPlano.controls.ativo.value) }}</dd>
+                </div>
               </dl>
             </div>
 
@@ -308,10 +427,6 @@
                   <dd>{{ displayValue(planoForm.controls.oferta.controls.diaVencimentoPadrao.value) }}</dd>
                 </div>
                 <div>
-                  <dt>Descrição</dt>
-                  <dd>{{ displayValue(planoForm.controls.oferta.controls.descricao.value) }}</dd>
-                </div>
-                <div>
                   <dt>Modalidades</dt>
                   <dd>{{ displaySelectedModalidades() }}</dd>
                 </div>
@@ -334,7 +449,7 @@
               [disabled]="planoForm.invalid || submitLoading()"
             >
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>{{ submitLoading() ? 'Salvando...' : (isEditMode ? 'Salvar alterações' : 'Cadastrar plano') }}</span>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar plano' }}</span>
             </button>
           </div>
         </section>

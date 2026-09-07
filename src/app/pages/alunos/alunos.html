@@ -145,7 +145,12 @@
                     <i class="pi pi-eye" aria-hidden="true"></i>
                   </button>
 
-                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar aluno ' + aluno.nome">
+                  <button
+                    class="teacher-action"
+                    type="button"
+                    [routerLink]="['/alunos', aluno.id, 'edit']"
+                    [attr.aria-label]="'Editar aluno ' + aluno.nome"
+                  >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                   </button>
                 </div>

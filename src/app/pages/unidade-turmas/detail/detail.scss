@@ -1,0 +1,144 @@
+.turma-detail-body {
+  width: 70%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.turma-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--tertiary-color);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.turma-header--missing {
+  align-items: center;
+}
+
+.title-area h1 {
+  margin: 0 0 4px;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.title-area span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 14px;
+}
+
+.turma-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(34, 197, 94, 0.14);
+  color: #9ef0b5;
+}
+
+.turma-status--inactive {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ff9b9b;
+}
+
+.turma-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  background: var(--tertiary-color);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.turma-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+
+  i {
+    color: var(--primaryColor, var(--primary-color));
+  }
+}
+
+.turma-section {
+  background: var(--tertiary-color);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.turma-section-header h2 {
+  margin: 0 0 16px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.turma-empty {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+.turma-table-wrapper {
+  overflow-x: auto;
+}
+
+.turma-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.turma-table th {
+  text-align: left;
+  padding: 0 10px 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.turma-table td {
+  padding: 12px 10px;
+  color: white;
+  font-size: 13px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.turma-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.turma-back-link:hover {
+  color: var(--primaryColor, var(--primary-color));
+}
+
+@media (max-width: 1024px) {
+  .turma-detail-body {
+    width: min(92%, 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .turma-header {
+    flex-direction: column;
+  }
+}

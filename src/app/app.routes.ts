@@ -73,6 +73,11 @@ export const routes: Routes = [
             loadComponent: () => import('./pages/unidades/unidades').then((m) => m.Unidades),
           },
           {
+            path: 'edit',
+            data: { breadcrumb: 'Editar estabelecimento' },
+            loadComponent: () => import('./pages/estabelecimentos/register/register').then((m) => m.EstabelecimentoRegister),
+          },
+          {
             path: 'register',
             data: { breadcrumb: 'Cadastrar unidade' },
             loadComponent: () => import('./pages/unidades/register/register').then((m) => m.UnidadeRegister),
@@ -92,6 +97,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/unidade-page/unidade-page').then((m) => m.UnidadePage),
               },
               {
+                path: 'edit',
+                data: { breadcrumb: 'Editar unidade' },
+                loadComponent: () => import('./pages/unidades/register/register').then((m) => m.UnidadeRegister),
+              },
+              {
                 path: 'professor/register',
                 data: { breadcrumb: 'Cadastrar professor' },
                 loadComponent: () => import('./pages/professores/register/register').then((m) => m.Register),
@@ -101,6 +111,11 @@ export const routes: Routes = [
                 data: { breadcrumb: 'Detalhes' },
                 resolve: { breadcrumb: professorBreadcrumbResolver },
                 loadComponent: () => import('./pages/professores/detail/detail').then((m) => m.Detail),
+              },
+              {
+                path: 'professor/:idProfessor/edit',
+                data: { breadcrumb: 'Editar professor' },
+                loadComponent: () => import('./pages/professores/register/register').then((m) => m.Register),
               },
               {
                 path: 'aluno/register',
@@ -114,6 +129,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/alunos/detail/detail').then((m) => m.AlunoDetail),
               },
               {
+                path: 'aluno/:idAluno/edit',
+                data: { breadcrumb: 'Editar aluno' },
+                loadComponent: () => import('./pages/alunos/register/register').then((m) => m.AlunoRegister),
+              },
+              {
                 path: 'modalidades/vincular',
                 data: { breadcrumb: 'Vincular modalidade' },
                 loadComponent: () => import('./pages/unidade-modalidades/register/register').then((m) => m.UnidadeModalidadeRegister),
@@ -122,6 +142,21 @@ export const routes: Routes = [
                 path: 'planos/register',
                 data: { breadcrumb: 'Cadastrar plano' },
                 loadComponent: () => import('./pages/unidade-planos/register/register').then((m) => m.PlanoRegister),
+              },
+              {
+                path: 'planos/edit/:idPlanoUnidade',
+                data: { breadcrumb: 'Editar oferta de plano' },
+                loadComponent: () => import('./pages/unidade-planos/register/register').then((m) => m.PlanoRegister),
+              },
+              {
+                path: 'turmas/register',
+                data: { breadcrumb: 'Cadastrar turma' },
+                loadComponent: () => import('./pages/unidade-turmas/register/register').then((m) => m.TurmaRegister),
+              },
+              {
+                path: 'turma/:idTurma',
+                data: { breadcrumb: 'Turma' },
+                loadComponent: () => import('./pages/unidade-turmas/detail/detail').then((m) => m.TurmaDetail),
               },
             ],
           },
@@ -149,6 +184,11 @@ export const routes: Routes = [
         resolve: { breadcrumb: professorBreadcrumbResolver },
         loadComponent: () => import('./pages/professores/detail/detail').then((m) => m.Detail),
       },
+      {
+        path: ':idProfessor/edit',
+        data: { breadcrumb: 'Editar professor' },
+        loadComponent: () => import('./pages/professores/register/register').then((m) => m.Register),
+      },
     ],
   },
   {
@@ -163,6 +203,11 @@ export const routes: Routes = [
       {
         path: 'register',
         data: { breadcrumb: 'Cadastrar modalidade' },
+        loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
+      },
+      {
+        path: 'edit/:idModalidade',
+        data: { breadcrumb: 'Editar modalidade' },
         loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
       },
     ],
@@ -186,6 +231,32 @@ export const routes: Routes = [
         data: { breadcrumb: 'Detalhes' },
         resolve: { breadcrumb: alunoBreadcrumbResolver },
         loadComponent: () => import('./pages/alunos/detail/detail').then((m) => m.AlunoDetail),
+      },
+      {
+        path: ':idAluno/edit',
+        data: { breadcrumb: 'Editar aluno' },
+        loadComponent: () => import('./pages/alunos/register/register').then((m) => m.AlunoRegister),
+      },
+    ],
+  },
+  {
+    path: 'planos',
+    data: { breadcrumb: 'Planos' },
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./pages/planos/planos').then((m) => m.Planos),
+      },
+      {
+        path: 'register',
+        data: { breadcrumb: 'Cadastrar plano' },
+        loadComponent: () => import('./pages/planos/register/register').then((m) => m.PlanoGeralRegister),
+      },
+      {
+        path: 'edit/:idPlanoUnidade',
+        data: { breadcrumb: 'Editar oferta de plano' },
+        loadComponent: () => import('./pages/unidade-planos/register/register').then((m) => m.PlanoRegister),
       },
     ],
   },

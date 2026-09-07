@@ -37,6 +37,10 @@ export class AlunosService {
     return this.http.post<{ message: string; alunoId: string }>(`${environment.apiUrl}/aluno`, req);
   }
 
+  updateAluno(idAluno: string, req: AlunoForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/aluno?idAluno=${idAluno}`, req);
+  }
+
   getMensalidades(idAluno: string) {
     const params = new HttpParams().set('idAluno', idAluno);
 

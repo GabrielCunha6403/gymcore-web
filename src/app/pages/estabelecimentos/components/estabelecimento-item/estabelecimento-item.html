@@ -28,11 +28,6 @@
 
     <div class="estabelecimento-item-details">
       <span class="estabelecimento-item-detail">
-        <i class="pi pi-id-card" aria-hidden="true"></i>
-        <span>{{ estabelecimento().cnpj }}</span>
-      </span>
-
-      <span class="estabelecimento-item-detail">
         <i class="pi pi-sitemap" aria-hidden="true"></i>
         <span>{{ formattedUnits() }}</span>
       </span>
@@ -49,14 +44,15 @@
     </div>
 
     <div class="estabelecimento-item-actions" aria-label="Ações do estabelecimento">
-      <button
+      <a
         class="entity-action"
-        type="button"
+        [routerLink]="['/estabelecimentos', estabelecimento().id, 'edit']"
+        (click)="$event.stopPropagation()"
         [attr.aria-label]="'Editar estabelecimento ' + estabelecimento().nomeFantasia"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
         <span>Editar</span>
-      </button>
+      </a>
 
       <button
         class="entity-action entity-action--danger"

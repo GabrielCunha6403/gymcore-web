@@ -118,7 +118,7 @@
 
               <td class="teachers-table-cell teachers-table-cell--stacked" data-label="Modalidades">
                 <div class="teachers-table-cell-content">
-                  <span>{{ professor.modalidades[0] }}</span>
+                  <span>{{ professor.modalidades | firstOrDefault:'-' }}</span>
 
                   @if (hiddenCount(professor.modalidades)) {
                     <button
@@ -160,7 +160,12 @@
                     <i class="pi pi-eye" aria-hidden="true"></i>
                   </button>
 
-                  <button class="teacher-action" type="button" [attr.aria-label]="'Editar professor ' + professor.nome">
+                  <button
+                    class="teacher-action"
+                    type="button"
+                    [routerLink]="['/professores', professor.id, 'edit']"
+                    [attr.aria-label]="'Editar professor ' + professor.nome"
+                  >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                   </button>
                 </div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { environment } from '../../../environments/environments';
-import { Plano, PlanoForm } from '../estabelecimentos/types/types';
+import { Estabelecimento, Plano, PlanoForm, Unidade } from '../estabelecimentos/types/types';
 
 @Injectable({
   providedIn: 'root',
@@ -24,5 +24,19 @@ export class PlanosService {
 
   registerPlano(req: PlanoForm) {
     return this.http.post<{ message: string; planoId: string }>(`${environment.apiUrl}/plano`, req);
+  }
+
+  getEstabelecimentos(busca: string) {
+    const params = new HttpParams().set('busca', busca);
+
+    return this.http.get<Estabelecimento[]>(`${environment.apiUrl}/estabelecimento`, { params });
+  }
+
+  getUnidades(idEstabelecimento: string, busca: string) {
+    const params = new HttpParams()
+      .set('idEstabelecimento', idEstabelecimento)
+      .set('busca', busca);
+
+    return this.http.get<Unidade[]>(`${environment.apiUrl}/unidade`, { params });
   }
 }

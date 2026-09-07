@@ -19,6 +19,12 @@
       flex-shrink: 0;
     }
 
+    .unidades-title-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
     img,
     .detail-header-placeholder {
       width: 100%;

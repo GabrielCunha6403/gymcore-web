@@ -30,7 +30,7 @@ export class TopMenu {
         { label: 'Professores', icon: 'pi pi-user', route: '/professores' },
         { label: 'Alunos', icon: 'pi pi-users', route: '/alunos' },
         { label: 'Modalidades', icon: 'pi pi-tags', route: '/modalidades' },
-        { label: 'Planos', icon: 'pi pi-id-card', route: '/workouts' },
+        { label: 'Planos', icon: 'pi pi-id-card', route: '/planos' },
         { label: 'Matrículas', icon: 'pi pi-file-edit', route: '/workouts' },
       ],
     },

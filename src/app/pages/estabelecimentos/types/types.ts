@@ -3,11 +3,12 @@ export interface Estabelecimento {
   nomeFantasia: string;
   razaoSocial: string;
   imagemUrl?: string;
-  cnpj: string;
   email: string;
   telefone: string;
   site?: string;
+  tipo?: TipoEstabelecimento;
   status: StatusEstabelecimento;
+  ativo?: boolean;
   quantidadeUnidades: number;
 }
 
@@ -22,6 +23,7 @@ export interface Unidade {
   telefone: string;
   endereco: Endereco;
   status: StatusEstabelecimento;
+  ativo?: boolean;
   matriz?: boolean;
 }
 
@@ -148,6 +150,9 @@ export type TipoCobranca =
 export interface PlanoUnidade {
   id: string;
   unidadeId: string;
+  unidadeNome?: string;
+  estabelecimentoId?: string;
+  estabelecimentoNome?: string;
   planoId: string;
   planoNome: string;
   planoDescricao?: string;
@@ -163,6 +168,22 @@ export interface PlanoUnidade {
   modalidades?: string[];
 }
 
+export interface PlanoUnidadeDetalhe {
+  id: string;
+  unidadeId: string;
+  planoId: string;
+  planoNome: string;
+  nomeExibicao: string;
+  descricao?: string;
+  valor: number;
+  duracaoMeses?: number;
+  tipoCobranca?: TipoCobranca;
+  taxaAdesao?: number;
+  diaVencimentoPadrao?: number;
+  ativo: boolean;
+  modalidadesIds: string[];
+}
+
 export interface PlanoUnidadeForm {
   idUnidade: string;
   idPlano: string;
@@ -175,6 +196,67 @@ export interface PlanoUnidadeForm {
   diaVencimentoPadrao?: number;
   ativo?: boolean;
   modalidades?: string[];
+}
+
+export interface TurmaHorario {
+  diaSemana: number;
+  horaInicio: string;
+  horaFim: string;
+}
+
+export interface Turma {
+  id: string;
+  unidadeId: string;
+  unidadeModalidadeId: string;
+  modalidadeNome: string;
+  professorId: string;
+  professorNome: string;
+  nome: string;
+  capacidade?: number;
+  matriculados: number;
+  ativo: boolean;
+  horarios: TurmaHorario[];
+}
+
+export interface TurmaForm {
+  idUnidadeModalidade: string;
+  idProfessor: string;
+  nome: string;
+  capacidade: number;
+  ativo?: boolean;
+  horarios: {
+    diaSemana: number;
+    horaInicio: string;
+    horaFim: string;
+  }[];
+}
+
+export interface TurmaAluno {
+  idAlunoTurma: string;
+  idAluno: string;
+  alunoNome: string;
+  dataInicio?: string;
+  dataFim?: string;
+  ativo: boolean;
+}
+
+export interface AlunoTurma {
+  idAlunoTurma: string;
+  idTurma: string;
+  turmaNome: string;
+  modalidadeNome: string;
+  professorNome: string;
+  horarios: TurmaHorario[];
+  dataInicio?: string;
+  dataFim?: string;
+  ativo: boolean;
+}
+
+export interface AlunoTurmaForm {
+  idMatricula: string;
+  idTurma: string;
+  dataInicio?: string;
+  ativo?: boolean;
 }
 
 export interface UnidadeHorarioFuncionamento {

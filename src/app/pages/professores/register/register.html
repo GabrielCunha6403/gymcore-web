@@ -2,7 +2,7 @@
   <app-breadcrumb></app-breadcrumb>
 
   <div class="title-area">
-    <h1>Cadastrar professor</h1>
+    <h1>{{ isEditMode ? 'Editar professor' : 'Cadastrar professor' }}</h1>
     <span>Preencha os dados do professor para vinculá-lo às unidades e modalidades do sistema.</span>
   </div>
 
@@ -282,7 +282,7 @@
           [formGroup]="professorForm.controls.atuacao"
         >
           <div class="form-grid">
-            @if (unitScoped) {
+            @if (unitScoped || isEditMode) {
               <div class="form-field">
                 <span>Estabelecimento</span>
                 <input type="text" [value]="displayEstabelecimento()" disabled>
@@ -342,7 +342,7 @@
 
                             <span class="autocomplete-option-text">
                               <strong>{{ estabelecimento.nomeFantasia }}</strong>
-                              <small>{{ estabelecimento.cnpj }} · {{ estabelecimento.status }}</small>
+                              <small>{{ estabelecimento.status }}</small>
                             </span>
                           </button>
                         }
@@ -457,7 +457,9 @@
             <fieldset class="form-fieldset form-field--full">
               <legend>Modalidades</legend>
 
-              @if (selectedUnidade()) {
+              @if (isEditMode) {
+                <span class="form-helper">Os vínculos de modalidade não são editáveis por aqui.</span>
+              } @else if (selectedUnidade()) {
                 @if (modalidadesLoading()) {
                   <span class="form-helper">Carregando modalidades da unidade...</span>
                 } @else if (modalidadesDaUnidade().length) {
@@ -573,7 +575,7 @@
           <div class="submit-area">
             <button class="submit-button" type="submit" [disabled]="professorForm.invalid">
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>Cadastrar professor</span>
+              <span>{{ isEditMode ? 'Salvar alterações' : 'Cadastrar professor' }}</span>
             </button>
           </div>
         </section>

@@ -2,12 +2,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { FirstOrDefaultPipe } from '../../pipes/first-or-default';
 import { ProfessoresService } from './professores.service';
 import { Professor, ProfessorListagemDto, ProfessorStatus } from './types/types';
 
 @Component({
   selector: 'app-professores',
-  imports: [Breadcrumb, RouterLink],
+  imports: [Breadcrumb, RouterLink, FirstOrDefaultPipe],
   templateUrl: './professores.html',
   styleUrl: './professores.scss',
 })

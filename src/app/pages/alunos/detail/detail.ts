@@ -3,6 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
+import { ToastService } from '../../../components/toast/toast.service';
+import { AlunoTurmasService } from '../../aluno-turmas/aluno-turmas.service';
+import { AlunoTurma, Turma } from '../../estabelecimentos/types/types';
 import { AlunosService } from '../alunos.service';
 import {
   Aluno,
@@ -47,7 +50,6 @@ interface AlunoDetailExtra {
     entrada: string;
     saida?: string;
   }[];
-  turmas: string[];
 }
 
 @Component({
@@ -59,12 +61,23 @@ interface AlunoDetailExtra {
 export class AlunoDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly alunosService = inject(AlunosService);
+  private readonly alunoTurmasService = inject(AlunoTurmasService);
+  private readonly toastService = inject(ToastService);
   private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly idUnidade = this.getRouteParam('idUnidade');
   private readonly idAluno = this.getRouteParam('idAluno');
+  private idMatricula: string | null = null;
 
   protected readonly aluno = signal<Aluno | null>(null);
   protected readonly details = signal<AlunoDetailExtra | null>(null);
+
+  protected readonly turmasDoAluno = signal<AlunoTurma[]>([]);
+  protected readonly turmasDoAlunoLoading = signal(false);
+  protected readonly turmasDisponiveis = signal<Turma[]>([]);
+  protected readonly turmasDisponiveisLoading = signal(false);
+  protected readonly matricularTurmaId = signal('');
+  protected readonly matricularLoading = signal(false);
+  protected readonly matricularError = signal('');
 
   protected readonly backLink = computed(() => (
     this.idEstabelecimento && this.idUnidade
@@ -96,6 +109,78 @@ export class AlunoDetail implements OnInit {
     }).subscribe(({ aluno, mensalidades, frequencias }) => {
       this.aluno.set(this.toAluno(aluno));
       this.details.set(this.toDetails(aluno, mensalidades, frequencias));
+
+      if (aluno.matricula && aluno.matricula.status === 'ATIVA') {
+        this.idMatricula = String(aluno.matricula.idMatricula);
+        this.loadTurmasDoAluno();
+        this.loadTurmasDisponiveis();
+      }
+    });
+  }
+
+  protected matricular(): void {
+    const idTurma = this.matricularTurmaId();
+
+    if (!this.idMatricula || !idTurma) {
+      return;
+    }
+
+    this.matricularLoading.set(true);
+    this.matricularError.set('');
+
+    this.alunoTurmasService.matricular({ idMatricula: this.idMatricula, idTurma }).subscribe({
+      next: () => {
+        this.matricularLoading.set(false);
+        this.matricularTurmaId.set('');
+        this.toastService.success('Aluno inscrito na turma com sucesso!');
+        this.loadTurmasDoAluno();
+        this.loadTurmasDisponiveis();
+      },
+      error: (error) => {
+        console.error('Erro ao inscrever aluno na turma', error);
+        this.matricularError.set(error?.error?.message ?? 'Não foi possível inscrever o aluno na turma.');
+        this.matricularLoading.set(false);
+      },
+    });
+  }
+
+  private loadTurmasDoAluno(): void {
+    if (!this.idMatricula) {
+      return;
+    }
+
+    this.turmasDoAlunoLoading.set(true);
+
+    this.alunoTurmasService.getTurmasDaMatricula(this.idMatricula).subscribe({
+      next: (res) => {
+        this.turmasDoAluno.set(res);
+        this.turmasDoAlunoLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar turmas do aluno', error);
+        this.turmasDoAluno.set([]);
+        this.turmasDoAlunoLoading.set(false);
+      },
+    });
+  }
+
+  private loadTurmasDisponiveis(): void {
+    if (!this.idMatricula) {
+      return;
+    }
+
+    this.turmasDisponiveisLoading.set(true);
+
+    this.alunoTurmasService.getTurmasDisponiveis(this.idMatricula).subscribe({
+      next: (res) => {
+        this.turmasDisponiveis.set(res);
+        this.turmasDisponiveisLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar turmas disponíveis', error);
+        this.turmasDisponiveis.set([]);
+        this.turmasDisponiveisLoading.set(false);
+      },
     });
   }
 
@@ -185,7 +270,6 @@ export class AlunoDetail implements OnInit {
       },
       mensalidades: mensalidades.map((item) => this.toMensalidade(item)),
       frequencias: frequencias.map((item) => this.toFrequencia(item)),
-      turmas: [],
     };
   }
 
@@ -232,6 +316,18 @@ export class AlunoDetail implements OnInit {
 
   private formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  protected formatHorarios(turma: AlunoTurma | Turma): string {
+    const abreviacoes: Record<number, string> = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 7: 'Dom' };
+
+    if (!turma.horarios.length) {
+      return 'Sem horários';
+    }
+
+    return turma.horarios
+      .map((horario) => `${abreviacoes[horario.diaSemana] ?? horario.diaSemana} ${horario.horaInicio}-${horario.horaFim}`)
+      .join(', ');
   }
 
   private formatMensalidadeStatus(status: MensalidadeStatus): string {

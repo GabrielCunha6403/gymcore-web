@@ -1,0 +1,235 @@
+<div class="turma-register-body">
+  <app-breadcrumb></app-breadcrumb>
+
+  <div class="title-area">
+    <h1>Cadastrar turma</h1>
+    <span>Cadastre uma turma da unidade {{ unidadeNome() }}, vinculando modalidade, professor e horários.</span>
+  </div>
+
+  <div class="register-container">
+    <form class="turma-register-form" [formGroup]="turmaForm" (ngSubmit)="submitTurma()">
+      <app-wizard [steps]="registerSteps()">
+        <section
+          appWizardStep
+          class="turma-register-step"
+          [formGroup]="turmaForm.controls.dadosTurma"
+        >
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <span>Unidade</span>
+              <input type="text" [value]="unidadeNome()" disabled>
+            </div>
+
+            <div class="form-field">
+              <span>Modalidade <span class="required-mark">*</span></span>
+              <select formControlName="idUnidadeModalidade" (change)="onModalidadeChange($any($event.target).value)">
+                <option value="">Selecione</option>
+                @if (modalidadesLoading()) {
+                  <option value="" disabled>Carregando modalidades...</option>
+                } @else {
+                  @for (modalidade of modalidades(); track modalidade.id) {
+                    <option [value]="modalidade.id">{{ modalidade.modalidadeNome }}</option>
+                  }
+                }
+              </select>
+              <app-error-message-control
+                [control]="turmaForm.controls.dadosTurma.controls.idUnidadeModalidade"
+                [messages]="{
+                  required: '* Modalidade obrigatória'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Professor <span class="required-mark">*</span></span>
+              <select formControlName="idProfessor">
+                <option value="">Selecione</option>
+                @if (professoresLoading()) {
+                  <option value="" disabled>Carregando professores...</option>
+                } @else {
+                  @for (professor of professores(); track professor.idProfessor) {
+                    <option [value]="professor.idProfessor">{{ professor.nome }}</option>
+                  }
+                }
+              </select>
+              <app-error-message-control
+                [control]="turmaForm.controls.dadosTurma.controls.idProfessor"
+                [messages]="{
+                  required: '* Professor obrigatório'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--full">
+              <span>Nome da turma <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                formControlName="nome"
+                maxlength="120"
+                autocomplete="off"
+                placeholder="Ex.: Jiu-Jitsu Iniciante - Manhã"
+              >
+              <app-error-message-control
+                [control]="turmaForm.controls.dadosTurma.controls.nome"
+                [messages]="{
+                  required: '* Nome obrigatório',
+                  maxlength: '* Nome deve ter no máximo 120 caracteres'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field">
+              <span>Capacidade <span class="required-mark">*</span></span>
+              <input
+                type="number"
+                formControlName="capacidade"
+                inputmode="numeric"
+                min="1"
+                placeholder="Ex.: 20"
+              >
+              <app-error-message-control
+                [control]="turmaForm.controls.dadosTurma.controls.capacidade"
+                [messages]="{
+                  required: '* Capacidade obrigatória',
+                  min: '* Capacidade deve ser maior que zero'
+                }"
+              ></app-error-message-control>
+            </div>
+
+            <div class="form-field form-field--inline">
+              <input type="checkbox" formControlName="ativo">
+              <span>Turma ativa</span>
+              <app-error-message-control
+                [control]="turmaForm.controls.dadosTurma.controls.ativo"
+                [message]="'* Status de cadastro inválido'"
+              ></app-error-message-control>
+            </div>
+          </div>
+        </section>
+
+        <section appWizardStep class="turma-register-step" [formGroup]="turmaForm">
+          <div class="horarios-list">
+            @for (horario of horariosArray.controls; track $index; let i = $index) {
+              <div class="horario-row" [formGroup]="horario">
+                <div class="form-field">
+                  <span>Dia da semana <span class="required-mark">*</span></span>
+                  <select formControlName="diaSemana">
+                    <option [ngValue]="null">Selecione</option>
+                    @for (dia of diaSemanaOptions; track dia.value) {
+                      <option [value]="dia.value">{{ dia.label }}</option>
+                    }
+                  </select>
+                  <app-error-message-control
+                    [control]="horario.controls.diaSemana"
+                    [messages]="{
+                      required: '* Dia obrigatório'
+                    }"
+                  ></app-error-message-control>
+                </div>
+
+                <div class="form-field">
+                  <span>Início <span class="required-mark">*</span></span>
+                  <input type="time" formControlName="horaInicio">
+                  <app-error-message-control
+                    [control]="horario.controls.horaInicio"
+                    [messages]="{
+                      required: '* Horário obrigatório'
+                    }"
+                  ></app-error-message-control>
+                </div>
+
+                <div class="form-field">
+                  <span>Fim <span class="required-mark">*</span></span>
+                  <input type="time" formControlName="horaFim">
+                  <app-error-message-control
+                    [control]="horario.controls.horaFim"
+                    [messages]="{
+                      required: '* Horário obrigatório'
+                    }"
+                  ></app-error-message-control>
+                </div>
+
+                <button
+                  class="horario-remove"
+                  type="button"
+                  (click)="removeHorario(i)"
+                  [attr.aria-label]="'Remover horário ' + (i + 1)"
+                >
+                  <i class="pi pi-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (submitEmptyHorariosError()) {
+            <span class="form-helper form-helper--error">* Adicione ao menos um horário para a turma</span>
+          }
+
+          <button class="entity-action" type="button" (click)="addHorario()">
+            <i class="pi pi-plus" aria-hidden="true"></i>
+            <span>Adicionar horário</span>
+          </button>
+        </section>
+
+        <section appWizardStep class="turma-register-step">
+          <div class="confirmation-grid">
+            <div class="confirmation-group">
+              <h3>Turma</h3>
+              <dl>
+                <div>
+                  <dt>Unidade</dt>
+                  <dd>{{ unidadeNome() }}</dd>
+                </div>
+                <div>
+                  <dt>Modalidade</dt>
+                  <dd>{{ displayModalidade() }}</dd>
+                </div>
+                <div>
+                  <dt>Professor</dt>
+                  <dd>{{ displayProfessor() }}</dd>
+                </div>
+                <div>
+                  <dt>Nome</dt>
+                  <dd>{{ displayValue(turmaForm.controls.dadosTurma.controls.nome.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Capacidade</dt>
+                  <dd>{{ displayValue(turmaForm.controls.dadosTurma.controls.capacidade.value) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ displayBoolean(turmaForm.controls.dadosTurma.controls.ativo.value) }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="confirmation-group">
+              <h3>Horários</h3>
+              <dl>
+                <div>
+                  <dt>Grade</dt>
+                  <dd>{{ displayHorarios() }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          @if (submitError()) {
+            <span class="submit-error">{{ submitError() }}</span>
+          }
+
+          <div class="submit-area">
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="turmaForm.invalid || horariosArray.length === 0 || submitLoading()"
+            >
+              <i class="pi pi-check" aria-hidden="true"></i>
+              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar turma' }}</span>
+            </button>
+          </div>
+        </section>
+      </app-wizard>
+    </form>
+  </div>
+</div>

@@ -19,4 +19,12 @@ export class EstabelecimentosService {
   registerEstabelecimento(req: EstabelecimentoForm) {
     return this.http.post(`${environment.apiUrl}/estabelecimento`, req);
   }
+
+  getEstabelecimentoById(idEstabelecimento: string) {
+    return this.http.get<Estabelecimento>(`${environment.apiUrl}/estabelecimento/getEstabelecimentoById?idEstabelecimento=${idEstabelecimento}`);
+  }
+
+  updateEstabelecimento(idEstabelecimento: string, req: EstabelecimentoForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/estabelecimento?idEstabelecimento=${idEstabelecimento}`, req);
+  }
 }
