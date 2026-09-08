@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
@@ -22,7 +22,7 @@ import { UnidadeModalidadesService } from '../unidade-modalidades.service';
 
 @Component({
   selector: 'app-unidade-modalidade-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -39,6 +39,9 @@ export class UnidadeModalidadeRegister implements OnInit {
 
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
   private readonly idUnidade = this.readRouteParam('idUnidade');
+
+  protected readonly backLink = ['/estabelecimentos', this.idEstabelecimento, this.idUnidade];
+  protected readonly backQueryParams = { tab: 'modalidades' };
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');

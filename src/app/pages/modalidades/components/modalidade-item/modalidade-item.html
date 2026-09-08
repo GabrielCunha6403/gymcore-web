@@ -21,14 +21,14 @@
     }
 
     <div class="modalidade-item-actions" aria-label="Ações da modalidade">
-      <button
+      <a
         class="entity-action"
-        type="button"
+        [routerLink]="['/estabelecimentos', modalidade().estabelecimentoId, 'modalidades', 'edit', modalidade().id]"
         [attr.aria-label]="'Editar modalidade ' + modalidade().nome"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
         <span>Editar</span>
-      </button>
+      </a>
 
       <button
         class="entity-action entity-action--danger"

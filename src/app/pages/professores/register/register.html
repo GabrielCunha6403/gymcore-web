@@ -1,6 +1,11 @@
 <div class="teacher-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="teacher-back-link" [routerLink]="backLink()" [queryParams]="backQueryParams()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar professor' : 'Cadastrar professor' }}</h1>
     <span>Preencha os dados do professor para vinculá-lo às unidades e modalidades do sistema.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="teacher-register-form" [formGroup]="professorForm" (ngSubmit)="submitProfessor()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink()" [cancelQueryParams]="backQueryParams()">
         <section
           appWizardStep
           class="teacher-register-step"

@@ -1,6 +1,11 @@
 <div class="teacher-detail-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="teacher-back-link" [routerLink]="backLink()" [queryParams]="backQueryParams()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   @if (aluno(); as aluno) {
     @if (details(); as details) {
       <div class="teacher-header">
@@ -24,9 +29,12 @@
                 {{ formatStatus(aluno.status) }}
               </span>
 
-              <a class="entity-action" [routerLink]="['edit']">
+              <a
+                class="entity-action entity-action--icon-only"
+                [routerLink]="['edit']"
+                [attr.aria-label]="'Editar aluno ' + aluno.nome"
+              >
                 <i class="pi pi-pencil" aria-hidden="true"></i>
-                <span>Editar</span>
               </a>
             </div>
           </div>

@@ -6,7 +6,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -21,7 +21,7 @@ import { UnidadePlanosService } from '../unidade-planos.service';
 
 @Component({
   selector: 'app-plano-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -41,6 +41,16 @@ export class PlanoRegister implements OnInit {
   private idPlano = '';
 
   protected readonly isEditMode = !!this.idPlanoUnidade;
+  protected readonly backLink = computed(() => {
+    this.unidade();
+
+    return this.idEstabelecimento && this.idUnidade
+      ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
+      : ['/planos'];
+  });
+  protected readonly backQueryParams = computed(() => (
+    this.idEstabelecimento && this.idUnidade ? { tab: 'planos' } : null
+  ));
   protected readonly planoNomeExistente = signal('');
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');

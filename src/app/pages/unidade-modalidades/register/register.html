@@ -1,6 +1,11 @@
 <div class="vinculo-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="vinculo-back-link" [routerLink]="backLink" [queryParams]="backQueryParams">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>Vincular modalidade</h1>
     <span>Selecione uma modalidade já cadastrada no estabelecimento para disponibilizá-la na unidade {{ unidadeNome() }}.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="vinculo-register-form" [formGroup]="vinculoForm" (ngSubmit)="submitVinculo()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink" [cancelQueryParams]="backQueryParams">
         <section
           appWizardStep
           class="vinculo-register-step"

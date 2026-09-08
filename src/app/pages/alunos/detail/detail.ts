@@ -84,6 +84,9 @@ export class AlunoDetail implements OnInit {
       ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
       : ['/alunos']
   ));
+  protected readonly backQueryParams = computed(() => (
+    this.idEstabelecimento && this.idUnidade ? { tab: 'alunos' } : null
+  ));
 
   protected readonly initials = computed(() => {
     const aluno = this.aluno();

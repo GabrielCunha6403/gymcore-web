@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
@@ -21,7 +21,7 @@ import { ModalidadesService } from '../modalidades.service';
 
 @Component({
   selector: 'app-modalidade-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -39,6 +39,12 @@ export class ModalidadeRegister implements OnInit {
 
   protected readonly isEditMode = !!this.idModalidade;
   protected readonly isEstabelecimentoContext = !!this.idEstabelecimento || this.isEditMode;
+  protected readonly backLink = computed(() => (
+    this.idEstabelecimento ? ['/estabelecimentos', this.idEstabelecimento] : ['/modalidades']
+  ));
+  protected readonly backQueryParams = computed(() => (
+    this.idEstabelecimento ? { tab: 'modalidades' } : null
+  ));
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
@@ -270,4 +276,5 @@ export class ModalidadeRegister implements OnInit {
   ): ValidationErrors | null {
     return typeof control.value === 'boolean' ? null : { required: true };
   }
+
 }

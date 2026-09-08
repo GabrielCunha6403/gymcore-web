@@ -9,7 +9,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -41,7 +41,7 @@ const DIA_SEMANA_OPTIONS = [
 
 @Component({
   selector: 'app-turma-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -57,6 +57,9 @@ export class TurmaRegister implements OnInit {
 
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
   private readonly idUnidade = this.readRouteParam('idUnidade');
+
+  protected readonly backLink = ['/estabelecimentos', this.idEstabelecimento, this.idUnidade];
+  protected readonly backQueryParams = { tab: 'turmas' };
 
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');

@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
@@ -28,7 +28,7 @@ interface UnidadeSearchParams {
 
 @Component({
   selector: 'app-professor-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -49,6 +49,18 @@ export class Register {
 
   protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
   protected readonly isEditMode = !!this.idProfessorEdit;
+  protected readonly backLink = computed(() => {
+    if (this.unitScoped) {
+      return this.isEditMode
+        ? ['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade, 'professor', this.idProfessorEdit]
+        : ['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade];
+    }
+
+    return this.isEditMode ? ['/professores', this.idProfessorEdit] : ['/professores'];
+  });
+  protected readonly backQueryParams = computed(() => (
+    this.unitScoped && !this.isEditMode ? { tab: 'professores' } : null
+  ));
   protected readonly professorEstabelecimentoNome = signal('-');
   protected readonly professorUnidadeNome = signal('-');
 
@@ -695,4 +707,5 @@ export class Register {
 
     return remainder === 10 ? 0 : remainder;
   }
+
 }

@@ -40,15 +40,23 @@
   </div>
 
   <div class="wizard-actions">
-    <button
-      class="wizard-action"
-      type="button"
-      [disabled]="isFirstStep()"
-      (click)="goToPreviousStep()"
-    >
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      <span>Anterior</span>
-    </button>
+    <div class="wizard-actions-left">
+      @if (cancelLink()) {
+        <a class="wizard-action" [routerLink]="cancelLink()" [queryParams]="cancelQueryParams()">
+          <span>Cancelar</span>
+        </a>
+      }
+
+      <button
+        class="wizard-action"
+        type="button"
+        [disabled]="isFirstStep()"
+        (click)="goToPreviousStep()"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        <span>Anterior</span>
+      </button>
+    </div>
 
     <button
       class="wizard-action wizard-action--primary"

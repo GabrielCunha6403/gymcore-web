@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -6,7 +6,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -26,7 +26,7 @@ interface SelectOption<TValue extends string> {
 
 @Component({
   selector: 'app-estabelecimento-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -38,6 +38,9 @@ export class EstabelecimentoRegister implements OnInit {
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
 
   protected readonly isEditMode = !!this.idEstabelecimento;
+  protected readonly backLink = computed(() => (
+    this.isEditMode ? ['/estabelecimentos', this.idEstabelecimento] : ['/estabelecimentos']
+  ));
   protected readonly submitLoading = signal(false);
   protected readonly submitError = signal('');
 
@@ -228,4 +231,5 @@ export class EstabelecimentoRegister implements OnInit {
   ): ValidationErrors | null {
     return typeof control.value === 'boolean' ? null : { required: true };
   }
+
 }

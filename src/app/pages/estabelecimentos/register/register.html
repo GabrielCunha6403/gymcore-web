@@ -1,6 +1,11 @@
 <div class="establishment-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="establishment-back-link" [routerLink]="backLink()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar estabelecimento' : 'Cadastrar estabelecimento' }}</h1>
     <span>Preencha os dados principais do estabelecimento para iniciar a gestão no GymCore.</span>
@@ -12,7 +17,7 @@
       [formGroup]="estabelecimentoForm"
       (ngSubmit)="submitEstabelecimento()"
     >
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink()">
         <section
           appWizardStep
           class="establishment-register-step"

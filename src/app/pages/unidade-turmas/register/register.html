@@ -1,6 +1,11 @@
 <div class="turma-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="turma-back-link" [routerLink]="backLink" [queryParams]="backQueryParams">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>Cadastrar turma</h1>
     <span>Cadastre uma turma da unidade {{ unidadeNome() }}, vinculando modalidade, professor e horários.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="turma-register-form" [formGroup]="turmaForm" (ngSubmit)="submitTurma()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink" [cancelQueryParams]="backQueryParams">
         <section
           appWizardStep
           class="turma-register-step"

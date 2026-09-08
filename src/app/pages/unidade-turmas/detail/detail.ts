@@ -37,6 +37,9 @@ export class TurmaDetail implements OnInit {
       ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
       : ['/']
   ));
+  protected readonly backQueryParams = computed(() => (
+    this.idEstabelecimento && this.idUnidade ? { tab: 'turmas' } : null
+  ));
 
   ngOnInit(): void {
     if (!this.idTurma) {

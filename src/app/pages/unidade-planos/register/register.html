@@ -1,6 +1,11 @@
 <div class="plano-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="plano-back-link" [routerLink]="backLink()" [queryParams]="backQueryParams()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar oferta do plano' : 'Cadastrar plano' }}</h1>
     @if (isEditMode) {
@@ -12,7 +17,7 @@
 
   <div class="register-container">
     <form class="plano-register-form" [formGroup]="planoForm" (ngSubmit)="submitPlano()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink()" [cancelQueryParams]="backQueryParams()">
         <section
           appWizardStep
           class="plano-register-step"

@@ -1,6 +1,11 @@
 <div class="unit-detail-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="unit-back-link" [routerLink]="['/estabelecimentos', idEstabelecimento]">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   @if (unidade(); as unidade) {
     <div class="unit-header">
       <div class="unit-header-media">
@@ -14,7 +19,16 @@
       <div class="unit-header-content">
         <div class="unit-header-title-row">
           <div class="title-area">
-            <h1>{{ unidade.nome }}</h1>
+            <div class="d-flex align-items-center">
+              <h1>{{ unidade.nome }}</h1>
+              <a
+                class="entity-action entity-action--icon-only"
+                [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'edit']"
+                [attr.aria-label]="'Editar unidade ' + unidade.nome"
+              >
+                <i class="pi pi-pencil" aria-hidden="true"></i>
+              </a>
+            </div>
             @if (estabelecimento(); as estabelecimento) {
               <span>{{ estabelecimento.nomeFantasia }}</span>
             }
@@ -28,11 +42,6 @@
             <span [class]="'unit-status ' + statusClass(unidade.status)">
               {{ formatStatus(unidade.status) }}
             </span>
-
-            <a class="entity-action" [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'edit']">
-              <i class="pi pi-pencil" aria-hidden="true"></i>
-              <span>Editar unidade</span>
-            </a>
           </div>
         </div>
 
@@ -353,7 +362,7 @@
                   } @else if (activeTab() === 'modalidades' && item.id) {
                     <a
                       class="entity-action"
-                      [routerLink]="['/modalidades', 'edit', item.id]"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, 'modalidades', 'edit', item.id]"
                       [attr.aria-label]="'Editar modalidade ' + item.title"
                     >
                       <i class="pi pi-pencil" aria-hidden="true"></i>

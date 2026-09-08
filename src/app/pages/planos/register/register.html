@@ -1,6 +1,11 @@
 <div class="plano-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="plano-back-link" routerLink="/planos">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>Cadastrar plano</h1>
     <span>Cadastre um plano comercial e defina a oferta dele para uma unidade do sistema.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="plano-register-form" [formGroup]="planoForm" (ngSubmit)="submitPlano()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" cancelLink="/planos">
         <section
           appWizardStep
           class="plano-register-step"

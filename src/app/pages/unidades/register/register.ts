@@ -6,7 +6,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
 import { ErrorMessageControl } from '../../../components/error-message-control/error-message-control';
@@ -18,7 +18,7 @@ import { UnidadesService } from '../unidades.service';
 
 @Component({
   selector: 'app-unidade-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -32,6 +32,11 @@ export class UnidadeRegister implements OnInit {
   private readonly idUnidade = this.readRouteParam('idUnidade');
 
   protected readonly isEditMode = !!this.idUnidade;
+  protected readonly backLink = computed(() => (
+    this.isEditMode
+      ? ['/estabelecimentos', this.idEstabelecimento, this.idUnidade]
+      : ['/estabelecimentos', this.idEstabelecimento]
+  ));
   protected readonly estabelecimento = signal<Estabelecimento | null>(null);
 
   protected readonly submitLoading = signal(false);
@@ -315,4 +320,5 @@ export class UnidadeRegister implements OnInit {
   ): ValidationErrors | null {
     return typeof control.value === 'boolean' ? null : { required: true };
   }
+
 }

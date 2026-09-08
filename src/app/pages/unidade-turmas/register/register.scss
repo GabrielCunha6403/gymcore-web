@@ -6,6 +6,25 @@
   gap: 20px;
 }
 
+.turma-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--primaryColor, var(--primary-color));
+  }
+}
+
 .register-container {
   background: var(--tertiary-color);
   padding: 20px;

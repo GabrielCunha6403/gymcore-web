@@ -1,5 +1,6 @@
 import { Component, Directive, HostBinding, computed, contentChildren, effect, inject, input, signal } from '@angular/core';
 import { AbstractControl, ControlContainer } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {WizardStep} from './types/types';
 
 @Directive({
@@ -37,12 +38,14 @@ export class WizardStepContent {
 
 @Component({
   selector: 'app-wizard',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './wizard.html',
   styleUrl: './wizard.scss',
 })
 export class Wizard {
   public readonly steps = input.required<WizardStep[]>();
+  public readonly cancelLink = input<unknown[] | string | null>(null);
+  public readonly cancelQueryParams = input<Record<string, unknown> | null>(null);
 
   protected readonly currentStepIndex = signal(0);
   protected readonly currentStep = computed(() => this.steps()[this.currentStepIndex()]);

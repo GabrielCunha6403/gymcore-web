@@ -1,10 +1,11 @@
 import { Component, computed, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { EstabelecimentoViewMode, Modalidade } from '../../../estabelecimentos/types/types';
 
 @Component({
   selector: 'app-modalidade-item',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './modalidade-item.html',
   styleUrl: './modalidade-item.scss',
 })

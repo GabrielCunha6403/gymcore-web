@@ -88,6 +88,11 @@ export const routes: Routes = [
             loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
           },
           {
+            path: 'modalidades/edit/:idModalidade',
+            data: { breadcrumb: 'Editar modalidade' },
+            loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
+          },
+          {
             path: ':idUnidade',
             resolve: { breadcrumb: unidadeBreadcrumbResolver },
             children: [

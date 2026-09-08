@@ -1,6 +1,11 @@
 <div class="teacher-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="teacher-back-link" [routerLink]="backLink()" [queryParams]="backQueryParams()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar aluno' : 'Cadastrar aluno' }}</h1>
     <span>Preencha os dados do aluno para criar sua matrícula em uma unidade do sistema.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="teacher-register-form" [formGroup]="alunoForm" (ngSubmit)="submitAluno()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink()" [cancelQueryParams]="backQueryParams()">
         <section
           appWizardStep
           class="teacher-register-step"

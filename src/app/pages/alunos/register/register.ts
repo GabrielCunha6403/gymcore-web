@@ -7,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 
 import { Breadcrumb } from '../../../components/breadcrumb/breadcrumb';
@@ -36,7 +36,7 @@ interface UnidadeSearchParams {
 
 @Component({
   selector: 'app-aluno-register',
-  imports: [Breadcrumb, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
+  imports: [Breadcrumb, RouterLink, Wizard, WizardStepContent, ReactiveFormsModule, ErrorMessageControl],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -58,6 +58,18 @@ export class AlunoRegister {
 
   protected readonly unitScoped = !!(this.routeIdEstabelecimento && this.routeIdUnidade);
   protected readonly isEditMode = !!this.idAlunoEdit;
+  protected readonly backLink = computed(() => {
+    if (this.unitScoped) {
+      return this.isEditMode
+        ? ['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade, 'aluno', this.idAlunoEdit]
+        : ['/estabelecimentos', this.routeIdEstabelecimento, this.routeIdUnidade];
+    }
+
+    return this.isEditMode ? ['/alunos', this.idAlunoEdit] : ['/alunos'];
+  });
+  protected readonly backQueryParams = computed(() => (
+    this.unitScoped && !this.isEditMode ? { tab: 'alunos' } : null
+  ));
   protected readonly alunoEstabelecimentoNome = signal('-');
   protected readonly alunoUnidadeNome = signal('-');
   protected readonly alunoPlanoNome = signal('-');
@@ -738,4 +750,5 @@ export class AlunoRegister {
 
     return remainder === 10 ? 0 : remainder;
   }
+
 }

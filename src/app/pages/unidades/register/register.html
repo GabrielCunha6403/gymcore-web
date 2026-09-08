@@ -1,6 +1,11 @@
 <div class="unit-register-body">
   <app-breadcrumb></app-breadcrumb>
 
+  <a class="unit-back-link" [routerLink]="backLink()">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>Voltar</span>
+  </a>
+
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar unidade' : 'Cadastrar unidade' }}</h1>
     <span>Preencha os dados da unidade para vinculá-la ao estabelecimento selecionado.</span>
@@ -8,7 +13,7 @@
 
   <div class="register-container">
     <form class="unit-register-form" [formGroup]="unidadeForm" (ngSubmit)="submitUnidade()">
-      <app-wizard [steps]="registerSteps()">
+      <app-wizard [steps]="registerSteps()" [cancelLink]="backLink()">
         <section
           appWizardStep
           class="unit-register-step"
