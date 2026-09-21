@@ -98,6 +98,10 @@
   outline: none;
 }
 
+.form-field select option {
+  color: var(--secondary-color);
+}
+
 .form-field input[type='checkbox'] {
   width: 18px;
   min-height: 18px;

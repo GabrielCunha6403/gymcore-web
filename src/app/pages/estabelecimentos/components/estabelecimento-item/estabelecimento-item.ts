@@ -1,11 +1,13 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { Estabelecimento, EstabelecimentoViewMode, StatusEstabelecimento } from '../../types/types';
 import {RouterLink} from '@angular/router';
+import { Modal } from '../../../../components/modal/modal';
 
 @Component({
   selector: 'app-estabelecimento-item',
   imports: [
-    RouterLink
+    RouterLink,
+    Modal,
   ],
   templateUrl: './estabelecimento-item.html',
   styleUrl: './estabelecimento-item.scss',
@@ -13,6 +15,20 @@ import {RouterLink} from '@angular/router';
 export class EstabelecimentoItem {
   readonly estabelecimento = input.required<Estabelecimento>();
   readonly viewMode = input<EstabelecimentoViewMode>('list');
+  readonly inativar = output<string>();
+
+  protected readonly confirmandoInativacao = signal(false);
+
+  protected onDeleteClick(event: Event): void {
+    event.stopPropagation();
+
+    this.confirmandoInativacao.set(true);
+  }
+
+  protected confirmInativar(): void {
+    this.confirmandoInativacao.set(false);
+    this.inativar.emit(this.estabelecimento().id);
+  }
 
   readonly initials = computed(() => {
     const [firstWord = '', secondWord = ''] = this.estabelecimento().nomeFantasia.trim().split(/\s+/);

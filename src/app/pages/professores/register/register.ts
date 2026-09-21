@@ -590,7 +590,9 @@ export class Register {
       this.unidadeSearch.set(unidade.nome);
     });
 
-    this.loadModalidades(this.routeIdUnidade);
+    if (!this.isEditMode) {
+      this.loadModalidades(this.routeIdUnidade);
+    }
   }
 
   private loadProfessorParaEdicao(): void {
@@ -632,7 +634,33 @@ export class Register {
         const atuacao = this.professorForm.controls.atuacao.controls;
         atuacao.estabelecimentoId.setValue('0');
         atuacao.unidadeId.setValue('0');
+        return;
       }
+
+      this.loadModalidadesParaEdicao(dto.modalidades);
+    });
+  }
+
+  private loadModalidadesParaEdicao(modalidadesVinculadas: string[]): void {
+    this.modalidadesLoading.set(true);
+
+    this.unidadeModalidadesService.getModalidadesVinculadas(this.routeIdUnidade).subscribe({
+      next: (res) => {
+        this.modalidadesDaUnidade.set(res);
+        this.modalidadesLoading.set(false);
+
+        const nomesVinculados = new Set(modalidadesVinculadas);
+        const idsVinculados = res
+          .filter((modalidade) => nomesVinculados.has(modalidade.modalidadeNome))
+          .map((modalidade) => modalidade.id);
+
+        this.professorForm.controls.atuacao.controls.modalidades.setValue(idsVinculados);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar modalidades da unidade', error);
+        this.modalidadesDaUnidade.set([]);
+        this.modalidadesLoading.set(false);
+      },
     });
   }
 

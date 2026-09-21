@@ -80,8 +80,12 @@ export class TurmaDetail implements OnInit {
     }
 
     return turma.horarios
-      .map((horario) => `${DIA_SEMANA_LABELS[horario.diaSemana] ?? horario.diaSemana} ${horario.horaInicio}-${horario.horaFim}`)
+      .map((horario) => `${DIA_SEMANA_LABELS[horario.diaSemana] ?? horario.diaSemana} ${this.formatHora(horario.horaInicio)}-${this.formatHora(horario.horaFim)}`)
       .join(', ');
+  }
+
+  private formatHora(value: string): string {
+    return value?.slice(0, 5) ?? value;
   }
 
   private getRouteParam(paramName: string): string {

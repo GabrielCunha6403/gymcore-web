@@ -68,7 +68,7 @@ export class TurmaRegister implements OnInit {
   protected readonly modalidades = signal<UnidadeModalidade[]>([]);
   protected readonly modalidadesLoading = signal(true);
   protected readonly professores = signal<ProfessorListagemDto[]>([]);
-  protected readonly professoresLoading = signal(true);
+  protected readonly professoresLoading = signal(false);
 
   protected readonly unidadeNome = computed(() => this.unidade()?.nome ?? `Unidade ${this.idUnidade}`.trim());
 
@@ -131,14 +131,18 @@ export class TurmaRegister implements OnInit {
         this.modalidadesLoading.set(false);
       },
     });
+  }
 
-    this.professoresService.getProfessoresPorUnidade(this.idUnidade).subscribe({
+  private loadProfessores(idUnidadeModalidade: string): void {
+    this.professoresLoading.set(true);
+
+    this.professoresService.getProfessoresPorUnidadeModalidade(idUnidadeModalidade).subscribe({
       next: (res) => {
         this.professores.set(res);
         this.professoresLoading.set(false);
       },
       error: (error) => {
-        console.error('Erro ao buscar professores da unidade', error);
+        console.error('Erro ao buscar professores da modalidade', error);
         this.professores.set([]);
         this.professoresLoading.set(false);
       },
@@ -163,16 +167,26 @@ export class TurmaRegister implements OnInit {
   }
 
   public onModalidadeChange(idUnidadeModalidade: string): void {
-    const capacidadeControl = this.turmaForm.controls.dadosTurma.controls.capacidade;
+    const dadosTurma = this.turmaForm.controls.dadosTurma;
 
-    if (capacidadeControl.value) {
+    dadosTurma.controls.idProfessor.reset('');
+    this.professores.set([]);
+
+    if (!idUnidadeModalidade) {
+      this.professoresLoading.set(false);
+      return;
+    }
+
+    this.loadProfessores(idUnidadeModalidade);
+
+    if (dadosTurma.controls.capacidade.value) {
       return;
     }
 
     const modalidade = this.modalidades().find((item) => item.id === idUnidadeModalidade);
 
     if (modalidade?.capacidadePadrao) {
-      capacidadeControl.setValue(modalidade.capacidadePadrao);
+      dadosTurma.controls.capacidade.setValue(modalidade.capacidadePadrao);
     }
   }
 

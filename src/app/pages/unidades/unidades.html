@@ -176,7 +176,11 @@
     >
       @if (filteredModalidades().length) {
         @for (modalidade of filteredModalidades(); track modalidade.id) {
-          <app-modalidade-item [modalidade]="modalidade" [viewMode]="viewMode()"></app-modalidade-item>
+          <app-modalidade-item
+            [modalidade]="modalidade"
+            [viewMode]="viewMode()"
+            (inativar)="onInativarModalidade($event)"
+          ></app-modalidade-item>
         }
       } @else {
         <span class="establishment-content-empty">Nenhuma modalidade cadastrada para este estabelecimento.</span>
@@ -192,7 +196,11 @@
     >
       @if (filteredUnidades().length) {
         @for (unidade of filteredUnidades(); track unidade.id) {
-          <app-unidade-item [unidade]="unidade" [viewMode]="viewMode()"></app-unidade-item>
+          <app-unidade-item
+            [unidade]="unidade"
+            [viewMode]="viewMode()"
+            (inativar)="onInativarUnidade($event)"
+          ></app-unidade-item>
         }
       } @else {
         <span class="establishment-content-empty">Nenhuma unidade cadastrada para este estabelecimento.</span>

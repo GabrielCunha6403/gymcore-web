@@ -28,7 +28,11 @@ export class WizardStepContent {
   }
 
   public isValid(): boolean {
-    return this.control?.valid ?? true;
+    if (!this.control) {
+      return true;
+    }
+
+    return this.control.disabled || this.control.valid;
   }
 
   public markAllAsTouched(): void {

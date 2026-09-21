@@ -148,6 +148,12 @@
   gap: 10px;
 }
 
+.wizard-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .wizard-action {
   min-height: 42px;
   display: inline-flex;
@@ -201,7 +207,8 @@
     flex-direction: column-reverse;
   }
 
-  .wizard-actions-left {
+  .wizard-actions-left,
+  .wizard-actions-right {
     flex-direction: column-reverse;
     width: 100%;
   }

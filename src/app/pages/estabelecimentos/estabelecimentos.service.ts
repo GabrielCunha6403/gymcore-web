@@ -27,4 +27,8 @@ export class EstabelecimentosService {
   updateEstabelecimento(idEstabelecimento: string, req: EstabelecimentoForm) {
     return this.http.put<{ message: string }>(`${environment.apiUrl}/estabelecimento?idEstabelecimento=${idEstabelecimento}`, req);
   }
+
+  inativarEstabelecimento(idEstabelecimento: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/estabelecimento/inativar?idEstabelecimento=${idEstabelecimento}`, {});
+  }
 }

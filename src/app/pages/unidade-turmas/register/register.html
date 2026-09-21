@@ -47,7 +47,10 @@
 
             <div class="form-field">
               <span>Professor <span class="required-mark">*</span></span>
-              <select formControlName="idProfessor">
+              <select
+                formControlName="idProfessor"
+                [disabled]="!turmaForm.controls.dadosTurma.controls.idUnidadeModalidade.value"
+              >
                 <option value="">Selecione</option>
                 @if (professoresLoading()) {
                   <option value="" disabled>Carregando professores...</option>
@@ -57,6 +60,11 @@
                   }
                 }
               </select>
+              @if (!turmaForm.controls.dadosTurma.controls.idUnidadeModalidade.value) {
+                <span class="form-helper">Selecione uma modalidade para ver os professores que atuam nela.</span>
+              } @else if (!professoresLoading() && !professores().length) {
+                <span class="form-helper">Nenhum professor atua nesta modalidade.</span>
+              }
               <app-error-message-control
                 [control]="turmaForm.controls.dadosTurma.controls.idProfessor"
                 [messages]="{
@@ -121,7 +129,7 @@
                   <select formControlName="diaSemana">
                     <option [ngValue]="null">Selecione</option>
                     @for (dia of diaSemanaOptions; track dia.value) {
-                      <option [value]="dia.value">{{ dia.label }}</option>
+                      <option [ngValue]="dia.value">{{ dia.label }}</option>
                     }
                   </select>
                   <app-error-message-control

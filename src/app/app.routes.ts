@@ -144,6 +144,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/unidade-modalidades/register/register').then((m) => m.UnidadeModalidadeRegister),
               },
               {
+                path: 'modalidades/edit/:idModalidade',
+                data: { breadcrumb: 'Editar modalidade' },
+                loadComponent: () => import('./pages/modalidades/register/register').then((m) => m.ModalidadeRegister),
+              },
+              {
                 path: 'planos/register',
                 data: { breadcrumb: 'Cadastrar plano' },
                 loadComponent: () => import('./pages/unidade-planos/register/register').then((m) => m.PlanoRegister),

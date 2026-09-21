@@ -33,4 +33,8 @@ export class UnidadePlanosService {
   updatePlanoUnidade(idPlanoUnidade: string, req: PlanoUnidadeForm) {
     return this.http.put<{ message: string }>(`${environment.apiUrl}/plano-unidade?idPlanoUnidade=${idPlanoUnidade}`, req);
   }
+
+  inativarPlanoUnidade(idPlanoUnidade: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/plano-unidade/inativar?idPlanoUnidade=${idPlanoUnidade}`, {});
+  }
 }

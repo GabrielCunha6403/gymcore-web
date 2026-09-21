@@ -19,4 +19,12 @@ export class UnidadeModalidadesService {
   vincularModalidade(req: UnidadeModalidadeForm) {
     return this.http.post(`${environment.apiUrl}/unidade-modalidade`, req);
   }
+
+  updateUnidadeModalidade(idUnidadeModalidade: string, req: UnidadeModalidadeForm) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/unidade-modalidade?idUnidadeModalidade=${idUnidadeModalidade}`, req);
+  }
+
+  inativarUnidadeModalidade(idUnidadeModalidade: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/unidade-modalidade/inativar?idUnidadeModalidade=${idUnidadeModalidade}`, {});
+  }
 }

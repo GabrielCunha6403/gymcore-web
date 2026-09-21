@@ -462,27 +462,25 @@
             <fieldset class="form-fieldset form-field--full">
               <legend>Modalidades</legend>
 
-              @if (isEditMode) {
-                <span class="form-helper">Os vínculos de modalidade não são editáveis por aqui.</span>
-              } @else if (selectedUnidade()) {
-                @if (modalidadesLoading()) {
-                  <span class="form-helper">Carregando modalidades da unidade...</span>
-                } @else if (modalidadesDaUnidade().length) {
-                  <div class="checkbox-grid">
-                    @for (modalidade of modalidadesDaUnidade(); track modalidade.id) {
-                      <label class="checkbox-option">
-                        <input
-                          type="checkbox"
-                          [checked]="isModalidadeSelected(modalidade.id)"
-                          (change)="toggleModalidade(modalidade.id, $any($event.target).checked)"
-                        >
-                        <span>{{ modalidade.modalidadeNome }}</span>
-                      </label>
-                    }
-                  </div>
-                } @else {
-                  <span class="form-helper">Nenhuma modalidade disponível para a unidade selecionada.</span>
-                }
+              @if (isEditMode && !unitScoped) {
+                <span class="form-helper">Os vínculos de modalidade só podem ser editados a partir da unidade do professor.</span>
+              } @else if (modalidadesLoading()) {
+                <span class="form-helper">Carregando modalidades da unidade...</span>
+              } @else if (modalidadesDaUnidade().length) {
+                <div class="checkbox-grid">
+                  @for (modalidade of modalidadesDaUnidade(); track modalidade.id) {
+                    <label class="checkbox-option">
+                      <input
+                        type="checkbox"
+                        [checked]="isModalidadeSelected(modalidade.id)"
+                        (change)="toggleModalidade(modalidade.id, $any($event.target).checked)"
+                      >
+                      <span>{{ modalidade.modalidadeNome }}</span>
+                    </label>
+                  }
+                </div>
+              } @else if (isEditMode || selectedUnidade()) {
+                <span class="form-helper">Nenhuma modalidade disponível para a unidade selecionada.</span>
               } @else {
                 <span class="form-helper">Selecione uma unidade para carregar as modalidades disponíveis.</span>
               }

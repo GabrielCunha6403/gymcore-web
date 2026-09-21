@@ -1,17 +1,32 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { EstabelecimentoViewMode, StatusEstabelecimento, TipoEstabelecimento, Unidade } from '../../../estabelecimentos/types/types';
+import { Modal } from '../../../../components/modal/modal';
 
 @Component({
   selector: 'app-unidade-item',
-  imports: [RouterLink],
+  imports: [RouterLink, Modal],
   templateUrl: './unidade-item.html',
   styleUrl: './unidade-item.scss',
 })
 export class UnidadeItem {
   readonly unidade = input.required<Unidade>();
   readonly viewMode = input<EstabelecimentoViewMode>('list');
+  readonly inativar = output<string>();
+
+  protected readonly confirmandoInativacao = signal(false);
+
+  protected onDeleteClick(event: Event): void {
+    event.stopPropagation();
+
+    this.confirmandoInativacao.set(true);
+  }
+
+  protected confirmInativar(): void {
+    this.confirmandoInativacao.set(false);
+    this.inativar.emit(this.unidade().id);
+  }
 
   readonly initials = computed(() => {
     const [firstWord = '', secondWord = ''] = this.unidade().nome.trim().split(/\s+/);

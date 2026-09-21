@@ -57,6 +57,7 @@
       <button
         class="entity-action entity-action--danger"
         type="button"
+        (click)="onDeleteClick($event)"
         [attr.aria-label]="'Deletar estabelecimento ' + estabelecimento().nomeFantasia"
       >
         <i class="pi pi-trash" aria-hidden="true"></i>
@@ -65,3 +66,14 @@
     </div>
   </div>
 </article>
+
+@if (confirmandoInativacao()) {
+  <app-modal title="Inativar estabelecimento" (closed)="confirmandoInativacao.set(false)">
+    <p>Deseja realmente inativar o estabelecimento "{{ estabelecimento().nomeFantasia }}"?</p>
+
+    <div class="app-modal-actions">
+      <button type="button" class="app-modal-btn" (click)="confirmandoInativacao.set(false)">Cancelar</button>
+      <button type="button" class="app-modal-btn app-modal-btn--danger" (click)="confirmInativar()">Confirmar</button>
+    </div>
+  </app-modal>
+}

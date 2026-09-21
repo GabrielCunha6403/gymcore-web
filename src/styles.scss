@@ -12,6 +12,40 @@ body {
   font-family: 'Nunito Sans', sans-serif;
 }
 
+.app-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.app-modal-btn {
+  border: 0;
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 0 18px;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.app-modal-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.app-modal-btn--danger {
+  background: #ff5c5c;
+  color: white;
+}
+
+.app-modal-btn--danger:hover {
+  background: #ff7373;
+}
+
 .title-area {
   display: flex;
   flex-direction: column;

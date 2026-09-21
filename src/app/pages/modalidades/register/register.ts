@@ -15,9 +15,11 @@ import { ErrorMessageControl } from '../../../components/error-message-control/e
 import { ToastService } from '../../../components/toast/toast.service';
 import { Wizard, WizardStepContent } from '../../../components/wizard/wizard';
 import { WizardStep } from '../../../components/wizard/types/types';
-import { Estabelecimento, ModalidadeForm } from '../../estabelecimentos/types/types';
+import { Estabelecimento, ModalidadeForm, Unidade, UnidadeModalidadeForm } from '../../estabelecimentos/types/types';
 import { EstabelecimentosService } from '../../estabelecimentos/estabelecimentos.service';
 import { ModalidadesService } from '../modalidades.service';
+import { UnidadesService } from '../../unidades/unidades.service';
+import { UnidadeModalidadesService } from '../../unidade-modalidades/unidade-modalidades.service';
 
 @Component({
   selector: 'app-modalidade-register',
@@ -33,17 +35,32 @@ export class ModalidadeRegister implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly modalidadesService = inject(ModalidadesService);
   private readonly estabelecimentosService = inject(EstabelecimentosService);
+  private readonly unidadesService = inject(UnidadesService);
+  private readonly unidadeModalidadesService = inject(UnidadeModalidadesService);
   private readonly estabelecimentoSearchTerms = new Subject<string>();
   private readonly idEstabelecimento = this.readEstabelecimentoId();
+  private readonly idUnidade = this.readRouteParam('idUnidade');
   private readonly idModalidade = this.readRouteParam('idModalidade');
+  private idUnidadeModalidade = '';
 
   protected readonly isEditMode = !!this.idModalidade;
   protected readonly isEstabelecimentoContext = !!this.idEstabelecimento || this.isEditMode;
-  protected readonly backLink = computed(() => (
-    this.idEstabelecimento ? ['/estabelecimentos', this.idEstabelecimento] : ['/modalidades']
-  ));
+  protected readonly unitScoped = !!this.idUnidade;
+  protected readonly backLink = computed(() => {
+    if (this.unitScoped) {
+      return ['/estabelecimentos', this.idEstabelecimento, this.idUnidade];
+    }
+
+    return this.idEstabelecimento ? ['/estabelecimentos', this.idEstabelecimento] : ['/modalidades'];
+  });
   protected readonly backQueryParams = computed(() => (
     this.idEstabelecimento ? { tab: 'modalidades' } : null
+  ));
+
+  protected readonly ofertaLoading = signal(false);
+  protected readonly unidade = signal<Unidade | null>(null);
+  protected readonly unidadeNome = computed(() => (
+    this.unidade()?.nome ?? (this.unitScoped ? `Unidade ${this.idUnidade}`.trim() : '-')
   ));
 
   protected readonly submitLoading = signal(false);
@@ -69,22 +86,44 @@ export class ModalidadeRegister implements OnInit {
       descricao: ['', [Validators.maxLength(1000)]],
       ativo: [true, [ModalidadeRegister.booleanRequiredValidator]],
     }),
+
+    oferta: this.fb.group({
+      capacidadePadrao: [null as number | null, [Validators.min(1)]],
+      descricao: ['', [Validators.maxLength(1000)]],
+      ativo: [true, [ModalidadeRegister.booleanRequiredValidator]],
+    }),
   });
 
-  public readonly registerSteps = signal<WizardStep[]>([
-    {
-      label: 'Dados da modalidade',
-      description: 'Preencha a identificação da modalidade oferecida pelo estabelecimento',
-      icon: 'pi pi-tags',
-      completed: false,
-    },
-    {
+  public readonly registerSteps = signal<WizardStep[]>(this.buildSteps());
+
+  private buildSteps(): WizardStep[] {
+    const steps: WizardStep[] = [
+      {
+        label: 'Dados da modalidade',
+        description: 'Preencha a identificação da modalidade oferecida pelo estabelecimento',
+        icon: 'pi pi-tags',
+        completed: false,
+      },
+    ];
+
+    if (this.unitScoped) {
+      steps.push({
+        label: 'Oferta',
+        description: 'Defina a capacidade, a descrição e o status desta modalidade na unidade',
+        icon: 'pi pi-sliders-h',
+        completed: false,
+      });
+    }
+
+    steps.push({
       label: 'Confirmação',
       description: 'Revise as informações antes de salvar o cadastro',
       icon: 'pi pi-check-circle',
       completed: false,
-    },
-  ]);
+    });
+
+    return steps;
+  }
 
   constructor() {
     this.estabelecimentoSearchTerms
@@ -146,6 +185,39 @@ export class ModalidadeRegister implements OnInit {
         this.estabelecimento.set(estabelecimento);
       });
     });
+
+    if (this.unitScoped) {
+      this.loadOfertaNaUnidade();
+    }
+  }
+
+  private loadOfertaNaUnidade(): void {
+    this.ofertaLoading.set(true);
+
+    this.unidadesService.getUnidadeById(this.idUnidade).subscribe((unidade) => {
+      this.unidade.set(unidade);
+    });
+
+    this.unidadeModalidadesService.getModalidadesVinculadas(this.idUnidade).subscribe({
+      next: (vinculos) => {
+        const vinculo = vinculos.find((item) => item.modalidadeId === this.idModalidade);
+
+        if (vinculo) {
+          this.idUnidadeModalidade = vinculo.id;
+          this.modalidadeForm.controls.oferta.patchValue({
+            capacidadePadrao: vinculo.capacidadePadrao ?? null,
+            descricao: vinculo.descricao ?? '',
+            ativo: vinculo.ativo,
+          });
+        }
+
+        this.ofertaLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar a oferta desta modalidade na unidade', error);
+        this.ofertaLoading.set(false);
+      },
+    });
   }
 
   protected updateEstabelecimentoSearch(value: string): void {
@@ -204,28 +276,60 @@ export class ModalidadeRegister implements OnInit {
     this.submitLoading.set(true);
     this.submitError.set('');
 
-    const request$ = this.isEditMode
-      ? this.modalidadesService.updateModalidade(this.idModalidade, this.toRequest())
-      : this.modalidadesService.registerModalidade(this.toRequest());
+    if (!this.isEditMode) {
+      this.modalidadesService.registerModalidade(this.toRequest()).subscribe({
+        next: () => this.onSaveSuccess(),
+        error: (error) => {
+          console.error('Erro ao salvar modalidade', error);
+          this.submitError.set('Não foi possível cadastrar a modalidade.');
+          this.submitLoading.set(false);
+        },
+      });
+      return;
+    }
 
-    request$.subscribe({
+    this.modalidadesService.updateModalidade(this.idModalidade, this.toRequest()).subscribe({
       next: () => {
-        this.toastService.success(this.isEditMode ? 'Modalidade atualizada com sucesso!' : 'Modalidade cadastrada com sucesso!');
-
-        if (this.idEstabelecimento) {
-          this.router.navigate(['/estabelecimentos', this.idEstabelecimento], {
-            queryParams: { tab: 'modalidades' },
-          });
-        } else {
-          this.router.navigate(['/modalidades']);
+        if (this.unitScoped && this.idUnidadeModalidade) {
+          this.updateOfertaNaUnidade();
+          return;
         }
+
+        this.onSaveSuccess();
       },
       error: (error) => {
         console.error('Erro ao salvar modalidade', error);
-        this.submitError.set(this.isEditMode ? 'Não foi possível atualizar a modalidade.' : 'Não foi possível cadastrar a modalidade.');
+        this.submitError.set('Não foi possível atualizar a modalidade.');
         this.submitLoading.set(false);
       },
     });
+  }
+
+  private updateOfertaNaUnidade(): void {
+    this.unidadeModalidadesService.updateUnidadeModalidade(this.idUnidadeModalidade, this.toOfertaRequest()).subscribe({
+      next: () => this.onSaveSuccess(),
+      error: (error) => {
+        console.error('Erro ao atualizar a oferta desta modalidade na unidade', error);
+        this.submitError.set('A modalidade foi atualizada, mas não foi possível atualizar a oferta desta unidade.');
+        this.submitLoading.set(false);
+      },
+    });
+  }
+
+  private onSaveSuccess(): void {
+    this.toastService.success(this.isEditMode ? 'Modalidade atualizada com sucesso!' : 'Modalidade cadastrada com sucesso!');
+
+    if (this.unitScoped) {
+      this.router.navigate(['/estabelecimentos', this.idEstabelecimento, this.idUnidade], {
+        queryParams: { tab: 'modalidades' },
+      });
+    } else if (this.idEstabelecimento) {
+      this.router.navigate(['/estabelecimentos', this.idEstabelecimento], {
+        queryParams: { tab: 'modalidades' },
+      });
+    } else {
+      this.router.navigate(['/modalidades']);
+    }
   }
 
   public displayValue(value: unknown): string {
@@ -248,6 +352,18 @@ export class ModalidadeRegister implements OnInit {
       nome: dadosGerais.nome ?? '',
       descricao: dadosGerais.descricao || undefined,
       ativo: dadosGerais.ativo ?? true,
+    };
+  }
+
+  private toOfertaRequest(): UnidadeModalidadeForm {
+    const { oferta } = this.modalidadeForm.getRawValue();
+
+    return {
+      idUnidade: this.idUnidade,
+      idModalidade: this.idModalidade,
+      descricao: oferta.descricao || undefined,
+      capacidadePadrao: oferta.capacidadePadrao ?? undefined,
+      ativo: oferta.ativo ?? true,
     };
   }
 

@@ -98,12 +98,17 @@
   outline: none;
 }
 
+.form-field select option {
+  color: var(--secondary-color);
+}
+
 .form-field input,
 .form-field select {
   min-height: 44px;
 }
 
-.form-field input:disabled {
+.form-field input:disabled,
+.form-field select:disabled {
   cursor: not-allowed;
   opacity: 0.62;
 }

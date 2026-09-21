@@ -41,6 +41,10 @@ export class AlunosService {
     return this.http.put<{ message: string }>(`${environment.apiUrl}/aluno?idAluno=${idAluno}`, req);
   }
 
+  inativarAluno(idAluno: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/aluno/inativar?idAluno=${idAluno}`, {});
+  }
+
   getMensalidades(idAluno: string) {
     const params = new HttpParams().set('idAluno', idAluno);
 

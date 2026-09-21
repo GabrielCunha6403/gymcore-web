@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { Modal } from '../../components/modal/modal';
+import { ToastService } from '../../components/toast/toast.service';
 import {
   Estabelecimento,
   StatusEstabelecimento,
@@ -53,6 +55,7 @@ interface TabMetric {
 
 interface TabItem {
   id?: string;
+  linkId?: string;
   title: string;
   subtitle: string;
   meta: string;
@@ -68,12 +71,19 @@ interface TabContent {
   items: TabItem[];
 }
 
+interface ConfirmDeleteState {
+  title: string;
+  message: string;
+  onConfirm: () => void;
+}
+
 @Component({
   selector: 'app-unidade-page',
   imports: [
     Breadcrumb,
     RouterLink,
     ReactiveFormsModule,
+    Modal,
   ],
   templateUrl: './unidade-page.html',
   styleUrl: './unidade-page.scss',
@@ -88,6 +98,7 @@ export class UnidadePage implements OnInit {
   private readonly unidadeHorarioFuncionamentoService = inject(UnidadeHorarioFuncionamentoService);
   private readonly professoresService = inject(ProfessoresService);
   private readonly alunosService = inject(AlunosService);
+  private readonly toastService = inject(ToastService);
   readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   readonly idUnidade = this.getRouteParam('idUnidade');
 
@@ -194,6 +205,7 @@ export class UnidadePage implements OnInit {
       ],
       items: vinculos.map((vinculo) => ({
         id: vinculo.modalidadeId,
+        linkId: vinculo.id,
         title: vinculo.modalidadeNome,
         subtitle: vinculo.descricao || vinculo.modalidadeDescricao || 'Sem descrição',
         meta: vinculo.capacidadePadrao != null
@@ -223,6 +235,7 @@ export class UnidadePage implements OnInit {
       ],
       items: vinculos.map((vinculo) => ({
         id: vinculo.id,
+        linkId: vinculo.id,
         title: vinculo.nomeExibicao || vinculo.planoNome,
         subtitle: vinculo.descricao || vinculo.planoDescricao || 'Sem descrição',
         meta: vinculo.tipoCobranca
@@ -293,6 +306,7 @@ export class UnidadePage implements OnInit {
   readonly shouldShowRecordAvatar = computed(() => (
     this.activeTab() === 'professores' || this.activeTab() === 'alunos'
   ));
+  readonly confirmDeleteState = signal<ConfirmDeleteState | null>(null);
 
   ngOnInit(): void {
     const tabParam = this.route.snapshot.queryParamMap.get('tab') as UnidadeTabId | null;
@@ -371,6 +385,105 @@ export class UnidadePage implements OnInit {
       error: (error) => {
         console.error('Erro ao buscar planos da unidade', error);
         this.planosLoading.set(false);
+      },
+    });
+  }
+
+  protected onDeleteClick(item: TabItem): void {
+    if (!item.id) {
+      return;
+    }
+
+    const tab = this.activeTab();
+
+    if (tab === 'professores') {
+      this.desligarProfessorDaUnidade(item);
+      return;
+    }
+
+    if (tab === 'modalidades') {
+      this.inativarModalidadeNaUnidade(item);
+      return;
+    }
+
+    if (tab === 'planos') {
+      this.inativarPlanoNaUnidade(item);
+    }
+  }
+
+  protected confirmPendingDelete(): void {
+    const state = this.confirmDeleteState();
+
+    if (!state) {
+      return;
+    }
+
+    this.confirmDeleteState.set(null);
+    state.onConfirm();
+  }
+
+  private desligarProfessorDaUnidade(item: TabItem): void {
+    this.confirmDeleteState.set({
+      title: 'Desligar professor',
+      message: `Deseja realmente desligar "${item.title}" desta unidade?`,
+      onConfirm: () => {
+        this.professoresService.desligarProfessorDaUnidade(item.id!, this.idUnidade).subscribe({
+          next: () => {
+            this.toastService.success('Professor desligado da unidade com sucesso!');
+            this.loadProfessores();
+          },
+          error: (error) => {
+            console.error('Erro ao desligar professor da unidade', error);
+          },
+        });
+      },
+    });
+  }
+
+  private inativarModalidadeNaUnidade(item: TabItem): void {
+    const idVinculo = item.linkId ?? item.id;
+
+    if (!idVinculo) {
+      return;
+    }
+
+    this.confirmDeleteState.set({
+      title: 'Inativar modalidade',
+      message: `Deseja realmente inativar a oferta de "${item.title}" nesta unidade?`,
+      onConfirm: () => {
+        this.unidadeModalidadesService.inativarUnidadeModalidade(idVinculo).subscribe({
+          next: () => {
+            this.toastService.success('Oferta de modalidade inativada com sucesso!');
+            this.loadUnidadeModalidades();
+          },
+          error: (error) => {
+            console.error('Erro ao inativar oferta de modalidade', error);
+          },
+        });
+      },
+    });
+  }
+
+  private inativarPlanoNaUnidade(item: TabItem): void {
+    const idVinculo = item.linkId ?? item.id;
+
+    if (!idVinculo) {
+      return;
+    }
+
+    this.confirmDeleteState.set({
+      title: 'Inativar plano',
+      message: `Deseja realmente inativar a oferta de "${item.title}" nesta unidade?`,
+      onConfirm: () => {
+        this.unidadePlanosService.inativarPlanoUnidade(idVinculo).subscribe({
+          next: () => {
+            this.toastService.success('Oferta de plano inativada com sucesso!');
+            this.loadPlanos();
+          },
+          error: (error) => {
+            console.error('Erro ao inativar oferta de plano', error);
+          },
+        });
       },
     });
   }
@@ -508,8 +621,12 @@ export class UnidadePage implements OnInit {
     const abreviacoes: Record<number, string> = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 7: 'Dom' };
 
     return horarios
-      .map((horario) => `${abreviacoes[horario.diaSemana] ?? horario.diaSemana} ${horario.horaInicio}-${horario.horaFim}`)
+      .map((horario) => `${abreviacoes[horario.diaSemana] ?? horario.diaSemana} ${this.formatHora(horario.horaInicio)}-${this.formatHora(horario.horaFim)}`)
       .join(', ');
+  }
+
+  formatHora(value: string | null | undefined): string {
+    return value?.slice(0, 5) ?? '';
   }
 
   formatType(tipo: TipoEstabelecimento): string {

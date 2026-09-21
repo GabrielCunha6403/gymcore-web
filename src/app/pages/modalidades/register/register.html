@@ -8,7 +8,9 @@
 
   <div class="title-area">
     <h1>{{ isEditMode ? 'Editar modalidade' : 'Cadastrar modalidade' }}</h1>
-    @if (isEstabelecimentoContext) {
+    @if (unitScoped) {
+      <span>Edite os dados da modalidade e a oferta dela na unidade {{ unidadeNome() }}.</span>
+    } @else if (isEstabelecimentoContext) {
       <span>Preencha os dados da modalidade para vinculá-la ao estabelecimento {{ estabelecimentoNome() }}.</span>
     } @else {
       <span>Selecione o estabelecimento e preencha os dados da modalidade a ser cadastrada.</span>
@@ -149,6 +151,63 @@
           </div>
         </section>
 
+        @if (unitScoped) {
+          <section
+            appWizardStep
+            class="modalidade-register-step"
+            [formGroup]="modalidadeForm.controls.oferta"
+          >
+            <div class="form-grid">
+              <div class="form-field form-field--full">
+                <span>Unidade</span>
+                <input type="text" [value]="unidadeNome()" disabled>
+              </div>
+
+              <div class="form-field">
+                <span>Capacidade padrão</span>
+                <input
+                  type="number"
+                  formControlName="capacidadePadrao"
+                  inputmode="numeric"
+                  min="1"
+                  placeholder="Ex.: 20"
+                >
+                <app-error-message-control
+                  [control]="modalidadeForm.controls.oferta.controls.capacidadePadrao"
+                  [messages]="{
+                    min: '* Capacidade deve ser maior que zero'
+                  }"
+                ></app-error-message-control>
+              </div>
+
+              <div class="form-field form-field--inline">
+                <input type="checkbox" formControlName="ativo">
+                <span>Oferta ativa nesta unidade</span>
+                <app-error-message-control
+                  [control]="modalidadeForm.controls.oferta.controls.ativo"
+                  [message]="'* Status da oferta inválido'"
+                ></app-error-message-control>
+              </div>
+
+              <div class="form-field form-field--full">
+                <span>Descrição específica desta unidade</span>
+                <textarea
+                  formControlName="descricao"
+                  maxlength="1000"
+                  rows="4"
+                  placeholder="Opcional — se vazio, a descrição da modalidade será utilizada"
+                ></textarea>
+                <app-error-message-control
+                  [control]="modalidadeForm.controls.oferta.controls.descricao"
+                  [messages]="{
+                    maxlength: '* Descrição deve ter no máximo 1000 caracteres'
+                  }"
+                ></app-error-message-control>
+              </div>
+            </div>
+          </section>
+        }
+
         <section appWizardStep class="modalidade-register-step">
           <div class="confirmation-grid">
             <div class="confirmation-group">
@@ -172,6 +231,30 @@
                 </div>
               </dl>
             </div>
+
+            @if (unitScoped) {
+              <div class="confirmation-group">
+                <h3>Oferta na unidade</h3>
+                <dl>
+                  <div>
+                    <dt>Unidade</dt>
+                    <dd>{{ unidadeNome() }}</dd>
+                  </div>
+                  <div>
+                    <dt>Capacidade padrão</dt>
+                    <dd>{{ displayValue(modalidadeForm.controls.oferta.controls.capacidadePadrao.value) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Descrição</dt>
+                    <dd>{{ displayValue(modalidadeForm.controls.oferta.controls.descricao.value) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{{ displayBoolean(modalidadeForm.controls.oferta.controls.ativo.value) }}</dd>
+                  </div>
+                </dl>
+              </div>
+            }
           </div>
 
           @if (submitError()) {

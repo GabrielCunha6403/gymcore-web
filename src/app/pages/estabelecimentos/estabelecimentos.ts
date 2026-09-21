@@ -2,6 +2,7 @@ import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { ToastService } from '../../components/toast/toast.service';
 import { EstabelecimentoItem } from './components/estabelecimento-item/estabelecimento-item';
 import { Estabelecimento, EstabelecimentoViewMode } from './types/types';
 import {EstabelecimentosService} from './estabelecimentos.service';
@@ -22,6 +23,7 @@ export class Estabelecimentos implements OnInit{
   readonly filteredEstabelecimentos = signal<Estabelecimento[]>([]);
 
   private readonly estabelecimentoService = inject(EstabelecimentosService);
+  private readonly toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.listEstabelecimentos(this.filterValue());
@@ -43,5 +45,17 @@ export class Estabelecimentos implements OnInit{
 
   clearFilter(): void {
     this.filterValue.set('');
+  }
+
+  onInativarEstabelecimento(idEstabelecimento: string): void {
+    this.estabelecimentoService.inativarEstabelecimento(idEstabelecimento).subscribe({
+      next: () => {
+        this.toastService.success('Estabelecimento inativado com sucesso!');
+        this.listEstabelecimentos(this.filterValue());
+      },
+      error: (error) => {
+        console.error('Erro ao inativar estabelecimento', error);
+      },
+    });
   }
 }

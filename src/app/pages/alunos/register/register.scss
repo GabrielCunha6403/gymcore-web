@@ -1,5 +1,17 @@
 @use '../../professores/register/register.scss';
 
+.date-today-button {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--primary-color);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .submit-error {
   display: block;
   margin-top: 16px;

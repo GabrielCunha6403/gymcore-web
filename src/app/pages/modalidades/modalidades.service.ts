@@ -39,4 +39,8 @@ export class ModalidadesService {
   getEstabelecimento(idEstabelecimento: string) {
     return this.http.get<Estabelecimento>(`${environment.apiUrl}/estabelecimento/getEstabelecimentoById?idEstabelecimento=${idEstabelecimento}`);
   }
+
+  inativarModalidade(idModalidade: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/modalidade/inativar?idModalidade=${idModalidade}`, {});
+  }
 }

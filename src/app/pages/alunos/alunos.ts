@@ -2,20 +2,24 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { Modal } from '../../components/modal/modal';
+import { ToastService } from '../../components/toast/toast.service';
 import { AlunosService } from './alunos.service';
 import { Aluno, AlunoListagemDto, AlunoStatus, AlunoUnidade, MatriculaStatus } from './types';
 
 @Component({
   selector: 'app-alunos',
-  imports: [Breadcrumb, RouterLink],
+  imports: [Breadcrumb, RouterLink, Modal],
   templateUrl: './alunos.html',
   styleUrl: './alunos.scss',
 })
 export class Alunos implements OnInit {
   private readonly alunosService = inject(AlunosService);
+  private readonly toastService = inject(ToastService);
 
   readonly filteredAlunos = signal<Aluno[]>([]);
   readonly filterValue = signal('');
+  readonly alunoParaInativar = signal<Aluno | null>(null);
 
   ngOnInit(): void {
     this.getAlunos('');
@@ -61,6 +65,30 @@ export class Alunos implements OnInit {
 
   hiddenCount(values: unknown[]): number {
     return Math.max(values.length - 1, 0);
+  }
+
+  onInativarAluno(aluno: Aluno): void {
+    this.alunoParaInativar.set(aluno);
+  }
+
+  confirmInativarAluno(): void {
+    const aluno = this.alunoParaInativar();
+
+    if (!aluno) {
+      return;
+    }
+
+    this.alunoParaInativar.set(null);
+
+    this.alunosService.inativarAluno(aluno.id).subscribe({
+      next: () => {
+        this.toastService.success('Aluno inativado com sucesso!');
+        this.getAlunos(this.filterValue());
+      },
+      error: (error) => {
+        console.error('Erro ao inativar aluno', error);
+      },
+    });
   }
 
   private toAluno(dto: AlunoListagemDto): Aluno {

@@ -338,6 +338,17 @@ export class AlunoRegister {
     this.searchUnidades('');
   }
 
+  protected setDataInicioHoje(): void {
+    const matricula = this.alunoForm.controls.matricula.controls;
+    const now = new Date();
+    const ano = now.getFullYear();
+    const mes = String(now.getMonth() + 1).padStart(2, '0');
+    const dia = String(now.getDate()).padStart(2, '0');
+
+    matricula.dataInicio.setValue(`${ano}-${mes}-${dia}` as unknown as Date);
+    matricula.dataInicio.markAsTouched();
+  }
+
   protected closeEstabelecimentoDropdown(): void {
     this.alunoForm.controls.matricula.controls.estabelecimentoId.markAsTouched();
     this.estabelecimentoDropdownOpen.set(false);

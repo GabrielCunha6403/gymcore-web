@@ -49,4 +49,22 @@ export class ProfessoresService {
 
     return this.http.get<ProfessorListagemDto[]>(`${environment.apiUrl}/professor/porUnidade`, { params });
   }
+
+  getProfessoresPorUnidadeModalidade(idUnidadeModalidade: string) {
+    const params = new HttpParams().set('idUnidadeModalidade', idUnidadeModalidade);
+
+    return this.http.get<ProfessorListagemDto[]>(`${environment.apiUrl}/professor/porUnidadeModalidade`, { params });
+  }
+
+  inativarProfessor(idProfessor: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/professor/inativar?idProfessor=${idProfessor}`, {});
+  }
+
+  desligarProfessorDaUnidade(idProfessor: string, idUnidade: string) {
+    const params = new HttpParams()
+      .set('idProfessor', idProfessor)
+      .set('idUnidade', idUnidade);
+
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/professor/desligar`, {}, { params });
+  }
 }

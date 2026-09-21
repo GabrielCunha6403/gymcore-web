@@ -73,7 +73,11 @@
   <div class="establishment-content" [class.establishment-content--cards]="viewMode() === 'cards'">
     @if (filteredEstabelecimentos().length) {
       @for (establishment of filteredEstabelecimentos(); track establishment.id + '-' + $index) {
-        <app-estabelecimento-item [estabelecimento]="establishment" [viewMode]="viewMode()"></app-estabelecimento-item>
+        <app-estabelecimento-item
+          [estabelecimento]="establishment"
+          [viewMode]="viewMode()"
+          (inativar)="onInativarEstabelecimento($event)"
+        ></app-estabelecimento-item>
       }
     } @else {
       <span class="establishment-content-empty">Nenhum estabelecimento encontrado para o filtro informado.</span>

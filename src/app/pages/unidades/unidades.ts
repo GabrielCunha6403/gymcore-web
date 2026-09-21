@@ -2,6 +2,7 @@ import {Component, computed, inject, OnInit, signal} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { ToastService } from '../../components/toast/toast.service';
 import { Estabelecimento, EstabelecimentoViewMode, Modalidade, Unidade } from '../estabelecimentos/types/types';
 import { ModalidadeItem } from '../modalidades/components/modalidade-item/modalidade-item';
 import { ModalidadesService } from '../modalidades/modalidades.service';
@@ -32,6 +33,7 @@ export class Unidades implements OnInit{
   private readonly idEstabelecimento = this.getRouteParam('idEstabelecimento');
   private readonly unidadesService = inject(UnidadesService);
   private readonly modalidadesService = inject(ModalidadesService);
+  private readonly toastService = inject(ToastService);
 
   readonly tabs: EstabelecimentoDetailTab[] = [
     { id: 'unidades', label: 'Unidades', icon: 'pi-sitemap' },
@@ -108,6 +110,30 @@ export class Unidades implements OnInit{
 
   clearFilter(): void {
     this.filterValue.set('');
+  }
+
+  onInativarUnidade(idUnidade: string): void {
+    this.unidadesService.inativarUnidade(idUnidade).subscribe({
+      next: () => {
+        this.toastService.success('Unidade inativada com sucesso!');
+        this.getUnidades(this.filterValue());
+      },
+      error: (error) => {
+        console.error('Erro ao inativar unidade', error);
+      },
+    });
+  }
+
+  onInativarModalidade(idModalidade: string): void {
+    this.modalidadesService.inativarModalidade(idModalidade).subscribe({
+      next: () => {
+        this.toastService.success('Modalidade inativada com sucesso!');
+        this.getModalidades(this.filterValue());
+      },
+      error: (error) => {
+        console.error('Erro ao inativar modalidade', error);
+      },
+    });
   }
 
   private getRouteParam(paramName: string): string {

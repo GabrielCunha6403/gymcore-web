@@ -33,4 +33,8 @@ export class UnidadesService {
   getUnidadeById(idUnidade: string) {
     return this.http.get<Unidade>(`${environment.apiUrl}/unidade/getUnidadeById?idUnidade=${idUnidade}`);
   }
+
+  inativarUnidade(idUnidade: string) {
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/unidade/inativar?idUnidade=${idUnidade}`, {});
+  }
 }

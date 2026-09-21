@@ -418,6 +418,7 @@
             <div class="form-field">
               <span>Data de início <span class="required-mark">*</span></span>
               <input type="date" formControlName="dataInicio">
+              <button type="button" class="date-today-button" (click)="setDataInicioHoje()">Data atual</button>
               <app-error-message-control
                 [control]="alunoForm.controls.matricula.controls.dataInicio"
                 [messages]="{

@@ -332,6 +332,14 @@
   }
 }
 
+.teacher-action--danger {
+  color: #ff9b9b;
+
+  &:hover {
+    color: #ff9b9b;
+  }
+}
+
 .teacher-back-link {
   display: inline-flex;
   align-items: center;

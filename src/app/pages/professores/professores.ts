@@ -2,21 +2,25 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Breadcrumb } from '../../components/breadcrumb/breadcrumb';
+import { Modal } from '../../components/modal/modal';
+import { ToastService } from '../../components/toast/toast.service';
 import { FirstOrDefaultPipe } from '../../pipes/first-or-default';
 import { ProfessoresService } from './professores.service';
 import { Professor, ProfessorListagemDto, ProfessorStatus } from './types/types';
 
 @Component({
   selector: 'app-professores',
-  imports: [Breadcrumb, RouterLink, FirstOrDefaultPipe],
+  imports: [Breadcrumb, RouterLink, FirstOrDefaultPipe, Modal],
   templateUrl: './professores.html',
   styleUrl: './professores.scss',
 })
 export class Professores implements OnInit {
   private readonly professoresService = inject(ProfessoresService);
+  private readonly toastService = inject(ToastService);
 
   readonly filteredProfessores = signal<Professor[]>([]);
   readonly filterValue = signal('');
+  readonly professorParaInativar = signal<Professor | null>(null);
 
   ngOnInit(): void {
     this.getProfessores('');
@@ -52,6 +56,30 @@ export class Professores implements OnInit {
 
   hiddenCount(values: unknown[]): number {
     return Math.max(values.length - 1, 0);
+  }
+
+  onInativarProfessor(professor: Professor): void {
+    this.professorParaInativar.set(professor);
+  }
+
+  confirmInativarProfessor(): void {
+    const professor = this.professorParaInativar();
+
+    if (!professor) {
+      return;
+    }
+
+    this.professorParaInativar.set(null);
+
+    this.professoresService.inativarProfessor(professor.id).subscribe({
+      next: () => {
+        this.toastService.success('Professor inativado com sucesso!');
+        this.getProfessores(this.filterValue());
+      },
+      error: (error) => {
+        console.error('Erro ao inativar professor', error);
+      },
+    });
   }
 
   private toProfessor(dto: ProfessorListagemDto): Professor {

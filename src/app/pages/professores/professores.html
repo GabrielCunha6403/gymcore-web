@@ -173,6 +173,15 @@
                   >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                   </button>
+
+                  <button
+                    class="teacher-action teacher-action--danger"
+                    type="button"
+                    (click)="onInativarProfessor(professor)"
+                    [attr.aria-label]="'Inativar professor ' + professor.nome"
+                  >
+                    <i class="pi pi-trash" aria-hidden="true"></i>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -186,3 +195,14 @@
     </table>
   </div>
 </div>
+
+@if (professorParaInativar(); as professor) {
+  <app-modal title="Inativar professor" (closed)="professorParaInativar.set(null)">
+    <p>Deseja realmente inativar o professor "{{ professor.nome }}"?</p>
+
+    <div class="app-modal-actions">
+      <button type="button" class="app-modal-btn" (click)="professorParaInativar.set(null)">Cancelar</button>
+      <button type="button" class="app-modal-btn app-modal-btn--danger" (click)="confirmInativarProfessor()">Confirmar</button>
+    </div>
+  </app-modal>
+}
