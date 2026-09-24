@@ -29,4 +29,10 @@ export class UnidadeTurmasService {
   registerTurma(req: TurmaForm) {
     return this.http.post<{ message: string; turmaId: string }>(`${environment.apiUrl}/turma`, req);
   }
+
+  updateTurma(idTurma: string, req: TurmaForm) {
+    const params = new HttpParams().set('idTurma', idTurma);
+
+    return this.http.put<{ message: string }>(`${environment.apiUrl}/turma`, req, { params });
+  }
 }

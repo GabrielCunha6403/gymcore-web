@@ -377,6 +377,15 @@
                       <i class="pi pi-pencil" aria-hidden="true"></i>
                       <span>Editar</span>
                     </a>
+                  } @else if (activeTab() === 'turmas' && item.id) {
+                    <a
+                      class="entity-action"
+                      [routerLink]="['/estabelecimentos', idEstabelecimento, idUnidade, 'turmas', 'edit', item.id]"
+                      [attr.aria-label]="'Editar turma ' + item.title"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                      <span>Editar</span>
+                    </a>
                   } @else {
                     <button
                       class="entity-action"

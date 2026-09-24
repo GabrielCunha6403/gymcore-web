@@ -164,6 +164,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/unidade-turmas/register/register').then((m) => m.TurmaRegister),
               },
               {
+                path: 'turmas/edit/:idTurma',
+                data: { breadcrumb: 'Editar turma' },
+                loadComponent: () => import('./pages/unidade-turmas/register/register').then((m) => m.TurmaRegister),
+              },
+              {
                 path: 'turma/:idTurma',
                 data: { breadcrumb: 'Turma' },
                 loadComponent: () => import('./pages/unidade-turmas/detail/detail').then((m) => m.TurmaDetail),

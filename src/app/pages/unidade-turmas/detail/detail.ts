@@ -31,6 +31,7 @@ export class TurmaDetail implements OnInit {
   protected readonly turma = signal<Turma | null>(null);
   protected readonly alunos = signal<TurmaAluno[]>([]);
   protected readonly alunosLoading = signal(true);
+  protected readonly editLink = ['/estabelecimentos', this.idEstabelecimento, this.idUnidade, 'turmas', 'edit', this.idTurma];
 
   protected readonly backLink = computed(() => (
     this.idEstabelecimento && this.idUnidade

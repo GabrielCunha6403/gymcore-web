@@ -7,8 +7,12 @@
   </a>
 
   <div class="title-area">
-    <h1>Cadastrar turma</h1>
-    <span>Cadastre uma turma da unidade {{ unidadeNome() }}, vinculando modalidade, professor e horários.</span>
+    <h1>{{ isEditMode ? 'Editar turma' : 'Cadastrar turma' }}</h1>
+    @if (isEditMode) {
+      <span>Edite os dados da turma da unidade {{ unidadeNome() }}: modalidade, professor e horários.</span>
+    } @else {
+      <span>Cadastre uma turma da unidade {{ unidadeNome() }}, vinculando modalidade, professor e horários.</span>
+    }
   </div>
 
   <div class="register-container">
@@ -238,7 +242,11 @@
               [disabled]="turmaForm.invalid || horariosArray.length === 0 || submitLoading()"
             >
               <i class="pi pi-check" aria-hidden="true"></i>
-              <span>{{ submitLoading() ? 'Cadastrando...' : 'Cadastrar turma' }}</span>
+              <span>
+                {{ submitLoading()
+                  ? (isEditMode ? 'Salvando...' : 'Cadastrando...')
+                  : (isEditMode ? 'Salvar alterações' : 'Cadastrar turma') }}
+              </span>
             </button>
           </div>
         </section>

@@ -13,9 +13,19 @@
         <span>{{ turma.modalidadeNome }} · Professor: {{ turma.professorNome }}</span>
       </div>
 
-      <span class="turma-status" [class.turma-status--inactive]="!turma.ativo">
-        {{ turma.ativo ? 'Ativa' : 'Inativa' }}
-      </span>
+      <div class="turma-header-badges">
+        <span class="turma-status" [class.turma-status--inactive]="!turma.ativo">
+          {{ turma.ativo ? 'Ativa' : 'Inativa' }}
+        </span>
+
+        <a
+          class="entity-action entity-action-icon-only"
+          [routerLink]="editLink"
+          [attr.aria-label]="'Editar turma ' + turma.nome"
+        >
+          <i class="pi pi-pencil" aria-hidden="true"></i>
+        </a>
+      </div>
     </div>
 
     <div class="turma-details">

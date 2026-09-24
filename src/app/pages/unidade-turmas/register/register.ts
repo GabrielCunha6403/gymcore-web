@@ -57,7 +57,9 @@ export class TurmaRegister implements OnInit {
 
   private readonly idEstabelecimento = this.readRouteParam('idEstabelecimento');
   private readonly idUnidade = this.readRouteParam('idUnidade');
+  private readonly idTurma = this.readRouteParam('idTurma');
 
+  protected readonly isEditMode = !!this.idTurma;
   protected readonly backLink = ['/estabelecimentos', this.idEstabelecimento, this.idUnidade];
   protected readonly backQueryParams = { tab: 'turmas' };
 
@@ -120,6 +122,14 @@ export class TurmaRegister implements OnInit {
       this.unidade.set(res);
     });
 
+    this.loadModalidadesDaUnidade();
+
+    if (this.isEditMode) {
+      this.loadTurmaParaEdicao();
+    }
+  }
+
+  private loadModalidadesDaUnidade(): void {
     this.unidadeModalidadesService.getModalidadesVinculadas(this.idUnidade).subscribe({
       next: (res) => {
         this.modalidades.set(res.filter((modalidade) => modalidade.ativo));
@@ -129,6 +139,35 @@ export class TurmaRegister implements OnInit {
         console.error('Erro ao buscar modalidades da unidade', error);
         this.modalidades.set([]);
         this.modalidadesLoading.set(false);
+      },
+    });
+  }
+
+  private loadTurmaParaEdicao(): void {
+    this.unidadeTurmasService.getTurmaById(this.idTurma).subscribe({
+      next: (turma) => {
+        this.turmaForm.controls.dadosTurma.patchValue({
+          idUnidadeModalidade: turma.unidadeModalidadeId,
+          idProfessor: turma.professorId,
+          nome: turma.nome,
+          capacidade: turma.capacidade ?? null,
+          ativo: turma.ativo,
+        });
+
+        this.loadProfessores(turma.unidadeModalidadeId);
+
+        this.horariosArray.clear();
+        turma.horarios.forEach((horario) => {
+          this.horariosArray.push(this.fb.group({
+            diaSemana: [horario.diaSemana, [Validators.required]],
+            horaInicio: [horario.horaInicio, [Validators.required]],
+            horaFim: [horario.horaFim, [Validators.required]],
+          }));
+        });
+      },
+      error: (error) => {
+        console.error('Erro ao buscar turma para edição', error);
+        this.submitError.set('Não foi possível carregar os dados da turma.');
       },
     });
   }
@@ -200,16 +239,22 @@ export class TurmaRegister implements OnInit {
     this.submitLoading.set(true);
     this.submitError.set('');
 
-    this.unidadeTurmasService.registerTurma(this.toRequest()).subscribe({
+    const request = this.isEditMode
+      ? this.unidadeTurmasService.updateTurma(this.idTurma, this.toRequest())
+      : this.unidadeTurmasService.registerTurma(this.toRequest());
+
+    request.subscribe({
       next: () => {
-        this.toastService.success('Turma cadastrada com sucesso!');
+        this.toastService.success(this.isEditMode ? 'Turma atualizada com sucesso!' : 'Turma cadastrada com sucesso!');
         this.router.navigate(['/estabelecimentos', this.idEstabelecimento, this.idUnidade], {
           queryParams: { tab: 'turmas' },
         });
       },
       error: (error) => {
-        console.error('Erro ao cadastrar turma', error);
-        this.submitError.set(error?.error?.message ?? 'Não foi possível cadastrar a turma.');
+        console.error(this.isEditMode ? 'Erro ao atualizar turma' : 'Erro ao cadastrar turma', error);
+        this.submitError.set(
+          error?.error?.message ?? (this.isEditMode ? 'Não foi possível atualizar a turma.' : 'Não foi possível cadastrar a turma.'),
+        );
         this.submitLoading.set(false);
       },
     });
